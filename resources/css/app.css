@@ -2,29 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme toggle button styles */
-.theme-toggle {
-    @apply btn btn-ghost btn-circle;
-}
 
-.theme-toggle svg {
-    @apply h-5 w-5;
-    display: none;
-}
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
 
-/* Show/hide icons based on theme */
-.theme-toggle .sun-icon {
-    display: none;
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
 }
-
-.theme-toggle .moon-icon {
-    display: block;
-}
-
-[data-theme='dark'] .theme-toggle .sun-icon {
-    display: block;
-}
-
-[data-theme='dark'] .theme-toggle .moon-icon {
-    display: none;
-}
+@plugin "daisyui";
