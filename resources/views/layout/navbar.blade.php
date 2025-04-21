@@ -119,7 +119,7 @@
                                 <div tabindex="0" role="button" class="btn btn-ghost rounded-btn px-1.5">
                                     <div class="flex items-center gap-2">
                                         <div class="avatar">
-                                            <div class="bg-base-200 mask mask-squircle w-8"><img alt="Avatar" src="/images/avatars/1.png" /></div>
+                                            <div class="bg-base-200 mask mask-squircle w-8"><img alt="Avatar" src="{{ asset('images/image.png') }}" /></div>
                                         </div>
                                         <div class="-space-y-0.5 text-start">
                                             <p class="text-sm">Denish</p>

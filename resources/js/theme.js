@@ -17,17 +17,20 @@ const applyTheme = (theme) => {
     localStorage.setItem(THEME_KEY, theme);
 };
 
+// Toggle theme function
+const toggleTheme = () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === LIGHT_THEME ? DARK_THEME : LIGHT_THEME;
+    applyTheme(newTheme);
+};
+
 // Initialize theme system
 const initializeTheme = () => {
     // Apply initial theme
     applyTheme(getTheme());
 
     // Add toggle function to window
-    window.toggleTheme = () => {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === LIGHT_THEME ? DARK_THEME : LIGHT_THEME;
-        applyTheme(newTheme);
-    };
+    window.toggleTheme = toggleTheme;
 
     // Listen for system theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
@@ -37,4 +40,4 @@ const initializeTheme = () => {
     });
 };
 
-export { initializeTheme }; 
+export { initializeTheme, toggleTheme }; 
