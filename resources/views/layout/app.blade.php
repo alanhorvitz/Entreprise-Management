@@ -50,7 +50,7 @@
                             <div class="breadcrumbs hidden p-0 text-sm sm:inline">
                                 <ul>
                                     <li><a href="/" data-discover="true">Dashboard</a></li>
-                                    <li class="opacity-80">Products</li>
+                                    <li class="opacity-80">@yield('title')</li>
                                 </ul>
                             </div>
                         </div>
