@@ -2,4 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-@import 'theme-toggle.css';
+/* Theme toggle button styles */
+.theme-toggle {
+    @apply btn btn-ghost btn-circle;
+}
+
+.theme-toggle svg {
+    @apply h-5 w-5;
+    display: none;
+}
+
+/* Show/hide icons based on theme */
+.theme-toggle .sun-icon {
+    display: none;
+}
+
+.theme-toggle .moon-icon {
+    display: block;
+}
+
+[data-theme='dark'] .theme-toggle .sun-icon {
+    display: block;
+}
+
+[data-theme='dark'] .theme-toggle .moon-icon {
+    display: none;
+}
