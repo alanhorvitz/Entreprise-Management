@@ -145,7 +145,13 @@
                                             <div><span class="iconify lucide--arrow-left-right size-4"></span><span>Switch Account</span></div>
                                         </li>
                                         <li>
-                                            <a class="text-error hover:bg-error/10" href="/auth/login" data-discover="true"><span class="iconify lucide--log-out size-4"></span><span>Logout</span></a>
+                                            <form method="POST" action="{{ route('logout') }}">
+                                                @csrf
+                                                <button class="text-error hover:bg-error/10" :href="route('logout')" onclick="event.preventDefault(); his.closest('form').submit();">
+                                                    <span class="iconify lucide--log-out size-4"></span><span>Logout</span>
+                                                </button>
+                                            </form>
+
                                         </li>
                                     </ul>
                                 </div>
