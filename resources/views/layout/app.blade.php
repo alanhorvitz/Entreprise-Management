@@ -31,6 +31,7 @@
     </script>
 
     <link rel="stylesheet" href="{{ asset('style.css') }}">
+    <link rel="stylesheet" href="{{ asset('supp-daisy.css') }}">
     <!-- Styles / Scripts -->
 </head>
 
@@ -54,11 +55,7 @@
                             </div>
                         </div>
                         <div class="mt-6">
-                            <div class="bg-base-100 card shadow">
-                                <div class="card-body p-0">
-                                    @yield('content')
-                                </div>
-                            </div>
+                            @yield('content')
                         </div>
                     </div>
                 </div>
