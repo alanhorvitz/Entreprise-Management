@@ -57,54 +57,54 @@
             </div>
         </div>
     </div>
-    <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="tw-qo tw-vj">
-            <div aria-label="Card" class="card tw-cr shadow">
-                <div class="card-body tw-ria">
-                    <div class="flex tw-sp tw-aea tw-hha tw-aha">
-                        <span class="tw-rr">Projects Overview</span>
-                    </div>
-                    <div class="tw-zfa tw-yn">
-                        <table class="table tw-wl">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Status</th>
-                                    <th>Team</th>
-                                    <th>Deadline</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="flex tw-sp tw-dx truncate">
-                                        <img alt="order image" class="mask tw-jn tw-dr tw-iz" src="/images/apps/ecommerce/products/1.jpg" />
-                                        <p>Website Redesign</p>
-                                    </td>
-                                    <td><div class="badge badge-success badge-sm badge-soft">completed</div></td>
-                                    <td class="tw-rr">
-                                        <div class="avatar-group tw-wo">
-                                            <div class="avatar">
-                                                <div class="tw-dr tw-bja tw-gq"><img alt="Avatar" src="https://nexus.daisyui.com/images/avatars/4.png" /></div>
-                                            </div>
-                                            <div class="avatar">
-                                                <div class="tw-dr tw-bja tw-gq"><img alt="Avatar" src="https://nexus.daisyui.com/images/avatars/5.png" /></div>
-                                            </div>
-                                            <div class="avatar">
-                                                <div class="tw-dr tw-bja tw-gq"><img alt="Avatar" src="https://nexus.daisyui.com/images/avatars/7.png" /></div>
-                                            </div>
-                                            <!-- <div class="avatar">
-                                                <div class="tw-dr tw-bja tw-gq"><img alt="Avatar" src="https://nexus.daisyui.com/images/avatars/8.png" /></div>
-                                            </div> -->
+    <div class="mt-6 tw-qo tw-vj">
+        <div aria-label="Card" class="card tw-cr shadow">
+            <div class="card-body tw-ria">
+                <div class="flex tw-sp tw-aea tw-hha tw-aha">
+                    <span class="tw-rr">Projects Overview</span>
+                </div>
+                <div class="tw-zfa tw-yn">
+                    <table class="table tw-wl">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Status</th>
+                                <th>Team</th>
+                                <th>Deadline</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="flex tw-sp tw-dx truncate">
+                                    <img alt="order image" class="mask tw-jn tw-dr tw-iz" src="/images/apps/ecommerce/products/1.jpg" />
+                                    <p>Website Redesign</p>
+                                </td>
+                                <td><div class="badge badge-success badge-sm badge-soft">completed</div></td>
+                                <td class="tw-rr">
+                                    <div class="avatar-group tw-wo">
+                                        <div class="avatar">
+                                            <div class="tw-dr tw-bja tw-gq"><img alt="Avatar" src="https://nexus.daisyui.com/images/avatars/4.png" /></div>
                                         </div>
-                                    </td>
-                                    <td class="tw-oba">25 Jun 2024</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                                        <div class="avatar">
+                                            <div class="tw-dr tw-bja tw-gq"><img alt="Avatar" src="https://nexus.daisyui.com/images/avatars/5.png" /></div>
+                                        </div>
+                                        <div class="avatar">
+                                            <div class="tw-dr tw-bja tw-gq"><img alt="Avatar" src="https://nexus.daisyui.com/images/avatars/7.png" /></div>
+                                        </div>
+                                        <!-- <div class="avatar">
+                                            <div class="tw-dr tw-bja tw-gq"><img alt="Avatar" src="https://nexus.daisyui.com/images/avatars/8.png" /></div>
+                                        </div> -->
+                                    </div>
+                                </td>
+                                <td class="tw-oba">25 Jun 2024</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+    </div>
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="card bg-base-100 shadow-md">
             <div class="card-body">
                 <h2 class="card-title flex justify-between">
@@ -212,6 +212,99 @@
                                 <div class="flex gap-2">
                                     <button class="btn btn-sm btn-success">Approve</button>
                                     <button class="btn btn-sm btn-error">Reject</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow-md">
+            <div class="card-body">
+                <h2 class="card-title flex justify-between">
+                    <span>Tasks Due Soon</span>
+                    <div class="dropdown dropdown-end">
+                        <div tabindex="0" role="button" class="btn btn-sm btn-ghost">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </div>
+                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                            <li><a>View All Tasks</a></li>
+                            <li><a>Add New Task</a></li>
+                        </ul>
+                    </div>
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                        <div>
+                            <h3 class="font-medium">Finalize homepage design</h3>
+                            <p class="text-sm text-base-content/70">Website Redesign</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="badge badge-error">Today</div>
+                            <div class="avatar placeholder mt-1">
+                                <div class="bg-neutral text-center pt-1 pb-1 text-neutral-content w-8 rounded-full">
+                                    <span>JD</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                        <div>
+                            <h3 class="font-medium">API integration testing</h3>
+                            <p class="text-sm text-base-content/70">Mobile App Development</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="badge badge-warning">Tomorrow</div>
+                            <div class="avatar placeholder mt-1">
+                                <div class="bg-accent text-accent-content w-8 rounded-full">
+                                    <span>TS</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                        <div>
+                            <h3 class="font-medium">Prepare quarterly report</h3>
+                            <p class="text-sm text-base-content/70">Data Analytics Platform</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="badge badge-primary">2 days</div>
+                            <div class="avatar placeholder mt-1">
+                                <div class="bg-secondary text-secondary-content w-8 rounded-full">
+                                    <span>KL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                        <div>
+                            <h3 class="font-medium">Client presentation</h3>
+                            <p class="text-sm text-base-content/70">CRM Integration</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="badge badge-secondary">3 days</div>
+                            <div class="avatar placeholder mt-1">
+                                <div class="bg-primary text-primary-content w-8 rounded-full">
+                                    <span>LM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                        <div>
+                            <h3 class="font-medium">User testing session</h3>
+                            <p class="text-sm text-base-content/70">Website Redesign</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="badge">5 days</div>
+                            <div class="avatar placeholder mt-1">
+                                <div class="bg-info text-info-content w-8 rounded-full">
+                                    <span>AM</span>
                                 </div>
                             </div>
                         </div>
