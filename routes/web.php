@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +33,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+    Route::resource('projects', ProjectsController::class);
     // Authentication
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     

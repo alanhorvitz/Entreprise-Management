@@ -15,8 +15,8 @@
                                             <div class="simplebar-content" style="padding: 0px;">
                                                 <div id="sidebar-menu">
                                                     <p class="sidebar-menu-title">Pages</p>
-                                                    <a class="sidebar-menu-item false" href="/landing" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Dashboard</span></a>
-                                                    <a class="sidebar-menu-item false" href="/landing" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Link 1</span></a>
+                                                    <a class="sidebar-menu-item false" href="/dashboard" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Dashboard</span></a>
+                                                    <a class="sidebar-menu-item false" href="/projects" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Projects</span></a>
                                                     <a class="sidebar-menu-item false" href="/landing" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Link 2</span></a>
                                                     <a class="sidebar-menu-item false" href="/landing" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Link 3</span></a>
                                                 </div>
