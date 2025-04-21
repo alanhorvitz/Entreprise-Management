@@ -1,5 +1,5 @@
-const THEME_KEY = 'theme-preference';
-const DARK_THEME = 'dark';
+const THEME_KEY = 'dashboard-theme';
+const DARK_THEME = 'modern';
 const LIGHT_THEME = 'light';
 
 // Get theme from localStorage or system preference

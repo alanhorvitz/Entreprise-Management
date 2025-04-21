@@ -3,13 +3,24 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
+    protected $redirectTo = '/dashboard';
+
+    public function __construct()
+    {
+        $this->middleware('guest')->except('logout');
+    }
+
     public function showLoginForm()
     {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
         return view('auth.login');
     }
 
@@ -20,9 +31,9 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('dashboard');
+            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([
@@ -35,6 +46,6 @@ class LoginController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        return redirect()->route('login');
     }
 } 
