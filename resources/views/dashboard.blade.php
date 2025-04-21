@@ -57,7 +57,7 @@
             </div>
         </div>
     </div>
-    <div class="tw-dga grid tw-tr tw-dea tw-vl tw-ng">
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="tw-qo tw-vj">
             <div aria-label="Card" class="card tw-cr shadow">
                 <div class="card-body tw-ria">
