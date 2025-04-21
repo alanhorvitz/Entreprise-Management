@@ -147,7 +147,7 @@
                                         <li>
                                             <form method="POST" action="{{ route('logout') }}">
                                                 @csrf
-                                                <button class="text-error hover:bg-error/10" :href="route('logout')" onclick="event.preventDefault(); his.closest('form').submit();">
+                                                <button class="text-error hover:bg-error/10" type="submit">
                                                     <span class="iconify lucide--log-out size-4"></span><span>Logout</span>
                                                 </button>
                                             </form>
