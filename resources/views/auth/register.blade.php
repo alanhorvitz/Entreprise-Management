@@ -21,10 +21,10 @@
                     <!-- Name -->
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text text-black">Name</span>
+                            <span class="label-text text-black">Username</span>
                         </label>
-                        <input type="text" name="name" value="{{ old('name') }}" class="input input-bordered text-black" required autofocus autocomplete="name" />
-                        @error('name')
+                        <input type="text" name="username" value="{{ old('username') }}" class="input input-bordered text-black" required autofocus autocomplete="username" />
+                        @error('username')
                             <label class="label">
                                 <span class="label-text-alt text-error">{{ $message }}</span>
                             </label>
