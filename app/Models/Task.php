@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class User extends Model
+class Task extends Model
 {
     use HasFactory;
 
@@ -16,23 +16,15 @@ class User extends Model
      * @var array
      */
     protected $fillable = [
-        'username',
-        'email',
-        'password',
-        'first_name',
-        'last_name',
-        'last_login',
-        'is_active',
-        'role',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password',
+        'title',
+        'description',
+        'project_id',
+        'created_by',
+        'due_date',
+        'priority',
+        'current_status',
+        'start_date',
+        'status',
     ];
 
     /**
@@ -44,13 +36,23 @@ class User extends Model
     {
         return [
             'created_at' => 'timestamp',
-            'last_login' => 'timestamp',
-            'is_active' => 'boolean',
+            'due_date' => 'date',
+            'start_date' => 'date',
         ];
     }
 
     public function repetitiveTask(): BelongsTo
     {
-        return $this->belongsTo(RepetitiveTask::class, 'id', 'created_by');
+        return $this->belongsTo(RepetitiveTask::class, 'id', 'task_id');
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }
