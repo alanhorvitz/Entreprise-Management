@@ -1,0 +1,16 @@
+/* Theme toggle icon styles */
+[data-theme="modern-light"] .theme-controller .moon {
+    display: block;
+}
+
+[data-theme="modern-light"] .theme-controller .sun {
+    display: none;
+}
+
+[data-theme="modern-dark"] .theme-controller .moon {
+    display: none;
+}
+
+[data-theme="modern-dark"] .theme-controller .sun {
+    display: block;
+} 
