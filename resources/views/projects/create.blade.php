@@ -114,9 +114,9 @@
                                 </div>
                             </div>
                             <div class="form-control w-full">
-                            <div class="form-control w-full">
+                            <div class="form-control mt-4 w-full">
                                     <label class="label">
-                                        <span class="label-text">Budget</span>
+                                        <span class="label-text 2">Budget</span>
                                     </label>
                                     <div class="join w-full">
                                         <input type="number" placeholder="0.00" min="0" step="0.01" class="input input-bordered join-item w-full" />
