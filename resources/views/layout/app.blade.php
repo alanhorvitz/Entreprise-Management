@@ -8,7 +8,6 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <!-- Theme Toggle Script -->
     <script>
@@ -32,6 +31,9 @@
 
     <link rel="stylesheet" href="{{ asset('style.css') }}">
     <link rel="stylesheet" href="{{ asset('supp-daisy.css') }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+
     <!-- Styles / Scripts -->
 </head>
 

@@ -9,9 +9,9 @@
         <div class="flex justify-between items-center mb-5">
             <h2 class="card-title">Projects</h2>
             
-            <button class="btn btn-primary">
+            <a class="btn btn-primary" href="{{ route('projects.create') }}">
                 <span class="iconify lucide--plus mr-2"></span> New Project
-            </button>
+            </a>
         </div>
         <!-- Search and Filters -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
