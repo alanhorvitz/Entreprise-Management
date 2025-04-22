@@ -22,6 +22,7 @@ class Project extends Model
         'start_date',
         'end_date',
         'status',
+        'supervised_by',
     ];
 
     /**
@@ -44,6 +45,10 @@ class Project extends Model
     }
 
     public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function supervised_by(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
