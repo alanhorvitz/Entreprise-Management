@@ -639,7 +639,7 @@
                     <div class="space-y-4 mb-6" id="comments-container">
                         <!-- Comment 1 -->
                         <div class="flex gap-3">
-                            <div class="avatar">
+                            <div class="avatar placeholder">
                                 <div class="w-10 rounded-full">
                                     <img src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="John Doe" />
                                 </div>
