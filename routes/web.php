@@ -6,8 +6,10 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectsController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TasksController;
 use Illuminate\Support\Facades\Route;
+
 
 
 /*
@@ -39,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('projects', ProjectsController::class);
     Route::resource('tasks', TasksController::class);
     Route::resource('calendar', CalendarController::class);
+    Route::resource('report', ReportController::class);
     // Authentication
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     
