@@ -13,12 +13,12 @@
                                     <div class="simplebar-offset" style="right: 0px; bottom: 0px;">
                                         <div class="simplebar-content-wrapper" tabindex="0" role="region" aria-label="scrollable content" style="height: 100%; overflow: hidden scroll;">
                                             <div class="simplebar-content" style="padding: 0px;">
-                                                <div id="sidebar-menu">
+                                                <div id="sidebar-menu" >
                                                     <p class="sidebar-menu-title">Pages</p>
-                                                    <a class="sidebar-menu-item false" href="/dashboard" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Dashboard</span></a>
-                                                    <a class="sidebar-menu-item false" href="/projects" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Projects</span></a>
-                                                    <a class="sidebar-menu-item false" href="/tasks" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Tasks</span></a>
-                                                    <a class="sidebar-menu-item false" href="/calendar" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Calendar</span></a>
+                                                    <a class="sidebar-menu-item false" href="/dashboard" data-discover="true"><span class="iconify lucide--layout-dashboard size-4"></span><span class="grow">Dashboard</span></a>
+                                                    <a class="sidebar-menu-item false" href="/projects" data-discover="true"><span class="iconify lucide--chart-pie size-4"></span><span class="grow">Projects</span></a>
+                                                    <a class="sidebar-menu-item false" href="/tasks" data-discover="true"><span class="iconify lucide--layout-list size-4"></span><span class="grow">Tasks</span></a>
+                                                    <a class="sidebar-menu-item false" href="/calendar" data-discover="true"><span class="iconify lucide--calendar-days size-4"></span><span class="grow">Calendar</span></a>
                                                     <a class="sidebar-menu-item false" href="/report" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">report</span></a>
                                                 </div>
                                             </div>
