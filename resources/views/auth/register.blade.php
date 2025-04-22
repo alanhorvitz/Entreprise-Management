@@ -44,6 +44,25 @@
                         @enderror
                     </div>
 
+                    <!-- Role -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-black">Role</span>
+                        </label>
+                        <select name="role" class="select select-bordered text-black" required>
+                            <option value="" disabled selected>Select a role</option>
+                            <option value="director" {{ old('role') == 'director' ? 'selected' : '' }}>Director</option>
+                            <option value="supervisor" {{ old('role') == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
+                            <option value="project_manager" {{ old('role') == 'project_manager' ? 'selected' : '' }}>Project Manager</option>
+                            <option value="employee" {{ old('role') == 'employee' ? 'selected' : '' }}>Employee</option>
+                        </select>
+                        @error('role')
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ $message }}</span>
+                            </label>
+                        @enderror
+                    </div>
+
                     <!-- Password -->
                     <div class="form-control">
                         <label class="label">

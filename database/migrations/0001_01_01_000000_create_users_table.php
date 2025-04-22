@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('last_name', 50)->nullable();
             $table->timestamp('last_login')->nullable();
             $table->boolean('is_active')->nullable()->default(True);
-            $table->enum('role', ["admin","supervisor","employee"])->default('employee');
+            $table->enum('role', ["director", "supervisor", "project_manager", "employee"])->default('employee');
             $table->timestamps();
         });
 

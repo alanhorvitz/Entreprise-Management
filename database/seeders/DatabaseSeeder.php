@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Test',
             'last_name' => 'User',
             'is_active' => true,
-            'role' => 'admin',
+            'role' => 'director',
         ]);
 
         $this->call([
