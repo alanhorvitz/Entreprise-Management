@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('project_id');
             $table->foreignId('user_id')->constrained();
-            $table->enum('role', ["manager","member"])->nullable();
+            $table->enum('role', ["project_manager", "member"])->nullable();
             $table->timestamp('joined_at')->nullable()->useCurrent();
             $table->timestamps();
             

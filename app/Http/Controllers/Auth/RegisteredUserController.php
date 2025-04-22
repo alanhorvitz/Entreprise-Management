@@ -37,6 +37,7 @@ class RegisteredUserController extends Controller
             'username' => ['required', 'string', 'max:255', 'unique:users'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'string', 'in:director,supervisor,project_manager,employee'],
             // 'first_name' => ['required', 'string', 'max:255'],
             // 'last_name' => ['required', 'string', 'max:255'],
             // 'role' => ['required', 'string', 'exists:roles,name'],
@@ -52,6 +53,7 @@ class RegisteredUserController extends Controller
                 // 'first_name' => $request->first_name,
                 // 'last_name' => $request->last_name,
                 'is_active' => true,
+                'role' => $request->role,
             ]);
 
             // Assign the selected role to the user
