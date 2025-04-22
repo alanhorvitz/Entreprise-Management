@@ -83,7 +83,7 @@
                             <h2 class="card-title text-xl flex items-center gap-2">
                                 <span class="iconify lucide--users"></span> Team & Resources
                             </h2>
-                            <p class="text-sm text-base-content/70 mb-4">Assign team members and allocate resources</p>
+                            <p class="text-sm text-base-content/70 mb-4">Assign project members and allocate resources</p>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="form-control w-full">
@@ -99,8 +99,22 @@
                                         <option>Sarah Johnson</option>
                                     </select>
                                 </div>
-                                
                                 <div class="form-control w-full">
+                                    <label class="label">
+                                        <span class="label-text required-field">Team Manager</span>
+                                    </label>
+                                    <select class="select select-bordered w-full" required>
+                                        <option disabled selected value="">Select team manager</option>
+                                        <option>John Doe</option>
+                                        <option>Lisa Miller</option>
+                                        <option>Tom Smith</option>
+                                        <option>Kevin Lee</option>
+                                        <option>Sarah Johnson</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-control w-full">
+                            <div class="form-control w-full">
                                     <label class="label">
                                         <span class="label-text">Budget</span>
                                     </label>
@@ -110,7 +124,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
                             <div class="form-control w-full mt-4">
                                 <label class="label">
                                     <span class="label-text">Team Members</span>
