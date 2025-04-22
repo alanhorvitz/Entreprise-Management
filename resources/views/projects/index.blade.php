@@ -6,13 +6,18 @@
 
 <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
-        <h2 class="card-title mb-4">Projects</h2>
-        
+        <div class="flex justify-between items-center mb-5">
+            <h2 class="card-title">Projects</h2>
+            
+            <button class="btn btn-primary">
+                <span class="iconify lucide--plus mr-2"></span> New Project
+            </button>
+        </div>
         <!-- Search and Filters -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div class="md:col-span-2">
                 <div class="relative">
-                    <input type="text" placeholder="Search projects..." class="input input-bordered w-full pl-10">
+                    <input type="text"="Search projects..." class="input input-bordered w-full pl-10">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50"></i>
                 </div>
             </div>
@@ -47,7 +52,7 @@
             <div class="card bg-base-200 shadow-md hover:shadow-lg project-card cursor-pointer" onclick="showProjectDetails('project1')">
                 <div class="card-body p-4">
                     <div class="flex justify-between items-start">
-                        <div class="avatar placeholder">
+                        <div class="avatar">
                             <div class="bg-primary text-primary-content rounded-md w-10">
                                 <span>WD</span>
                             </div>
@@ -62,19 +67,19 @@
                     </div>
                     <progress class="progress progress-success" value="75" max="100"></progress>
                     <div class="flex justify-between items-center mt-4">
-                        <div class="flex -space-x-2">
-                            <div class="avatar placeholder">
-                                <div class="bg-neutral text-neutral-content w-8 rounded-full">
+                        <div class="avatar-group -space-x-2">
+                            <div class="avatar">
+                                <div class="bg-neutral text-neutral-content w-8  rounded-full">
                                     <span>JD</span>
                                 </div>
                             </div>
-                            <div class="avatar placeholder">
-                                <div class="bg-primary text-primary-content w-8 rounded-full">
+                            <div class="avatar">
+                                <div class="bg-primary text-primary-content w-8  rounded-full">
                                     <span>AM</span>
                                 </div>
                             </div>
-                            <div class="avatar placeholder">
-                                <div class="bg-secondary text-secondary-content w-8 rounded-full">
+                            <div class="avatar">
+                                <div class="bg-secondary text-secondary-content w-8  rounded-full">
                                     <span>+2</span>
                                 </div>
                             </div>
@@ -88,7 +93,7 @@
             <div class="card bg-base-200 shadow-md hover:shadow-lg project-card cursor-pointer" onclick="showProjectDetails('project2')">
                 <div class="card-body p-4">
                     <div class="flex justify-between items-start">
-                        <div class="avatar placeholder">
+                        <div class="avatar">
                             <div class="bg-secondary text-secondary-content rounded-md w-10">
                                 <span>MP</span>
                             </div>
@@ -103,19 +108,19 @@
                     </div>
                     <progress class="progress progress-warning" value="45" max="100"></progress>
                     <div class="flex justify-between items-center mt-4">
-                        <div class="flex -space-x-2">
-                            <div class="avatar placeholder">
-                                <div class="bg-accent text-accent-content w-8 rounded-full">
+                        <div class="avatar-group -space-x-2">
+                            <div class="avatar">
+                                <div class="bg-accent text-accent-content w-8  rounded-full">
                                     <span>TS</span>
                                 </div>
                             </div>
-                            <div class="avatar placeholder">
-                                <div class="bg-info text-info-content w-8 rounded-full">
+                            <div class="avatar">
+                                <div class="bg-info text-info-content w-8  rounded-full">
                                     <span>RK</span>
                                 </div>
                             </div>
-                            <div class="avatar placeholder">
-                                <div class="bg-secondary text-secondary-content w-8 rounded-full">
+                            <div class="avatar">
+                                <div class="bg-secondary text-secondary-content w-8  rounded-full">
                                     <span>+3</span>
                                 </div>
                             </div>
@@ -129,7 +134,7 @@
             <div class="card bg-base-200 shadow-md hover:shadow-lg project-card cursor-pointer" onclick="showProjectDetails('project3')">
                 <div class="card-body p-4">
                     <div class="flex justify-between items-start">
-                        <div class="avatar placeholder">
+                        <div class="avatar">
                             <div class="bg-accent text-accent-content rounded-md w-10">
                                 <span>CR</span>
                             </div>
@@ -144,14 +149,14 @@
                     </div>
                     <progress class="progress progress-error" value="30" max="100"></progress>
                     <div class="flex justify-between items-center mt-4">
-                        <div class="flex -space-x-2">
-                            <div class="avatar placeholder">
-                                <div class="bg-primary text-primary-content w-8 rounded-full">
+                        <div class="avatar-group -space-x-2">
+                            <div class="avatar">
+                                <div class="bg-primary text-primary-content w-8  rounded-full">
                                     <span>LM</span>
                                 </div>
                             </div>
-                            <div class="avatar placeholder">
-                                <div class="bg-neutral text-neutral-content w-8 rounded-full">
+                            <div class="avatar">
+                                <div class="bg-neutral text-neutral-content w-8  rounded-full">
                                     <span>PJ</span>
                                 </div>
                             </div>
@@ -165,7 +170,7 @@
             <div class="card bg-base-200 shadow-md hover:shadow-lg project-card cursor-pointer" onclick="showProjectDetails('project4')">
                 <div class="card-body p-4">
                     <div class="flex justify-between items-start">
-                        <div class="avatar placeholder">
+                        <div class="avatar">
                             <div class="bg-info text-info-content rounded-md w-10">
                                 <span>DA</span>
                             </div>
@@ -180,19 +185,19 @@
                     </div>
                     <progress class="progress progress-success" value="85" max="100"></progress>
                     <div class="flex justify-between items-center mt-4">
-                        <div class="flex -space-x-2">
-                            <div class="avatar placeholder">
-                                <div class="bg-secondary text-secondary-content w-8 rounded-full">
+                        <div class="avatar-group -space-x-2">
+                            <div class="avatar">
+                                <div class="bg-secondary text-secondary-content w-8  rounded-full">
                                     <span>KL</span>
                                 </div>
                             </div>
-                            <div class="avatar placeholder">
-                                <div class="bg-accent text-accent-content w-8 rounded-full">
+                            <div class="avatar">
+                                <div class="bg-accent text-accent-content w-8  rounded-full">
                                     <span>MN</span>
                                 </div>
                             </div>
-                            <div class="avatar placeholder">
-                                <div class="bg-primary text-primary-content w-8 rounded-full">
+                            <div class="avatar">
+                                <div class="bg-primary text-primary-content w-8  rounded-full">
                                     <span>+4</span>
                                 </div>
                             </div>
@@ -206,7 +211,7 @@
             <div class="card bg-base-200 shadow-md hover:shadow-lg project-card cursor-pointer" onclick="showProjectDetails('project5')">
                 <div class="card-body p-4">
                     <div class="flex justify-between items-start">
-                        <div class="avatar placeholder">
+                        <div class="avatar">
                             <div class="bg-primary text-primary-content rounded-md w-10">
                                 <span>ER</span>
                             </div>
@@ -221,14 +226,14 @@
                     </div>
                     <progress class="progress" value="100" max="100"></progress>
                     <div class="flex justify-between items-center mt-4">
-                        <div class="flex -space-x-2">
-                            <div class="avatar placeholder">
-                                <div class="bg-info text-info-content w-8 rounded-full">
+                        <div class="avatar-group -space-x-2">
+                            <div class="avatar">
+                                <div class="bg-info text-info-content w-8  rounded-full">
                                     <span>RJ</span>
                                 </div>
                             </div>
-                            <div class="avatar placeholder">
-                                <div class="bg-primary text-primary-content w-8 rounded-full">
+                            <div class="avatar">
+                                <div class="bg-primary text-primary-content w-8  rounded-full">
                                     <span>SL</span>
                                 </div>
                             </div>
@@ -242,7 +247,7 @@
             <div class="card bg-base-200 shadow-md hover:shadow-lg project-card cursor-pointer" onclick="showProjectDetails('project6')">
                 <div class="card-body p-4">
                     <div class="flex justify-between items-start">
-                        <div class="avatar placeholder">
+                        <div class="avatar">
                             <div class="bg-secondary text-secondary-content rounded-md w-10">
                                 <span>SC</span>
                             </div>
@@ -257,19 +262,19 @@
                     </div>
                     <progress class="progress progress-warning" value="50" max="100"></progress>
                     <div class="flex justify-between items-center mt-4">
-                        <div class="flex -space-x-2">
-                            <div class="avatar placeholder">
-                                <div class="bg-accent text-accent-content w-8 rounded-full">
+                        <div class="avatar-group -space-x-2">
+                            <div class="avatar">
+                                <div class="bg-accent text-accent-content w-8  rounded-full">
                                     <span>DM</span>
                                 </div>
                             </div>
-                            <div class="avatar placeholder">
-                                <div class="bg-info text-info-content w-8 rounded-full">
+                            <div class="avatar">
+                                <div class="bg-info text-info-content w-8  rounded-full">
                                     <span>BT</span>
                                 </div>
                             </div>
-                            <div class="avatar placeholder">
-                                <div class="bg-secondary text-secondary-content w-8 rounded-full">
+                            <div class="avatar">
+                                <div class="bg-secondary text-secondary-content w-8  rounded-full">
                                     <span>+1</span>
                                 </div>
                             </div>
