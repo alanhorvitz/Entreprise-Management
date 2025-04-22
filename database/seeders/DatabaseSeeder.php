@@ -24,5 +24,9 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
             'role' => 'admin',
         ]);
+
+        $this->call([
+            RoleSeeder::class,
+        ]);
     }
 }
