@@ -69,8 +69,8 @@
             </div>
         </div>
         
-        <div class="flex justify-between mt-4">
-            <div class="form-control max-w-xs">
+        <div class="flex flex-col sm:flex-row justify-between gap-4 mt-4">
+            <div class="form-control max-w-xs w-full sm:w-auto">
                 <div class="join">
                     <input class="input input-bordered join-item w-full" placeholder="Search tasks..." id="search-tasks" />
                     <button class="btn join-item">
@@ -79,7 +79,7 @@
                 </div>
             </div>
             
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
                 <button class="btn btn-outline btn-sm" id="clear-filters">
                     <i class="fas fa-times mr-1"></i> Clear Filters
                 </button>
@@ -96,11 +96,11 @@
                         <li><a data-sort="name-desc">Name (Z-A)</a></li>
                     </ul>
                 </div>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline active" id="view-list">
+                <div class="join">
+                    <button class="join-item btn btn-sm btn-outline" id="view-list">
                         <i class="fas fa-list"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline" id="view-grid">
+                    <button class="join-item btn btn-sm btn-outline" id="view-grid">
                         <i class="fas fa-th-large"></i>
                     </button>
                 </div>
@@ -111,7 +111,7 @@
 
 <!-- Tasks Table -->
 <div class="overflow-x-auto bg-base-100 rounded-lg shadow-md" id="tasks-container">
-    <table class="table table-zebra w-full">
+    <table class="table table-zebra">
         <thead>
             <tr>
                 <th class="w-8">
@@ -147,11 +147,7 @@
                     <span class="badge badge-outline">Website Redesign</span>
                 </td>
                 <td>
-                <select class="select select-sm px-1 py-0 appearance-none" style="background-image: none;">
-                <option selected>Not Started</option>
-                <option>In Progress</option>
-                </select>
-
+                    <span class="status-badge status-in-progress">In Progress</span>
                 </td>
                 <td>
                     <span class="badge badge-error">High</span>
@@ -176,12 +172,12 @@
                 <td>
                     <div class="dropdown dropdown-end">
                         <div tabindex="0" role="button" class="btn btn-ghost btn-xs">
-                            <span class="iconify lucide--ellipsis-vertical"></span>
+                            <i class="fas fa-ellipsis-v"></i>
                         </div>
                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                            <li><a onclick="openTaskDetails(1)"><span class="iconify lucide--eye"></span>  View Details</a></li>
-                            <li><a onclick="openEditTaskModal(1)"><span class="iconify lucide--edit"></span>  Edit Task</a></li>
-                            <li><a class="text-error"><span class="iconify lucide--trash-2"></span>  Delete Task</a></li>
+                            <li><a onclick="openTaskDetails(1)"><i class="fas fa-eye mr-2"></i> View Details</a></li>
+                            <li><a onclick="openEditTaskModal(1)"><i class="fas fa-edit mr-2"></i> Edit Task</a></li>
+                            <li><a class="text-error"><i class="fas fa-trash mr-2"></i> Delete Task</a></li>
                         </ul>
                     </div>
                 </td>
@@ -413,8 +409,7 @@
     </div>
 </div>
 
-    <!-- Create/Edit Task Modal -->
-    <dialog id="create-task-modal" class="modal">
+<dialog id="create-task-modal" class="modal">
         <div class="modal-box max-w-3xl">
             <form method="dialog">
                 <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
