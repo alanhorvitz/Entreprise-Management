@@ -9,14 +9,14 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
     
-    <!-- Styles -->
-    <link rel="stylesheet" href="{{ asset('style.css') }}">
-    <link rel="stylesheet" href="{{ asset('supp-daisy.css') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
-    <!-- Livewire Styles -->
-    @livewireStyles
 
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@iconify/iconify@3.1.0/dist/iconify.min.js"></script>
+    
     <!-- Theme Toggle Script -->
     <script>
         // Check for saved theme preference
@@ -36,6 +36,13 @@
             localStorage.setItem('theme', newTheme);
         }
     </script>
+
+    <link rel="stylesheet" href="{{ asset('style.css') }}">
+    <link rel="stylesheet" href="{{ asset('supp-daisy.css') }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
+
+    <!-- Styles / Scripts -->
 </head>
 
 <body>
@@ -76,6 +83,10 @@
             childList: true
         });
     </script>
+    
+    <livewire:notification-manager />
+
+    @livewireScripts
 </body>
 
 </html>

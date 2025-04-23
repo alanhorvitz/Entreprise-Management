@@ -149,6 +149,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const tasks = @json($tasks);
     const projects = @json($projects);
+    const assignedTaskIds = @json($assignedTaskIds);
     
     let currentDate = new Date();
     let currentMonth = currentDate.getMonth();
@@ -429,16 +430,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     taskItem.className = `task-item ${priorityClass}`;
                     
-                    // Task status indicator
-                    const statusDot = document.createElement('span');
-                    statusDot.className = `task-status status-${taskStatus.toLowerCase().replace('_', '-').replace(' ', '-')}`;
-                    
-                    // Task title
+                    // Task title with repetitive indicator if applicable
                     const taskTitle = document.createElement('span');
                     taskTitle.textContent = task.title;
                     
-                    taskItem.appendChild(statusDot);
                     taskItem.appendChild(taskTitle);
+                    
+                    // Add repetitive task indicator if this is a repetitive task
+                    if (task.is_repetitive) {
+                        const repetitiveBadge = document.createElement('span');
+                        repetitiveBadge.className = 'badge badge-secondary badge-sm';
+                        repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
+                        taskTitle.appendChild(repetitiveBadge);
+                    }
                     
                     // Project tag if available
                     if (task.project && task.project.name) {
@@ -553,16 +557,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     taskItem.className = `task-item ${priorityClass}`;
                     
-                    // Task status indicator
-                    const statusDot = document.createElement('span');
-                    statusDot.className = `task-status status-${taskStatus.toLowerCase().replace('_', '-').replace(' ', '-')}`;
-                    
-                    // Task title
+                    // Task title with repetitive indicator if applicable
                     const taskTitle = document.createElement('span');
                     taskTitle.textContent = task.title;
                     
-                    taskItem.appendChild(statusDot);
                     taskItem.appendChild(taskTitle);
+                    
+                    // Add repetitive task indicator if this is a repetitive task
+                    if (task.is_repetitive) {
+                        const repetitiveBadge = document.createElement('span');
+                        repetitiveBadge.className = 'badge badge-secondary badge-sm';
+                        repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
+                        taskTitle.appendChild(repetitiveBadge);
+                    }
                     
                     // Project tag if available
                     if (task.project && task.project.name) {
@@ -670,19 +677,66 @@ document.addEventListener('DOMContentLoaded', function() {
                 const header = document.createElement('div');
                 header.className = 'flex justify-between items-start mb-3';
                 
+                // Title container that will hold title and assigned badge
+                const titleContainer = document.createElement('div');
+                titleContainer.className = 'flex flex-col';
+                
                 // Title
                 const title = document.createElement('h3');
                 title.className = 'card-title text-lg';
                 title.textContent = task.title;
-                header.appendChild(title);
+                titleContainer.appendChild(title);
+                
+                // Assigned to me badge
+                if (task.assigned_to_user) {
+                    const assignedBadge = document.createElement('div');
+                    assignedBadge.className = 'badge badge-sm badge-primary mt-1';
+                    assignedBadge.textContent = 'Assigned to me';
+                    titleContainer.appendChild(assignedBadge);
+                }
+                
+                header.appendChild(titleContainer);
+                
+                // Badges container
+                const badgesContainer = document.createElement('div');
+                badgesContainer.className = 'flex flex-wrap gap-2';
                 
                 // Status badge
-                const statusBadge = document.createElement('span');
                 const taskStatus = task.status || task.current_status || 'unknown';
-                statusBadge.className = `badge ${getStatusBadgeClass(taskStatus)}`;
+                const statusBadge = document.createElement('span');
+                statusBadge.className = `badge ${getStatusBadgeClass(taskStatus)} badge-sm`;
                 statusBadge.textContent = formatStatus(taskStatus);
-                header.appendChild(statusBadge);
+                badgesContainer.appendChild(statusBadge);
                 
+                // Priority badge
+                const priorityBadge = document.createElement('span');
+                let priorityClass = '';
+                switch((task.priority || '').toLowerCase()) {
+                    case 'high':
+                        priorityClass = 'badge-error';
+                        break;
+                    case 'medium':
+                        priorityClass = 'badge-warning';
+                        break;
+                    case 'low':
+                        priorityClass = 'badge-info';
+                        break;
+                    default:
+                        priorityClass = 'badge-ghost';
+                }
+                priorityBadge.className = `badge ${priorityClass} badge-sm`;
+                priorityBadge.textContent = task.priority || 'Normal';
+                badgesContainer.appendChild(priorityBadge);
+                
+                // Repetitive task badge
+                if (task.is_repetitive) {
+                    const repetitiveBadge = document.createElement('span');
+                    repetitiveBadge.className = 'badge badge-secondary badge-sm';
+                    repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
+                    badgesContainer.appendChild(repetitiveBadge);
+                }
+                
+                header.appendChild(badgesContainer);
                 cardBody.appendChild(header);
                 
                 // Description
@@ -802,6 +856,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
+            // Filter by my tasks only
+            if (filters.myTasksOnly && !task.assigned_to_user) {
+                return false;
+            }
+            
             // Filter by search
             if (filters.search) {
                 const searchableText = (task.title + ' ' + (task.description || '')).toLowerCase();
@@ -916,6 +975,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const title = document.createElement('h3');
             title.className = 'card-title text-lg flex-1';
             title.textContent = task.title;
+            
+            // Add assigned to me badge if applicable
+            if (task.assigned_to_user) {
+                const assignedBadge = document.createElement('span');
+                assignedBadge.className = 'badge badge-sm badge-primary mr-1';
+                assignedBadge.textContent = 'Assigned to me';
+                title.appendChild(assignedBadge);
+            }
+            
             header.appendChild(title);
             
             // Badges container
@@ -948,6 +1016,14 @@ document.addEventListener('DOMContentLoaded', function() {
             priorityBadge.className = `badge ${priorityClass} badge-sm`;
             priorityBadge.textContent = task.priority || 'Normal';
             badgesContainer.appendChild(priorityBadge);
+            
+            // Repetitive task badge
+            if (task.is_repetitive) {
+                const repetitiveBadge = document.createElement('span');
+                repetitiveBadge.className = 'badge badge-secondary badge-sm';
+                repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
+                badgesContainer.appendChild(repetitiveBadge);
+            }
             
             header.appendChild(badgesContainer);
             cardBody.appendChild(header);
@@ -1194,26 +1270,6 @@ document.addEventListener('DOMContentLoaded', function() {
     border-left-color: hsl(var(--in));
 }
 
-.task-item .task-status {
-    display: inline-block;
-    height: 8px;
-    width: 8px;
-    border-radius: 50%;
-    margin-right: 4px;
-}
-
-.task-status.status-todo {
-    background-color: hsl(var(--in));
-}
-
-.task-status.status-in-progress {
-    background-color: hsl(var(--wa));
-}
-
-.task-status.status-completed {
-    background-color: hsl(var(--su));
-}
-
 .current-month {
     background-color: hsl(var(--b1));
 }
@@ -1313,12 +1369,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .current-month.is-today {
-    background: linear-gradient(45deg, hsl(var(--p) / 0.65), hsl(var(--p) / 0.4)) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(45deg, hsl(var(--a) / 0.75), hsl(var(--af) / 0.8)) !important;
+    box-shadow: 0 4px 3px rgba(0, 0, 0, 0.2);
 }
-
-.is-today .day-content {
-    background-color: rgba(255, 255, 255, 0.25);
 }
 
 .is-today .day-header {
