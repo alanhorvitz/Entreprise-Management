@@ -42,6 +42,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('projects', ProjectsController::class);
     Route::resource('tasks', TasksController::class);
+    Route::resource('calendar', CalendarController::class);
+    Route::resource('report', ReportController::class);
+    Route::resource('chats', ChatsController::class);
     // Authentication
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     
