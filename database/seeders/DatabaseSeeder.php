@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        // Create the admin user first
         User::create([
             'username' => 'admin',
             'email' => 'test@example.com',
@@ -26,8 +27,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
-            RoleSeeder::class,
-            SimpleCalendarSeeder::class,
+            RoleSeeder::class,          // Seed roles first
+            UserSeeder::class,          // Then create users (including managers)
+            DepartmentSeeder::class,    // Then create departments and assign managers
+            SimpleCalendarSeeder::class, // Other seeders last
         ]);
     }
 }

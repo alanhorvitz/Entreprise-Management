@@ -9,6 +9,14 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
     
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ asset('style.css') }}">
+    <link rel="stylesheet" href="{{ asset('supp-daisy.css') }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    <!-- Livewire Styles -->
+    @livewireStyles
+
     <!-- Theme Toggle Script -->
     <script>
         // Check for saved theme preference
@@ -28,13 +36,6 @@
             localStorage.setItem('theme', newTheme);
         }
     </script>
-
-    <link rel="stylesheet" href="{{ asset('style.css') }}">
-    <link rel="stylesheet" href="{{ asset('supp-daisy.css') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-
-    <!-- Styles / Scripts -->
 </head>
 
 <body>
@@ -45,7 +46,7 @@
                 @include('layout.sidebar')
                 <label for="layout-sidebar-toggle-trigger" id="layout-sidebar-backdrop"></label>
                 <div class="flex h-screen min-w-0 grow flex-col overflow-auto">
-                @include('layout.navbar')
+                    @include('layout.navbar')
                     <div id="layout-content">
                         <div class="flex items-center justify-between">
                             <h3 class="text-lg font-medium">@yield('title')</h3>
@@ -64,6 +65,10 @@
             </div>
         </div>
     </div>
+
+    <!-- Livewire Scripts -->
+    @livewireScripts
+
     <script>
         new MutationObserver(() => {
             document.querySelector("#splash-screen")?.classList.add("remove");
@@ -71,8 +76,6 @@
             childList: true
         });
     </script>
-
-
 </body>
 
 </html>

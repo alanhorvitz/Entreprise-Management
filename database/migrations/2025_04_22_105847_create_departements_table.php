@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('code')->unique()->nullable();
             $table->text('description')->nullable();
-            $table->foreignId('manager_id')->nullable()->constrained('users');
-            $table->foreignId('parent_id')->nullable()->constrained('departments');
+            $table->foreignId('manager_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('parent_id')->nullable()->constrained('departments')->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('departements');
+        Schema::dropIfExists('departments');
     }
 };
