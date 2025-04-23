@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
     
+
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
@@ -52,7 +53,7 @@
                 @include('layout.sidebar')
                 <label for="layout-sidebar-toggle-trigger" id="layout-sidebar-backdrop"></label>
                 <div class="flex h-screen min-w-0 grow flex-col overflow-auto">
-                @include('layout.navbar')
+                    @include('layout.navbar')
                     <div id="layout-content">
                         <div class="flex items-center justify-between">
                             <h3 class="text-lg font-medium">@yield('title')</h3>
@@ -71,6 +72,10 @@
             </div>
         </div>
     </div>
+
+    <!-- Livewire Scripts -->
+    @livewireScripts
+
     <script>
         new MutationObserver(() => {
             document.querySelector("#splash-screen")?.classList.add("remove");

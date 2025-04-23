@@ -1,8 +1,12 @@
 import './bootstrap';
-import Alpine from 'alpinejs';
 
-window.Alpine = Alpine;
-Alpine.start();
+// Only import and initialize Alpine if it's not already loaded by Livewire
+if (!window.Alpine) {
+    import('alpinejs').then((module) => {
+        window.Alpine = module.default;
+        window.Alpine.start();
+    });
+}
 
 // Initialize theme based on user preference
 document.addEventListener('DOMContentLoaded', () => {
