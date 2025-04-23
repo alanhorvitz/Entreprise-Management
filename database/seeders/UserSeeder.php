@@ -20,6 +20,7 @@ class UserSeeder extends Seeder
                 'last_name' => 'User ' . $i,
                 'role' => 'supervisor',
                 'is_active' => true,
+                'department_id' => rand(1, 10), // Randomly assign to departments 1-10
             ]);
         }
 
@@ -33,6 +34,7 @@ class UserSeeder extends Seeder
                 'last_name' => 'Manager ' . $i,
                 'role' => 'project_manager',
                 'is_active' => true,
+                'department_id' => rand(1, 10), // Randomly assign to departments 1-10
             ]);
         }
 
@@ -46,7 +48,8 @@ class UserSeeder extends Seeder
                 'last_name' => 'User ' . $i,
                 'role' => 'employee',
                 'is_active' => true,
+                'department_id' => rand(1, 10), // Randomly assign to departments 1-10
             ]);
         }
     }
-} 
+}

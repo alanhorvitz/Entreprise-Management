@@ -21,14 +21,17 @@ class DatabaseSeeder extends Seeder
         // Call role seeder first to ensure roles exist
         $this->call(RoleSeeder::class);
         
+        // Call department seeder before creating users
+        $this->call(DepartmentSeeder::class);
+        
         // Create users
         $users = [
             [
                 'first_name' => 'Admin',
-                'last_name' => 'User',
+            'last_name' => 'User',
                 'email' => 'admin@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'director',
+            'role' => 'director',
                 'username' => 'adminuser'
             ],
             [

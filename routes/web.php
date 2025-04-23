@@ -10,6 +10,8 @@ use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TasksController;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\Projects\ProjectList;
+use App\Livewire\Projects\ProjectDetails;
 
 
 
