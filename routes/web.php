@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\TasksController;
+use App\Http\Controllers\CalendarController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('projects', ProjectsController::class);
     Route::resource('tasks', TasksController::class);
+    // Calendar
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
     // Authentication
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     

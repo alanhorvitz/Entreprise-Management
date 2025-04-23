@@ -18,6 +18,7 @@
                                                     <a class="sidebar-menu-item false" href="/dashboard" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Dashboard</span></a>
                                                     <a class="sidebar-menu-item false" href="/projects" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Projects</span></a>
                                                     <a class="sidebar-menu-item false" href="/tasks" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Tasks</span></a>
+                                                    <a class="sidebar-menu-item false" href="/calendar" data-discover="true"><span class="iconify lucide--calendar size-4"></span><span class="grow">Calendar</span></a>
                                                     <a class="sidebar-menu-item false" href="/landing" data-discover="true"><span class="iconify lucide--file size-4"></span><span class="grow">Link 3</span></a>
                                                 </div>
                                             </div>
