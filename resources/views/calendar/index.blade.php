@@ -149,6 +149,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const tasks = @json($tasks);
     const projects = @json($projects);
+    const assignedTaskIds = @json($assignedTaskIds);
     
     let currentDate = new Date();
     let currentMonth = currentDate.getMonth();
@@ -670,11 +671,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 const header = document.createElement('div');
                 header.className = 'flex justify-between items-start mb-3';
                 
+                // Title container that will hold title and assigned badge
+                const titleContainer = document.createElement('div');
+                titleContainer.className = 'flex flex-col';
+                
                 // Title
                 const title = document.createElement('h3');
                 title.className = 'card-title text-lg';
                 title.textContent = task.title;
-                header.appendChild(title);
+                titleContainer.appendChild(title);
+                
+                // Assigned to me badge
+                if (task.assigned_to_user) {
+                    const assignedBadge = document.createElement('div');
+                    assignedBadge.className = 'badge badge-sm badge-primary mt-1';
+                    assignedBadge.textContent = 'Assigned to me';
+                    titleContainer.appendChild(assignedBadge);
+                }
+                
+                header.appendChild(titleContainer);
                 
                 // Status badge
                 const statusBadge = document.createElement('span');
@@ -802,6 +817,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
+            // Filter by my tasks only
+            if (filters.myTasksOnly && !task.assigned_to_user) {
+                return false;
+            }
+            
             // Filter by search
             if (filters.search) {
                 const searchableText = (task.title + ' ' + (task.description || '')).toLowerCase();
@@ -916,6 +936,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const title = document.createElement('h3');
             title.className = 'card-title text-lg flex-1';
             title.textContent = task.title;
+            
+            // Add assigned to me badge if applicable
+            if (task.assigned_to_user) {
+                const assignedBadge = document.createElement('span');
+                assignedBadge.className = 'badge badge-sm badge-primary mr-1';
+                assignedBadge.textContent = 'Assigned to me';
+                title.appendChild(assignedBadge);
+            }
+            
             header.appendChild(title);
             
             // Badges container
