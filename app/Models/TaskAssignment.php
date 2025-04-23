@@ -30,7 +30,7 @@ class TaskAssignment extends Model
     protected function casts(): array
     {
         return [
-            'assigned_at' => 'timestamp',
+            'assigned_at' => 'datetime',
         ];
     }
 
@@ -46,6 +46,6 @@ class TaskAssignment extends Model
 
     public function assignedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'assigned_by');
     }
 }

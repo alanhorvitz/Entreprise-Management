@@ -27,7 +27,7 @@ class TasksController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Not needed with Livewire
     }
 
     /**
@@ -35,7 +35,7 @@ class TasksController extends Controller
      */
     public function show(string $id)
     {
-        //
+        // Not needed with Livewire
     }
 
     /**
@@ -43,7 +43,7 @@ class TasksController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        // Not needed with Livewire
     }
 
     /**
@@ -51,7 +51,7 @@ class TasksController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Not needed with Livewire
     }
 
     /**
@@ -59,6 +59,6 @@ class TasksController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Not needed with Livewire
     }
 }

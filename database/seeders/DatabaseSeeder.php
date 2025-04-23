@@ -54,6 +54,55 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'role' => 'employee',
                 'username' => 'teammember2'
+            ],
+            // Adding more employees
+            [
+                'first_name' => 'Sarah',
+                'last_name' => 'Johnson',
+                'email' => 'sarah@example.com',
+                'password' => Hash::make('password'),
+                'role' => 'supervisor',
+                'username' => 'sarahj'
+            ],
+            [
+                'first_name' => 'Michael',
+                'last_name' => 'Williams',
+                'email' => 'michael@example.com',
+                'password' => Hash::make('password'),
+                'role' => 'employee',
+                'username' => 'michaelw'
+            ],
+            [
+                'first_name' => 'Emily',
+                'last_name' => 'Clark',
+                'email' => 'emily@example.com',
+                'password' => Hash::make('password'),
+                'role' => 'employee',
+                'username' => 'emilyc'
+            ],
+            [
+                'first_name' => 'James',
+                'last_name' => 'Brown',
+                'email' => 'james@example.com',
+                'password' => Hash::make('password'),
+                'role' => 'project_manager',
+                'username' => 'jamesb'
+            ],
+            [
+                'first_name' => 'Jessica',
+                'last_name' => 'Miller',
+                'email' => 'jessica@example.com',
+                'password' => Hash::make('password'),
+                'role' => 'employee',
+                'username' => 'jessicam'
+            ],
+            [
+                'first_name' => 'David',
+                'last_name' => 'Wilson',
+                'email' => 'david@example.com',
+                'password' => Hash::make('password'),
+                'role' => 'employee',
+                'username' => 'davidw'
             ]
         ];
 
@@ -120,6 +169,24 @@ class DatabaseSeeder extends Seeder
                 'joined_at' => Carbon::now()->subDays(rand(30, 60))
             ]);
             
+            // Add second project manager to some projects
+            if ($index % 2 == 0) {
+                ProjectMember::create([
+                    'project_id' => $project->id,
+                    'user_id' => $createdUsers[7]->id, // James Brown (new PM)
+                    'role' => 'project_manager',
+                    'joined_at' => Carbon::now()->subDays(rand(25, 55))
+                ]);
+            }
+            
+            // Add supervisor to projects
+            ProjectMember::create([
+                'project_id' => $project->id,
+                'user_id' => $createdUsers[4]->id, // Sarah Johnson (supervisor)
+                'role' => 'member',
+                'joined_at' => Carbon::now()->subDays(rand(28, 58))
+            ]);
+            
             // Add team members to projects
             // First team member is on all projects
             ProjectMember::create([
@@ -129,8 +196,44 @@ class DatabaseSeeder extends Seeder
                 'joined_at' => Carbon::now()->subDays(rand(10, 30))
             ]);
             
-            // Second team member is on alternating projects
+            // Add new employees to projects with different patterns
+            // Michael Williams on all projects
+            ProjectMember::create([
+                'project_id' => $project->id,
+                'user_id' => $createdUsers[5]->id, 
+                'role' => 'member',
+                'joined_at' => Carbon::now()->subDays(rand(15, 35))
+            ]);
+            
+            // Emily Clark and Jessica Miller on alternating projects
             if ($index % 2 == 0) {
+                ProjectMember::create([
+                    'project_id' => $project->id,
+                    'user_id' => $createdUsers[6]->id, // Emily
+                    'role' => 'member',
+                    'joined_at' => Carbon::now()->subDays(rand(10, 30))
+                ]);
+            } else {
+                ProjectMember::create([
+                    'project_id' => $project->id,
+                    'user_id' => $createdUsers[8]->id, // Jessica
+                    'role' => 'member',
+                    'joined_at' => Carbon::now()->subDays(rand(10, 30))
+                ]);
+            }
+            
+            // David Wilson on even-indexed projects
+            if ($index % 2 == 0) {
+                ProjectMember::create([
+                    'project_id' => $project->id,
+                    'user_id' => $createdUsers[9]->id, // David
+                    'role' => 'member',
+                    'joined_at' => Carbon::now()->subDays(rand(5, 25))
+                ]);
+            }
+            
+            // Second team member is on alternating projects
+            if ($index % 2 == 1) {
                 ProjectMember::create([
                     'project_id' => $project->id,
                     'user_id' => $createdUsers[3]->id,
@@ -213,6 +316,39 @@ class DatabaseSeeder extends Seeder
                         'task_id' => $task->id,
                         'user_id' => $createdUsers[3]->id, // Team member 2
                         'assigned_by' => $createdUsers[1]->id, // PM assigns
+                        'assigned_at' => Carbon::now()->subDays(rand(1, 10))
+                    ]);
+                }
+                
+                // Some tasks assigned to new employees
+                $newEmployeeIds = [5, 6, 8, 9]; // Michael, Emily, Jessica, David
+                foreach ($newEmployeeIds as $employeeId) {
+                    if (rand(0, 3) == 0) { // 25% chance for each new employee
+                        TaskAssignment::create([
+                            'task_id' => $task->id,
+                            'user_id' => $createdUsers[$employeeId]->id,
+                            'assigned_by' => rand(0, 1) == 0 ? $createdUsers[1]->id : $createdUsers[7]->id, // Assigned by either PM
+                            'assigned_at' => Carbon::now()->subDays(rand(1, 10))
+                        ]);
+                    }
+                }
+                
+                // A few tasks assigned to supervisor
+                if (rand(0, 7) == 0) { // ~12.5% chance
+                    TaskAssignment::create([
+                        'task_id' => $task->id,
+                        'user_id' => $createdUsers[4]->id, // Sarah (supervisor)
+                        'assigned_by' => $createdUsers[1]->id, // PM assigns
+                        'assigned_at' => Carbon::now()->subDays(rand(1, 10))
+                    ]);
+                }
+                
+                // A few tasks assigned to the second PM
+                if (rand(0, 6) == 0) { // ~16.6% chance
+                    TaskAssignment::create([
+                        'task_id' => $task->id,
+                        'user_id' => $createdUsers[7]->id, // James (PM)
+                        'assigned_by' => $createdUsers[7]->id, // Self-assigned
                         'assigned_at' => Carbon::now()->subDays(rand(1, 10))
                     ]);
                 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Task extends Model
 {
@@ -53,6 +54,31 @@ class Task extends Model
 
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'created_by');
+    }
+    
+    public function taskAssignments(): HasMany
+    {
+        return $this->hasMany(TaskAssignment::class);
+    }
+    
+    public function taskComments(): HasMany
+    {
+        return $this->hasMany(TaskComment::class);
+    }
+    
+    public function statusHistory(): HasMany
+    {
+        return $this->hasMany(TaskStatusHistory::class);
+    }
+    
+    /**
+     * Get all assigned users for this task
+     */
+    public function assignedUsers()
+    {
+        return $this->belongsToMany(User::class, 'task_assignments', 'task_id', 'user_id')
+            ->withPivot('assigned_by', 'assigned_at')
+            ->withTimestamps();
     }
 }
