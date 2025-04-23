@@ -22,7 +22,7 @@ return new class extends Migration
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->enum('status', ["planning","in_progress","completed","on_hold"])->nullable();
-            $table->unsignedBigInteger('supervised_by');
+            $table->unsignedBigInteger('supervised_by')->nullable();
             $table->foreign('supervised_by')->references('id')->on('users');
             $table->timestamps();
         });

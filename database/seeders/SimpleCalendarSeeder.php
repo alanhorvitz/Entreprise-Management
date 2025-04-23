@@ -60,7 +60,7 @@ class SimpleCalendarSeeder extends Seeder
 
         // Define priorities and statuses for tasks
         $priorities = ['high', 'medium', 'low'];
-        $statuses = ['todo', 'in_progress', 'completed'];
+        $statuses = ['pending_approval', 'approved'];
         $currentStatuses = ['todo', 'in_progress', 'completed'];
 
         // Task titles by project
