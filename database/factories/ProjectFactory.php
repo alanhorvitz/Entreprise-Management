@@ -28,6 +28,7 @@ class ProjectFactory extends Factory
             'created_at' => fake()->dateTime(),
             'start_date' => fake()->date(),
             'end_date' => fake()->date(),
+            'supervised_by' => User::factory(),
             'status' => fake()->randomElement(["planning","in_progress","completed","on_hold"]),
         ];
     }
