@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('role', ["project_manager", "member"])->nullable();
             $table->timestamp('joined_at')->nullable()->useCurrent();
             $table->timestamps();
-            
+              
             $table->foreign('project_id')->references('id')->on('projects');
         });
 
