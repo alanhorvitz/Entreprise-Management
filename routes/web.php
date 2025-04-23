@@ -1,13 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\ChatsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectsController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TasksController;
-use App\Http\Controllers\CalendarController;
+use Illuminate\Support\Facades\Route;
+
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -37,8 +42,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('projects', ProjectsController::class);
     Route::resource('tasks', TasksController::class);
-    // Calendar
-    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
     // Authentication
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     

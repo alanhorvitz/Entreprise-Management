@@ -201,7 +201,6 @@
                                                 <span>Sarah Johnson</span>
                                             </div>
                                         </label>
-                                        
                                         <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-base-300 rounded-md">
                                             <input type="checkbox" class="checkbox checkbox-sm" />
                                             <div class="flex items-center gap-2">
