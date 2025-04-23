@@ -1313,12 +1313,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .current-month.is-today {
-    background: linear-gradient(45deg, hsl(var(--p) / 0.65), hsl(var(--p) / 0.4)) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(45deg, hsl(var(--a) / 0.75), hsl(var(--af) / 0.8)) !important;
+    box-shadow: 0 4px 3px rgba(0, 0, 0, 0.2);
 }
-
-.is-today .day-content {
-    background-color: rgba(255, 255, 255, 0.25);
 }
 
 .is-today .day-header {
