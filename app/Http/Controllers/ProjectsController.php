@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
 use Illuminate\Http\Request;
 
 class ProjectsController extends Controller
@@ -9,9 +10,28 @@ class ProjectsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('projects.index');
+        $query = Project::query()
+            ->with(['createdBy', 'supervised_by'])
+            ->latest();
+
+        // Search by name or description
+        if ($search = $request->input('search')) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by status
+        if ($status = $request->input('status')) {
+            $query->where('status', $status);
+        }
+
+        $projects = $query->paginate(9)->withQueryString();
+
+        return view('projects.index', compact('projects'));
     }
 
     /**
