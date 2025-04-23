@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Call role seeder first to ensure roles exist
+        $this->call(RoleSeeder::class);
+        
         // Create users
         $users = [
             [
@@ -225,5 +228,8 @@ class DatabaseSeeder extends Seeder
                 }
             }
         }
+        
+        // Create repetitive tasks
+        $this->call(RepetitiveTaskSeeder::class);
     }
 }

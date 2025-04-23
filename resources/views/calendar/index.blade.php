@@ -430,16 +430,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     taskItem.className = `task-item ${priorityClass}`;
                     
-                    // Task status indicator
-                    const statusDot = document.createElement('span');
-                    statusDot.className = `task-status status-${taskStatus.toLowerCase().replace('_', '-').replace(' ', '-')}`;
-                    
-                    // Task title
+                    // Task title with repetitive indicator if applicable
                     const taskTitle = document.createElement('span');
                     taskTitle.textContent = task.title;
                     
-                    taskItem.appendChild(statusDot);
                     taskItem.appendChild(taskTitle);
+                    
+                    // Add repetitive task indicator if this is a repetitive task
+                    if (task.is_repetitive) {
+                        const repetitiveBadge = document.createElement('span');
+                        repetitiveBadge.className = 'badge badge-secondary badge-sm';
+                        repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
+                        taskTitle.appendChild(repetitiveBadge);
+                    }
                     
                     // Project tag if available
                     if (task.project && task.project.name) {
@@ -554,16 +557,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     taskItem.className = `task-item ${priorityClass}`;
                     
-                    // Task status indicator
-                    const statusDot = document.createElement('span');
-                    statusDot.className = `task-status status-${taskStatus.toLowerCase().replace('_', '-').replace(' ', '-')}`;
-                    
-                    // Task title
+                    // Task title with repetitive indicator if applicable
                     const taskTitle = document.createElement('span');
                     taskTitle.textContent = task.title;
                     
-                    taskItem.appendChild(statusDot);
                     taskItem.appendChild(taskTitle);
+                    
+                    // Add repetitive task indicator if this is a repetitive task
+                    if (task.is_repetitive) {
+                        const repetitiveBadge = document.createElement('span');
+                        repetitiveBadge.className = 'badge badge-secondary badge-sm';
+                        repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
+                        taskTitle.appendChild(repetitiveBadge);
+                    }
                     
                     // Project tag if available
                     if (task.project && task.project.name) {
@@ -691,13 +697,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 header.appendChild(titleContainer);
                 
-                // Status badge
-                const statusBadge = document.createElement('span');
-                const taskStatus = task.status || task.current_status || 'unknown';
-                statusBadge.className = `badge ${getStatusBadgeClass(taskStatus)}`;
-                statusBadge.textContent = formatStatus(taskStatus);
-                header.appendChild(statusBadge);
+                // Badges container
+                const badgesContainer = document.createElement('div');
+                badgesContainer.className = 'flex flex-wrap gap-2';
                 
+                // Status badge
+                const taskStatus = task.status || task.current_status || 'unknown';
+                const statusBadge = document.createElement('span');
+                statusBadge.className = `badge ${getStatusBadgeClass(taskStatus)} badge-sm`;
+                statusBadge.textContent = formatStatus(taskStatus);
+                badgesContainer.appendChild(statusBadge);
+                
+                // Priority badge
+                const priorityBadge = document.createElement('span');
+                let priorityClass = '';
+                switch((task.priority || '').toLowerCase()) {
+                    case 'high':
+                        priorityClass = 'badge-error';
+                        break;
+                    case 'medium':
+                        priorityClass = 'badge-warning';
+                        break;
+                    case 'low':
+                        priorityClass = 'badge-info';
+                        break;
+                    default:
+                        priorityClass = 'badge-ghost';
+                }
+                priorityBadge.className = `badge ${priorityClass} badge-sm`;
+                priorityBadge.textContent = task.priority || 'Normal';
+                badgesContainer.appendChild(priorityBadge);
+                
+                // Repetitive task badge
+                if (task.is_repetitive) {
+                    const repetitiveBadge = document.createElement('span');
+                    repetitiveBadge.className = 'badge badge-secondary badge-sm';
+                    repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
+                    badgesContainer.appendChild(repetitiveBadge);
+                }
+                
+                header.appendChild(badgesContainer);
                 cardBody.appendChild(header);
                 
                 // Description
@@ -978,6 +1017,14 @@ document.addEventListener('DOMContentLoaded', function() {
             priorityBadge.textContent = task.priority || 'Normal';
             badgesContainer.appendChild(priorityBadge);
             
+            // Repetitive task badge
+            if (task.is_repetitive) {
+                const repetitiveBadge = document.createElement('span');
+                repetitiveBadge.className = 'badge badge-secondary badge-sm';
+                repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
+                badgesContainer.appendChild(repetitiveBadge);
+            }
+            
             header.appendChild(badgesContainer);
             cardBody.appendChild(header);
             
@@ -1221,26 +1268,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .task-item.priority-low {
     border-left-color: hsl(var(--in));
-}
-
-.task-item .task-status {
-    display: inline-block;
-    height: 8px;
-    width: 8px;
-    border-radius: 50%;
-    margin-right: 4px;
-}
-
-.task-status.status-todo {
-    background-color: hsl(var(--in));
-}
-
-.task-status.status-in-progress {
-    background-color: hsl(var(--wa));
-}
-
-.task-status.status-completed {
-    background-color: hsl(var(--su));
 }
 
 .current-month {
