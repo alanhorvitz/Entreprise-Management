@@ -9,7 +9,7 @@
                 <div class="relative w-full max-w-xl p-6 my-8 overflow-hidden text-left transition-all transform bg-base-100 rounded-lg shadow-xl">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-lg">Add Project Members</h3>
-                        <button wire:click="close" class="btn btn-sm btn-circle btn-ghost">
+                        <button wire:click="close" class="btn btn-sm btn-circle btn-ghost text-xl">
                             <iconify-icon icon="lucide:x" class="w-5 h-5"></iconify-icon>
                         </button>
                     </div>
@@ -17,8 +17,8 @@
                     @if($availableMembers->isEmpty())
                         <div class="text-center py-6">
                             <div class="avatar placeholder mb-4">
-                                <div class="bg-neutral text-neutral-content rounded-full w-16">
-                                    <iconify-icon icon="lucide:users" class="w-8 h-8"></iconify-icon>
+                                <div class="bg-neutral text-neutral-content rounded-full w-16 text-2xl">
+                                    <iconify-icon icon="lucide:users" class=""></iconify-icon>
                                 </div>
                             </div>
                             <h3 class="font-semibold">No Available Members</h3>

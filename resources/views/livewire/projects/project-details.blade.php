@@ -24,7 +24,7 @@
 
             <!-- Project Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-                <div class="stat bg-base-200 rounded-lg p-4">
+                <div class="stat bg-base-200 rounded-lg p-4 [border-inline-end:none!important]">
                     <div class="stat-title">Status</div>
                     <div class="stat-value">
                         <span class="badge {{ 
@@ -37,19 +37,19 @@
                     </div>
                 </div>
                 
-                <div class="stat bg-base-200 rounded-lg p-4">
+                <div class="stat bg-base-200 rounded-lg p-4 [border-inline-end:none!important]">
                     <div class="stat-title">Created By</div>
                     <div class="stat-value text-sm">{{ $project->createdBy->name }}</div>
                 </div>
 
-                <div class="stat bg-base-200 rounded-lg p-4">
+                <div class="stat bg-base-200 rounded-lg p-4 [border-inline-end:none!important]">
                     <div class="stat-title">Timeline</div>
                     <div class="stat-value text-sm">
                         {{ $project->start_date?->format('M d') ?? 'Not set' }} - {{ $project->end_date?->format('M d, Y') ?? 'Not set' }}
                     </div>
                 </div>
 
-                <div class="stat bg-base-200 rounded-lg p-4">
+                <div class="stat bg-base-200 rounded-lg p-4 [border-inline-end:none!important]">
                     <div class="stat-title">Supervisor</div>
                     <div class="stat-value text-sm">{{ $project->supervisedBy?->name ?? 'Not assigned' }}</div>
                 </div>
@@ -189,8 +189,8 @@
                         @else
                             <div class="text-center py-8">
                                 <div class="avatar placeholder mb-4">
-                                    <div class="bg-neutral text-neutral-content rounded-full w-16">
-                                        <iconify-icon icon="lucide:check-circle" class="w-8 h-8"></iconify-icon>
+                                    <div class="bg-neutral text-neutral-content rounded-full w-16 text-2xl">
+                                        <iconify-icon icon="lucide:check-circle" class=""></iconify-icon>
                                     </div>
                                 </div>
                                 <h3 class="text-lg font-semibold">No Tasks Yet</h3>
@@ -216,7 +216,7 @@
                         </button>
                     </div>
                     
-                    <div class="overflow-x-auto mt-4">
+                    <div class="overflow-x-auto mt-4 relative">
                         @if($members->count() > 0)
                             <table class="table">
                                 <thead>
@@ -245,10 +245,20 @@
                                             </td>
                                             <td>{{ ucfirst($member->pivot->role) }}</td>
                                             <td>{{ $member->pivot->joined_at->format('M d, Y') }}</td>
-                                            <td>
-                                                <button class="btn btn-ghost btn-sm">
-                                                    <iconify-icon icon="lucide:more-vertical"></iconify-icon>
-                                                </button>
+                                            <td class="relative">
+                                                <div class="dropdown dropdown-end">
+                                                    <button class="btn btn-ghost btn-sm" tabindex="0">
+                                                        <iconify-icon icon="lucide:more-vertical"></iconify-icon>
+                                                    </button>
+                                                    <ul tabindex="0" class="dropdown-content z-[999999] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                                        <li>
+                                                            <button wire:click="confirmDelete('{{ $member->id }}')" class="text-error">
+                                                                <iconify-icon icon="lucide:user-minus"></iconify-icon>
+                                                                Remove Member
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -257,8 +267,8 @@
                         @else
                             <div class="text-center py-8">
                                 <div class="avatar placeholder mb-4">
-                                    <div class="bg-neutral text-neutral-content rounded-full w-16">
-                                        <iconify-icon icon="lucide:users" class="w-8 h-8"></iconify-icon>
+                                    <div class="bg-neutral text-neutral-content rounded-full w-16 text-2xl" >
+                                        <iconify-icon icon="lucide:users" class=""></iconify-icon>
                                     </div>
                                 </div>
                                 <h3 class="text-lg font-semibold">No Team Members</h3>
@@ -277,4 +287,30 @@
 
     <!-- Add this at the bottom of your view -->
     <livewire:projects.add-member-modal :project="$project" />
+
+    <!-- Delete Confirmation Modal -->
+    @if($showDeleteModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0">
+                <div class="fixed inset-0 transition-opacity bg-base-200 opacity-40" aria-hidden="true"></div>
+
+                <div class="relative w-full max-w-lg p-6 my-8 overflow-hidden text-left transition-all transform bg-base-100 rounded-lg shadow-xl">
+                    <div class="flex flex-col items-center justify-center text-center">
+                        <div class="avatar placeholder mb-4">
+                            <div class="bg-error text-error-content rounded-full w-16 text-2xl">
+                                <iconify-icon icon="lucide:user-minus" class=""></iconify-icon>
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold">Remove Team Member</h3>
+                        <p class="py-4 text-base-content/70">Are you sure you want to remove this member from the project? This action cannot be undone.</p>
+                    </div>
+
+                    <div class="flex justify-between gap-2 mt-6">
+                        <button wire:click="closeDeleteModal" class="btn">Cancel</button>
+                        <button wire:click="deleteMember" class="btn btn-error">Remove Member</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 </div> 

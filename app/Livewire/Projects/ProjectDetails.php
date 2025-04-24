@@ -3,6 +3,7 @@
 namespace App\Livewire\Projects;
 
 use App\Models\Project;
+use App\Models\ProjectMember;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -14,6 +15,8 @@ class ProjectDetails extends Component
 
     public Project $project;
     public $activeTab = 'overview';
+    public $memberToDelete = null;
+    public $showDeleteModal = false;
     
     protected $listeners = ['memberAdded' => '$refresh'];
 
@@ -25,6 +28,35 @@ class ProjectDetails extends Component
     public function setActiveTab($tab)
     {
         $this->activeTab = $tab;
+    }
+
+    public function confirmDelete($memberId)
+    {
+        $this->memberToDelete = $memberId;
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteMember()
+    {
+        try {
+            ProjectMember::where('project_id', $this->project->id)
+                ->where('user_id', $this->memberToDelete)
+                ->delete();
+
+            $this->project->refresh();
+            $this->showDeleteModal = false;
+            $this->memberToDelete = null;
+            
+            session()->flash('success', 'Member removed successfully.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to remove member.');
+        }
+    }
+
+    public function closeDeleteModal()
+    {
+        $this->showDeleteModal = false;
+        $this->memberToDelete = null;
     }
 
     public function render()
