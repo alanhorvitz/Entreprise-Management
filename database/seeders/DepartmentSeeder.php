@@ -81,21 +81,21 @@ class DepartmentSeeder extends Seeder
         // After creating departments, we can assign supervisors
         $departments = Department::all();
         
-        foreach ($departments as $department) {
-            // Try to find a supervisor for this department
-            $supervisor = User::where('role', 'supervisor')
-                         ->whereNull('department_id')
-                         ->inRandomOrder()
-                         ->first();
+        // foreach ($departments as $department) {
+        //     // Try to find a supervisor for this department
+        //     $supervisor = User::where('role', 'supervisor')
+        //                  ->whereNull('department_id')
+        //                  ->inRandomOrder()
+        //                  ->first();
             
-            if ($supervisor) {
-                $department->manager_id = $supervisor->id;
-                $department->save();
+        //     if ($supervisor) {
+        //         $department->manager_id = $supervisor->id;
+        //         $department->save();
                 
-                // Assign the supervisor to this department
-                $supervisor->department_id = $department->id;
-                $supervisor->save();
-            }
-        }
+        //         // Assign the supervisor to this department
+        //         $supervisor->department_id = $department->id;
+        //         $supervisor->save();
+        //     }
+        // }
     }
 } 
