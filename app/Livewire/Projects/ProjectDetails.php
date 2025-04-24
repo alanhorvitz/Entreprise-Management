@@ -15,6 +15,8 @@ class ProjectDetails extends Component
     public Project $project;
     public $activeTab = 'overview';
     
+    protected $listeners = ['memberAdded' => '$refresh'];
+
     public function mount(Project $project)
     {
         $this->project = $project->load(['createdBy', 'supervisedBy', 'members', 'tasks']);

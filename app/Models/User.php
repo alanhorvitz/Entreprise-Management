@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
@@ -67,5 +68,24 @@ class User extends Authenticatable
     public function repetitiveTask(): BelongsTo
     {
         return $this->belongsTo(RepetitiveTask::class, 'id', 'created_by');
+    }
+
+    /**
+     * Get the departments that the user belongs to.
+     */
+    public function departments(): BelongsToMany
+    {
+        return $this->belongsToMany(Department::class, 'department_members', 'user_id', 'department_id')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get the project memberships of the user.
+     */
+    public function projectMembers(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_members', 'user_id', 'project_id')
+                    ->withPivot('role', 'joined_at')
+                    ->withTimestamps();
     }
 }
