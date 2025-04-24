@@ -13,42 +13,40 @@ class UserSeeder extends Seeder
         // Create supervisors (one for each department plus some extra)
         for ($i = 1; $i <= 15; $i++) {
             User::create([
-                'username' => 'supervisor' . $i,
                 'email' => 'supervisor' . $i . '@example.com',
                 'password' => Hash::make('password'),
                 'first_name' => 'Supervisor',
                 'last_name' => 'User ' . $i,
                 'role' => 'supervisor',
                 'is_active' => true,
-                'department_id' => rand(1, 10), // Randomly assign to departments 1-10
+                'department_id' => rand(1, 10), 
             ]);
         }
 
         // Create project managers
-        for ($i = 1; $i <= 20; $i++) {
-            User::create([
-                'username' => 'pm' . $i,
-                'email' => 'pm' . $i . '@example.com',
-                'password' => Hash::make('password'),
-                'first_name' => 'Project',
-                'last_name' => 'Manager ' . $i,
-                'role' => 'project_manager',
-                'is_active' => true,
-                'department_id' => rand(1, 10), // Randomly assign to departments 1-10
-            ]);
-        }
+        // for ($i = 1; $i <= 20; $i++) {
+        //     User::create([
+        //         'username' => 'pm' . $i,
+        //         'email' => 'pm' . $i . '@example.com',
+        //         'password' => Hash::make('password'),
+        //         'first_name' => 'Project',
+        //         'last_name' => 'Manager ' . $i,
+        //         'role' => 'project_manager',
+        //         'is_active' => true,
+        //         'department_id' => rand(1, 10), 
+        //     ]);
+        // }
 
         // Create regular employees
         for ($i = 1; $i <= 50; $i++) {
             User::create([
-                'username' => 'employee' . $i,
                 'email' => 'employee' . $i . '@example.com',
                 'password' => Hash::make('password'),
                 'first_name' => 'Employee',
                 'last_name' => 'User ' . $i,
                 'role' => 'employee',
                 'is_active' => true,
-                'department_id' => rand(1, 10), // Randomly assign to departments 1-10
+                'department_id' => rand(1, 10), 
             ]);
         }
     }
