@@ -4,6 +4,7 @@ namespace App\Livewire\Projects;
 
 use App\Models\Project;
 use App\Models\ProjectMember;
+use App\Models\Chat;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -17,6 +18,7 @@ class ProjectDetails extends Component
     public $activeTab = 'overview';
     public $memberToDelete = null;
     public $showDeleteModal = false;
+    public $showProjectDeleteModal = false;
     
     protected $listeners = ['memberAdded' => '$refresh'];
 
@@ -36,6 +38,11 @@ class ProjectDetails extends Component
         $this->showDeleteModal = true;
     }
 
+    public function confirmDeleteProject()
+    {
+        $this->showProjectDeleteModal = true;
+    }
+
     public function deleteMember()
     {
         try {
@@ -53,10 +60,37 @@ class ProjectDetails extends Component
         }
     }
 
+    public function deleteProject()
+    {
+        try {
+            // Delete project members
+            ProjectMember::where('project_id', $this->project->id)->delete();
+
+            // Delete associated chat data
+            // Chat::where('project_id', $this->project->id)->delete();
+
+            // Delete the project
+            $this->project->delete();
+
+            $this->showProjectDeleteModal = false;
+
+            session()->flash('success', 'Project deleted successfully.');
+
+            return redirect()->route('projects.index');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to delete project.');
+        }
+    }
+
     public function closeDeleteModal()
     {
         $this->showDeleteModal = false;
         $this->memberToDelete = null;
+    }
+
+    public function closeProjectDeleteModal()
+    {
+        $this->showProjectDeleteModal = false;
     }
 
     public function render()

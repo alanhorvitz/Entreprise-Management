@@ -3,6 +3,8 @@
 namespace App\Livewire\Projects;
 
 use App\Models\Project;
+use App\Models\ProjectMember;
+// use App\Models\Chat;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -16,6 +18,8 @@ class ProjectList extends Component
     public $statusFilter = '';
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
+    public $projectToDelete = null;
+    public $showDeleteModal = false;
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -37,6 +41,41 @@ class ProjectList extends Component
             $this->sortField = $field;
             $this->sortDirection = 'asc';
         }
+    }
+
+    public function confirmDelete($projectId)
+    {
+        $this->projectToDelete = $projectId;
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteProject()
+    {
+        try {
+            $project = Project::findOrFail($this->projectToDelete);
+
+            // Delete project members
+            ProjectMember::where('project_id', $project->id)->delete();
+
+            // Delete associated chat data
+            // Chat::where('project_id', $project->id)->delete();
+
+            // Delete the project
+            $project->delete();
+
+            $this->showDeleteModal = false;
+            $this->projectToDelete = null;
+
+            session()->flash('success', 'Project deleted successfully.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to delete project.');
+        }
+    }
+
+    public function closeDeleteModal()
+    {
+        $this->showDeleteModal = false;
+        $this->projectToDelete = null;
     }
 
     public function render()
