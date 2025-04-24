@@ -14,8 +14,6 @@ class Department extends Model
         'name',
         'code',
         'description',
-        'manager_id',
-        'parent_id',
         'is_active'
     ];
 
@@ -23,10 +21,7 @@ class Department extends Model
         'is_active' => 'boolean',
     ];
 
-    public function manager()
-    {
-        return $this->belongsTo(User::class, 'manager_id');
-    }
+  
 
     public function parent()
     {
