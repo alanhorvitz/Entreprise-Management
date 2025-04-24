@@ -28,11 +28,11 @@ class DatabaseSeeder extends Seeder
         $users = [
             [
                 'first_name' => 'Admin',
-            'last_name' => 'User',
+                'last_name' => 'User',
                 'email' => 'admin@example.com',
                 'password' => Hash::make('password'),
-            'role' => 'director',
-                'username' => 'adminuser'
+                'role' => 'director',
+                'department_id' => rand(1, 10)
             ],
             [
                 'first_name' => 'Project',
@@ -40,24 +40,24 @@ class DatabaseSeeder extends Seeder
                 'email' => 'pm@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'project_manager',
-                'username' => 'projmanager'
-            ],
+                'department_id' => rand(1, 10)
+                ],
             [
                 'first_name' => 'Team',
                 'last_name' => 'Member1',
                 'email' => 'member1@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'username' => 'teammember1'
-            ],
+                'department_id' => rand(1, 10)
+                ],
             [
                 'first_name' => 'Team',
                 'last_name' => 'Member2',
                 'email' => 'member2@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'username' => 'teammember2'
-            ],
+                'department_id' => rand(1, 10)
+                ],
             // Adding more employees
             [
                 'first_name' => 'Sarah',
@@ -65,48 +65,48 @@ class DatabaseSeeder extends Seeder
                 'email' => 'sarah@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'supervisor',
-                'username' => 'sarahj'
-            ],
+                'department_id' => rand(1, 10)
+                ],
             [
                 'first_name' => 'Michael',
                 'last_name' => 'Williams',
                 'email' => 'michael@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'username' => 'michaelw'
-            ],
+                'department_id' => rand(1, 10)
+                ],
             [
                 'first_name' => 'Emily',
                 'last_name' => 'Clark',
                 'email' => 'emily@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'username' => 'emilyc'
-            ],
+                'department_id' => rand(1, 10)
+                ],
             [
                 'first_name' => 'James',
                 'last_name' => 'Brown',
                 'email' => 'james@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'project_manager',
-                'username' => 'jamesb'
-            ],
+                'department_id' => rand(1, 10)
+                ],
             [
                 'first_name' => 'Jessica',
                 'last_name' => 'Miller',
                 'email' => 'jessica@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'username' => 'jessicam'
-            ],
+                'department_id' => rand(1, 10)
+                ],
             [
                 'first_name' => 'David',
                 'last_name' => 'Wilson',
                 'email' => 'david@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'username' => 'davidw'
-            ]
+                'department_id' => rand(1, 10)
+                    ]
         ];
 
         $createdUsers = [];

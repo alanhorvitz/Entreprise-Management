@@ -18,13 +18,26 @@
                 <form method="POST" action="{{ route('register') }}" class="space-y-4">
                     @csrf
 
-                    <!-- Name -->
+                    <!-- First Name -->
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text text-black">Username</span>
+                            <span class="label-text text-black">First Name</span>
                         </label>
-                        <input type="text" name="username" value="{{ old('username') }}" class="input input-bordered text-black" required autofocus autocomplete="username" />
-                        @error('username')
+                        <input type="text" name="first_name" value="{{ old('first_name') }}" class="input input-bordered text-black" required autofocus />
+                        @error('first_name')
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ $message }}</span>
+                            </label>
+                        @enderror
+                    </div>
+
+                    <!-- Last Name -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-black">Last Name</span>
+                        </label>
+                        <input type="text" name="last_name" value="{{ old('last_name') }}" class="input input-bordered text-black" required />
+                        @error('last_name')
                             <label class="label">
                                 <span class="label-text-alt text-error">{{ $message }}</span>
                             </label>
@@ -36,7 +49,7 @@
                         <label class="label">
                             <span class="label-text text-black">Email</span>
                         </label>
-                        <input type="email" name="email" value="{{ old('email') }}" class="input input-bordered text-black" required autocomplete="username" />
+                        <input type="email" name="email" value="{{ old('email') }}" class="input input-bordered text-black" required autocomplete="email" />
                         @error('email')
                             <label class="label">
                                 <span class="label-text-alt text-error">{{ $message }}</span>

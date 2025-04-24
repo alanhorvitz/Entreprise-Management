@@ -122,12 +122,11 @@ class CreateProject extends Component
                 'joined_at' => now(),
             ]);
 
-
             // Attach team members
             if (!empty($this->selectedTeamMembers)) {
                 foreach ($this->selectedTeamMembers as $memberId) {
                     // Skip if member is project manager or team manager
-                    if ($memberId != $this->project_manager_id) {
+                    if ($memberId != $this->project_manager_id && $memberId != $this->team_manager_id) {
                         ProjectMember::create([
                             'project_id' => $project->id,
                             'user_id' => $memberId,
