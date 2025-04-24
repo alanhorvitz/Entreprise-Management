@@ -210,7 +210,7 @@
                 <div class="card-body">
                     <div class="flex justify-between items-center">
                         <h2 class="card-title">Team Members</h2>
-                        <button onclick="add_member_modal.showModal()" class="btn btn-primary btn-sm">
+                        <button wire:click="$dispatch('openAddMemberModal')" class="btn btn-primary btn-sm">
                             <iconify-icon icon="lucide:user-plus" class="w-4 h-4"></iconify-icon>
                             Add Member
                         </button>
@@ -263,7 +263,7 @@
                                 </div>
                                 <h3 class="text-lg font-semibold">No Team Members</h3>
                                 <p class="text-base-content/70 mt-1">Add team members to collaborate on this project</p>
-                                <button onclick="add_member_modal.showModal()" class="btn btn-primary mt-4">
+                                <button wire:click="$dispatch('openAddMemberModal')" class="btn btn-primary mt-4">
                                     <iconify-icon icon="lucide:user-plus" class="w-4 h-4 mr-2"></iconify-icon>
                                     Add Member
                                 </button>
