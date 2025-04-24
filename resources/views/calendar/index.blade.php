@@ -821,16 +821,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function getTasksForDay(day, filteredTasks) {
+        // Create date in local timezone
         const date = new Date(currentYear, currentMonth, day);
-        const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
         
         // Get tasks for this day from filtered tasks
         return filteredTasks.filter(task => {
-            const dueDate = task.due_date ? new Date(task.due_date) : null;
-            if (!dueDate) return false;
+            if (!task.due_date) return false;
             
-            const taskDateStr = dueDate.toISOString().split('T')[0];
-            return taskDateStr === dateString;
+            // Create task date in local timezone
+            const dueDate = new Date(task.due_date);
+            
+            // Compare dates in local timezone
+            return dueDate.getFullYear() === date.getFullYear() &&
+                   dueDate.getMonth() === date.getMonth() &&
+                   dueDate.getDate() === date.getDate();
         });
     }
     
