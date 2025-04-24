@@ -32,6 +32,7 @@ class AddMemberModal extends Component
                     ->where('project_id', $this->project->id);
             })
             ->where('is_active', true)
+            ->where('role', 'employee')
             ->get();
     }
 
