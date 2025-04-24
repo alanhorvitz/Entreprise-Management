@@ -66,22 +66,12 @@ class CreateProject extends Component
         // Reset team manager when team members change
         $this->team_manager_id = null;
         
-        // Debug the incoming value and current state
-        logger()->info('Selected Team Members Updated', [
-            'value' => $value,
-            'all_selected' => $this->selectedTeamMembers
-        ]);
         
         // Update available team managers based on selected team members
         if (!empty($this->selectedTeamMembers)) {
             $this->availableTeamManagers = User::whereIn('id', $this->selectedTeamMembers)
                 ->get(['id', 'first_name', 'last_name']);
             
-            // Debug the query results
-            logger()->info('Available Team Managers Updated', [
-                'count' => $this->availableTeamManagers->count(),
-                'managers' => $this->availableTeamManagers->toArray()
-            ]);
         } else {
             $this->availableTeamManagers = collect();
         }
@@ -110,57 +100,55 @@ class CreateProject extends Component
     {
         $this->validate();
 
-        $project = Project::create([
-            'name' => $this->name,
-            'description' => $this->description,
-            'department_id' => $this->departmentId,
-            'start_date' => $this->start_date,
-            'end_date' => $this->end_date,
-            'status' => $this->status,
-            'budget' => $this->budget,
-            'project_manager_id' => $this->project_manager_id,
-            'team_manager_id' => $this->team_manager_id,
-            'created_by' => Auth::id(),
-            'is_featured' => $this->is_featured
-        ]);
+        try {
+            $project = Project::create([
+                'name' => $this->name,
+                'description' => $this->description,
+                'department_id' => $this->departmentId,
+                'start_date' => $this->start_date,
+                'end_date' => $this->end_date,
+                'status' => $this->status,
+                'budget' => $this->budget,
+                'supervised_by' => $this->project_manager_id,
+                'created_by' => Auth::id(),
+                'is_featured' => $this->is_featured
+            ]);
 
-        // Attach project manager
-        ProjectMember::create([
-            'project_id' => $project->id,
-            'user_id' => $this->project_manager_id,
-            'role' => 'project_manager',
-            'joined_at' => now(),
-        ]);
-
-        // Attach team manager as a member if they're not the project manager
-        if ($this->team_manager_id != $this->project_manager_id) {
+            // Attach project manager
             ProjectMember::create([
                 'project_id' => $project->id,
                 'user_id' => $this->team_manager_id,
-                'role' => 'member',
+                'role' => 'project_manager',
                 'joined_at' => now(),
             ]);
-        }
 
-        // Attach team members
-        foreach ($this->selectedTeamMembers as $memberId) {
-            if ($memberId != $this->project_manager_id && $memberId != $this->team_manager_id) {
-                ProjectMember::create([
-                    'project_id' => $project->id,
-                    'user_id' => $memberId,
-                    'role' => 'member',
-                    'joined_at' => now(),
-                ]);
+
+            // Attach team members
+            if (!empty($this->selectedTeamMembers)) {
+                foreach ($this->selectedTeamMembers as $memberId) {
+                    // Skip if member is project manager or team manager
+                    if ($memberId != $this->project_manager_id) {
+                        ProjectMember::create([
+                            'project_id' => $project->id,
+                            'user_id' => $memberId,
+                            'role' => 'member',
+                            'joined_at' => now(),
+                        ]);
+                    }
+                }
             }
-        }
 
-        // Handle notifications if enabled
-        if ($this->send_notifications) {
-            // TODO: Implement notification logic
-        }
+            if ($this->send_notifications) {
+                // TODO: Implement notification logic
+            }
 
-        session()->flash('success', 'Project created successfully!');
-        return redirect()->route('projects.index');
+            session()->flash('success', 'Project created successfully!');
+            return redirect()->route('projects.index');
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to create project. ' . $e->getMessage());
+            return null;
+        }
     }
 
     public function render()

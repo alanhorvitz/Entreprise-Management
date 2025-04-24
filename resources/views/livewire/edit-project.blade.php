@@ -89,8 +89,8 @@
                         </label>
                         <select wire:model="supervised_by" class="select select-bordered w-full" required>
                             <option value="">Select project supervisor</option>
-                            @foreach($departmentMembers as $member)
-                                <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
+                            @foreach($supervisors as $supervisor)
+                                <option value="{{ $supervisor->id }}">{{ $supervisor->first_name }} {{ $supervisor->last_name }}</option>
                             @endforeach
                         </select>
                         @error('supervised_by') <span class="text-error text-sm">{{ $message }}</span> @enderror
@@ -101,8 +101,10 @@
                         </label>
                         <select wire:model="team_manager_id" class="select select-bordered w-full" required>
                             <option value="">Select team manager</option>
-                            @foreach($departmentMembers as $member)
-                                <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
+                            @foreach($teamMembers as $member)
+                                <option value="{{ $member->id }}" {{ $member->id == $team_manager_id ? 'selected' : '' }}>
+                                    {{ $member->first_name }} {{ $member->last_name }}
+                                </option>
                             @endforeach
                         </select>
                         @error('team_manager_id') <span class="text-error text-sm">{{ $message }}</span> @enderror
@@ -128,12 +130,12 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                             @if($departmentMembers)
                                 @foreach($departmentMembers as $member)
-                                    <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-base-300 rounded-md">
+                                    <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-base-300 rounded-md" wire:key="department-{{ $department_id }}-member-{{ $member->id }}">
                                         <input type="checkbox" 
                                             wire:model.live="selectedTeamMembers" 
                                             value="{{ $member->id }}" 
                                             class="checkbox checkbox-sm"
-                                            @if($member->id === $supervised_by || $member->id === $team_manager_id) disabled @endif
+                                            @if($member->id === $supervised_by) disabled @endif
                                         />
                                         <div class="flex items-center gap-2">
                                             <div class="avatar placeholder">
@@ -183,3 +185,4 @@
         </div>
     </form>
 </div>
+

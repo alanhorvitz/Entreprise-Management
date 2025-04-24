@@ -22,7 +22,9 @@ class EditProject extends Component
     public $team_manager_id;
     public $budget;
     public $selectedTeamMembers = [];
+    public $teamMembers = [];
     public $send_notifications = true;
+    public $departmentMembers = [];
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -52,31 +54,60 @@ class EditProject extends Component
         // Load supervisor
         $this->supervised_by = $project->supervised_by;
         
+        // Load all team members for the team manager dropdown
+        $this->teamMembers = $project->members()
+            ->select('users.*')
+            ->get();
+
         // Load team manager (project_manager from project_members)
         $teamManager = $project->members()
             ->where('project_members.role', 'project_manager')
             ->first();
         $this->team_manager_id = $teamManager?->id;
-        
-        // Load regular team members
+
+        // Load selected team members (both regular members and project manager)
         $this->selectedTeamMembers = $project->members()
-            ->where('project_members.role', 'member')
+            // ->wherePivot('role', ['member', 'project_manager'])
             ->pluck('users.id')
             ->toArray();
+
+        // Load department members for selection
+        if ($this->department_id) {
+            $this->departmentMembers = User::where('department_id', $this->department_id)
+                ->where('role', 'employee')
+                ->get();
+        }
     }
 
     public function updatedDepartmentId($value)
     {
-        // Reset selections when department changes
+
         $this->selectedTeamMembers = [];
-        $this->supervised_by = null;
-        $this->team_manager_id = null;
+        // Reset all member-related fields
+        $this->reset([
+            'team_manager_id',
+            'supervised_by'
+        ]);
+
+        // Clear existing team members
+        $this->teamMembers = collect();
+        
+        // Load new department members if a department is selected
+        if ($value) {
+            $this->departmentMembers = User::where('department_id', $value)
+                ->where('role', 'employee')
+                ->get();
+        } else {
+            $this->departmentMembers = collect();
+        }
+
     }
 
     public function update()
     {
         $this->validate();
 
+        // Update project basic information
         $this->project->update([
             'name' => $this->name,
             'description' => $this->description,
@@ -89,14 +120,9 @@ class EditProject extends Component
         ]);
 
         // Prepare member data with roles
-        $memberData = collect($this->selectedTeamMembers)->mapWithKeys(function ($id) {
-            return [$id => [
-                'role' => 'member',
-                'joined_at' => now()
-            ]];
-        })->toArray();
+        $memberData = [];
 
-        // Add team manager as project_manager in project_members
+        // Add team manager as project_manager
         if ($this->team_manager_id) {
             $memberData[$this->team_manager_id] = [
                 'role' => 'project_manager',
@@ -104,12 +130,23 @@ class EditProject extends Component
             ];
         }
 
+        // Add regular team members
+        foreach ($this->selectedTeamMembers as $memberId) {
+            // Skip if this member is already set as team manager
+            if ($memberId != $this->team_manager_id) {
+                $memberData[$memberId] = [
+                    'role' => 'member',
+                    'joined_at' => now()
+                ];
+            }
+        }
+
         // Sync all members with their roles
+        // This will remove any members not in the memberData array
         $this->project->members()->sync($memberData);
 
         if ($this->send_notifications) {
-            // Send notifications to team members
-            // Implement notification logic here
+            // TODO: Implement notification logic
         }
 
         session()->flash('message', 'Project updated successfully.');
@@ -119,19 +156,10 @@ class EditProject extends Component
 
     public function render()
     {
-        $departments = Department::all();
-        $departmentMembers = [];
-        
-        if ($this->department_id) {
-            $departmentMembers = User::where('department_id', $this->department_id)
-                ->where('role', 'supervisor')
-                ->get();
-        }
-        
-
         return view('livewire.edit-project', [
-            'departments' => $departments,
-            'departmentMembers' => $departmentMembers,
+            'departments' => Department::all(),
+            'departmentMembers' => $this->departmentMembers,
+            'supervisors' => User::where('role', 'supervisor')->get(),
         ]);
     }
 } 
