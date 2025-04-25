@@ -30,6 +30,22 @@ class Project extends Model
     ];
 
     /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($project) {
+            // Detach all members
+            $project->members()->detach();
+            
+            // Delete all tasks
+            $project->tasks()->delete();
+        });
+    }
+
+    /**
      * The attributes that should be cast.
      *
      * @var array<string, string>

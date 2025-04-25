@@ -16,12 +16,12 @@ return new class extends Migration
         Schema::create('project_members', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('project_id');
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->enum('role', ["project_manager", "member"])->nullable();
             $table->timestamp('joined_at')->nullable()->useCurrent();
             $table->timestamps();
               
-            $table->foreign('project_id')->references('id')->on('projects');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
         });
 
         Schema::enableForeignKeyConstraints();

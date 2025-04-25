@@ -16,9 +16,9 @@ return new class extends Migration
         Schema::create('task_status_histories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('task_id');
-            $table->foreign('task_id')->references('id')->on('tasks');
+            $table->foreign('task_id')->references('id')->on('tasks')->onDelete('cascade');
             $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('old_status', 50)->nullable();
             $table->string('new_status', 50);
             $table->timestamp('changed_at')->nullable()->useCurrent();
