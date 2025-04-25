@@ -6,7 +6,7 @@
                 <!-- Sidebar Toggle -->
                 <button class="btn btn-ghost btn-sm rounded-lg" aria-label="Toggle sidebar">
                     <span class="iconify w-5 h-5" data-icon="solar:hamburger-menu-broken"></span>
-                </button>
+                            </button>
                 
                 <!-- Search -->
                 <div class="hidden sm:block">
@@ -15,9 +15,9 @@
                             <span class="iconify w-4 h-4 text-base-content/60" data-icon="solar:magnifer-bold-duotone"></span>
                         </span>
                         <input type="text" class="input input-bordered w-72 pl-10 pr-4 py-2 text-sm" placeholder="Search...">
-                    </div>
-                </div>
-            </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
             <!-- Right side -->
             <div class="flex items-center space-x-4">
@@ -54,10 +54,10 @@
                             </div>
                             <div class="mt-4 pt-4 border-t border-base-200">
                                 <a href="#" class="btn btn-primary btn-sm w-full">View All</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
 
                 <!-- User Menu -->
                 <div class="dropdown dropdown-end">
@@ -76,26 +76,26 @@
                                     <span class="iconify w-4 h-4 mr-2" data-icon="solar:user-bold-duotone"></span>
                                     <span>Profile</span>
                                 </a>
-                            </li>
-                            <li>
+                                        </li>
+                                        <li>
                                 <a href="/pages/settings" class="flex items-center px-4 py-2">
                                     <span class="iconify w-4 h-4 mr-2" data-icon="solar:settings-bold-duotone"></span>
                                     <span>Settings</span>
                                 </a>
-                            </li>
-                            <li>
+                                        </li>
+                                        <li>
                                 <form method="POST" action="{{ route('logout') }}" class="w-full flex p-0">
-                                    @csrf
+                                                @csrf
                                     <button type="submit" class="flex items-center px-4 py-2 w-full text-error hover:bg-error/10 gap-2">
                                         <span class="iconify w-4 h-4 mr-2" data-icon="solar:logout-3-bold-duotone"></span>
                                         <span>Logout</span>
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
     </div>
 </nav>
