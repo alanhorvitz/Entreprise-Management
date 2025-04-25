@@ -117,31 +117,11 @@
             <!-- Tasks Tab -->
             <div id="modal-tasks" class="tab-content">
                 <div class="flex justify-between items-center mb-5">
-                    <div class="flex items-center bg-base-200 rounded-lg overflow-hidden pr-2">
-                        <input type="text" placeholder="Search tasks..." class="input input-bordered border-0 bg-base-200 w-full max-w-xs" id="task-search">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <a href="{{ route('tasks.create') }}" id="new-task-modal-btn" class="btn btn-sm btn-primary" data-date="">
-                            <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
-                            New Task
-                        </a>
-                        <div class="dropdown dropdown-end">
-                            <label tabindex="0" class="btn btn-sm btn-outline">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                                </svg>
-                                <span>Sort</span>
-                            </label>
-                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                <li><a data-sort="priority">Priority</a></li>
-                                <li><a data-sort="duedate">Due Date</a></li>
-                                <li><a data-sort="status">Status</a></li>
-                            </ul>
-                        </div>
-                    </div>
+                    <h4 class="text-lg font-medium">Tasks for this date</h4>
+                    <a href="{{ route('tasks.create') }}" id="new-task-modal-btn" class="btn btn-sm btn-primary" data-date="">
+                        <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
+                        New Task
+                    </a>
                 </div>
                 
                 <div id="tasks-list" class="space-y-4">
