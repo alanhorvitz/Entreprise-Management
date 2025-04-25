@@ -9,15 +9,15 @@
                 </div>
                 <div class="dropdown dropdown-end">
                     <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle">
-                        <iconify-icon icon="lucide:more-vertical"></iconify-icon>
+                        <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
                     </div>
                     <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                         <li><a href="{{ route('projects.edit', $project) }}">
-                            <iconify-icon icon="lucide:edit"></iconify-icon> Edit Project
+                            <span class="iconify w-5 h-5 mr-2" data-icon="solar:pen-bold-duotone"></span> Edit Project
                         </a></li>
                         <li>
                             <button wire:click="confirmDeleteProject" class="text-error">
-                                <iconify-icon icon="lucide:trash-2"></iconify-icon> Delete Project
+                                <span class="iconify w-5 h-5 mr-2" data-icon="solar:trash-bin-trash-bold-duotone"></span> Delete Project
                             </button>
                         </li>
                     </ul>
@@ -89,6 +89,14 @@
                                 <p class="mt-1">{{ $project->description }}</p>
                             </div>
                             <div>
+                                <label class="text-sm font-medium text-base-content/70">Department</label>
+                                <p class="mt-1">{{ $project->department?->name ?? 'Not assigned' }}</p>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-base-content/70">Budget</label>
+                                <p class="mt-1">{{ $project->budget ? number_format($project->budget, 2) . ' MAD' : 'Not set' }}</p>
+                            </div>
+                            <div>
                                 <label class="text-sm font-medium text-base-content/70">Created At</label>
                                 <p class="mt-1">{{ $project->created_at->format('M d, Y H:i') }}</p>
                             </div>
@@ -142,7 +150,7 @@
                     <div class="flex justify-between items-center">
                         <h2 class="card-title">Tasks</h2>
                         <button class="btn btn-primary btn-sm">
-                            <iconify-icon icon="lucide:plus" class="mr-2"></iconify-icon>
+                            <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span>
                             New Task
                         </button>
                     </div>
@@ -175,7 +183,7 @@
                                             <td>{{ $task->createdBy->name }}</td>
                                             <td>
                                                 <button class="btn btn-ghost btn-sm">
-                                                    <iconify-icon icon="lucide:eye"></iconify-icon>
+                                                    <span class="iconify w-5 h-5" data-icon="solar:eye-bold-duotone"></span>
                                                 </button>
                                             </td>
                                         </tr>
@@ -190,15 +198,13 @@
                             @endif
                         @else
                             <div class="text-center py-8">
-                                <div class="avatar placeholder mb-4">
-                                    <div class="bg-neutral text-neutral-content rounded-full w-16 text-2xl">
-                                        <iconify-icon icon="lucide:check-circle" class=""></iconify-icon>
-                                    </div>
+                                <div class="w-16 h-16 bg-neutral text-neutral-content rounded-full inline-flex items-center justify-center mb-4">
+                                    <span class="iconify w-8 h-8" data-icon="solar:check-circle-bold-duotone"></span>
                                 </div>
                                 <h3 class="text-lg font-semibold">No Tasks Yet</h3>
                                 <p class="text-base-content/70 mt-1">Create your first task to get started</p>
                                 <button class="btn btn-primary mt-4">
-                                    <iconify-icon icon="lucide:plus" class="mr-2"></iconify-icon>
+                                    <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span>
                                     New Task
                                 </button>
                             </div>
@@ -213,7 +219,7 @@
                     <div class="flex justify-between items-center">
                         <h2 class="card-title">Team Members</h2>
                         <button wire:click="$dispatch('openAddMemberModal')" class="btn btn-primary btn-sm">
-                            <iconify-icon icon="lucide:user-plus" class="w-4 h-4"></iconify-icon>
+                            <span class="iconify w-5 h-5 mr-2" data-icon="solar:user-plus-bold-duotone"></span>
                             Add Member
                         </button>
                     </div>
@@ -250,12 +256,12 @@
                                             <td class="relative">
                                                 <div class="dropdown dropdown-end">
                                                     <button class="btn btn-ghost btn-sm" tabindex="0">
-                                                        <iconify-icon icon="lucide:more-vertical"></iconify-icon>
+                                                        <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
                                                     </button>
                                                     <ul tabindex="0" class="dropdown-content z-[999999] menu p-2 shadow bg-base-100 rounded-box w-52">
                                                         <li>
                                                             <button wire:click="confirmDelete('{{ $member->id }}')" class="text-error">
-                                                                <iconify-icon icon="lucide:user-minus"></iconify-icon>
+                                                                <span class="iconify w-5 h-5 mr-2" data-icon="solar:user-minus-bold-duotone"></span>
                                                                 Remove Member
                                                             </button>
                                                         </li>
@@ -268,15 +274,13 @@
                             </table>
                         @else
                             <div class="text-center py-8">
-                                <div class="avatar placeholder mb-4">
-                                    <div class="bg-neutral text-neutral-content rounded-full w-16 text-2xl" >
-                                        <iconify-icon icon="lucide:users" class=""></iconify-icon>
-                                    </div>
+                                <div class="w-16 h-16 bg-neutral text-neutral-content rounded-full inline-flex items-center justify-center mb-4">
+                                    <span class="iconify w-8 h-8" data-icon="solar:users-group-bold-duotone"></span>
                                 </div>
                                 <h3 class="text-lg font-semibold">No Team Members</h3>
                                 <p class="text-base-content/70 mt-1">Add team members to collaborate on this project</p>
                                 <button wire:click="$dispatch('openAddMemberModal')" class="btn btn-primary mt-4">
-                                    <iconify-icon icon="lucide:user-plus" class="w-4 h-4 mr-2"></iconify-icon>
+                                    <span class="iconify w-5 h-5 mr-2" data-icon="solar:user-plus-bold-duotone"></span>
                                     Add Member
                                 </button>
                             </div>
@@ -298,10 +302,8 @@
 
                 <div class="relative w-full max-w-lg p-6 my-8 overflow-hidden text-left transition-all transform bg-base-100 rounded-lg shadow-xl">
                     <div class="flex flex-col items-center justify-center text-center">
-                        <div class="avatar placeholder mb-4">
-                            <div class="bg-error text-error-content rounded-full w-16 text-2xl">
-                                <iconify-icon icon="lucide:user-minus" class=""></iconify-icon>
-                            </div>
+                        <div class="w-16 h-16 bg-error text-error-content rounded-full inline-flex items-center justify-center mb-4">
+                            <span class="iconify w-8 h-8" data-icon="solar:user-minus-bold-duotone"></span>
                         </div>
                         <h3 class="text-lg font-bold">Remove Team Member</h3>
                         <p class="py-4 text-base-content/70">Are you sure you want to remove this member from the project? This action cannot be undone.</p>
@@ -324,10 +326,8 @@
 
                 <div class="relative w-full max-w-lg p-6 my-8 overflow-hidden text-left transition-all transform bg-base-100 rounded-lg shadow-xl">
                     <div class="flex flex-col items-center justify-center text-center">
-                        <div class="avatar placeholder mb-4">
-                            <div class="bg-error text-error-content rounded-full w-16">
-                                <iconify-icon icon="lucide:trash-2" class="w-8 h-8"></iconify-icon>
-                            </div>
+                        <div class="w-16 h-16 bg-error text-error-content rounded-full inline-flex items-center justify-center mb-4">
+                            <span class="iconify w-8 h-8" data-icon="solar:trash-bin-trash-bold-duotone"></span>
                         </div>
                         <h3 class="text-lg font-bold">Delete Project</h3>
                         <p class="py-4 text-base-content/70">Are you sure you want to delete this project? This action will remove all associated data and cannot be undone.</p>
