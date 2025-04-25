@@ -121,28 +121,40 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Revamp the company website with new branding and improved UX',
                 'status' => 'in_progress',
                 'start_date' => Carbon::now()->subDays(30),
-                'end_date' => Carbon::now()->addDays(60)
+                'end_date' => Carbon::now()->addDays(60),
+                'department_id' => rand(1, 10),
+                'budget' => rand(10000, 100000),
+                'supervised_by' => rand(1, 10)
             ],
             [
                 'name' => 'Mobile App Development',
                 'description' => 'Build a new mobile app for our customers',
                 'status' => 'planning',
                 'start_date' => Carbon::now()->subDays(10),
-                'end_date' => Carbon::now()->addDays(90)
+                'end_date' => Carbon::now()->addDays(90),
+                'department_id' => rand(1, 10),
+                'budget' => rand(10000, 100000),
+                'supervised_by' => rand(1, 10)
             ],
             [
                 'name' => 'Marketing Campaign',
                 'description' => 'Q3 Digital Marketing Campaign planning and execution',
                 'status' => 'in_progress',
                 'start_date' => Carbon::now()->subDays(45),
-                'end_date' => Carbon::now()->addDays(15)
+                'end_date' => Carbon::now()->addDays(15),
+                'department_id' => rand(1, 10),
+                'budget' => rand(10000, 100000),
+                'supervised_by' => rand(1, 10)
             ],
             [
                 'name' => 'Product Launch',
                 'description' => 'New product launch activities and coordination',
                 'status' => 'planning',
                 'start_date' => Carbon::now(),
-                'end_date' => Carbon::now()->addDays(45)
+                'end_date' => Carbon::now()->addDays(45),
+                'department_id' => rand(1, 10),
+                'budget' => rand(10000, 100000),
+                'supervised_by' => rand(1, 10)
             ]
         ];
 
@@ -158,7 +170,9 @@ class DatabaseSeeder extends Seeder
                 'supervised_by' => $createdUsers[1]->id, // PM supervises all projects
                 'start_date' => $projectData['start_date'],
                 'end_date' => $projectData['end_date'],
-                'status' => $projectData['status']
+                'status' => $projectData['status'],
+                'department_id' => $projectData['department_id'],
+                'budget' => $projectData['budget']
             ]);
             
             $createdProjects[] = $project;
