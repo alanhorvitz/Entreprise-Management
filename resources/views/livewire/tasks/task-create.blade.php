@@ -76,6 +76,75 @@
                 @error('description') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
             </div>
             
+            <!-- Repetitive Task Section -->
+            <div class="form-control mt-4">
+                <label class="label cursor-pointer justify-start gap-2">
+                    <input type="checkbox" class="checkbox checkbox-primary" wire:model="is_repetitive" />
+                    <span class="label-text font-medium">Make this a repetitive task</span>
+                </label>
+                @error('is_repetitive') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+            </div>
+            
+            @if($is_repetitive)
+            <div class="bg-base-200 p-4 rounded-lg mt-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label" for="repetition_rate">
+                            <span class="label-text">Repeat</span>
+                        </label>
+                        <select id="repetition_rate" class="select select-bordered w-full" wire:model="repetition_rate">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                        @error('repetition_rate') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label" for="recurrence_end_date">
+                            <span class="label-text">Until (optional)</span>
+                        </label>
+                        <input type="date" id="recurrence_end_date" class="input input-bordered w-full" wire:model="recurrence_end_date" />
+                        @error('recurrence_end_date') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+                
+                @if($repetition_rate === 'weekly')
+                <div class="form-control mt-4">
+                    <label class="label">
+                        <span class="label-text">Repeat on</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($weekdays as $value => $day)
+                            <label class="label cursor-pointer gap-2 bg-base-100 px-3 py-2 rounded-md">
+                                <input type="checkbox" class="checkbox checkbox-sm checkbox-primary" 
+                                    value="{{ $value }}" 
+                                    wire:model="recurrence_days" />
+                                <span class="label-text">{{ $day }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('recurrence_days') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                </div>
+                @endif
+                
+                @if($repetition_rate === 'monthly')
+                <div class="form-control mt-4">
+                    <label class="label" for="recurrence_month_day">
+                        <span class="label-text">Day of month</span>
+                    </label>
+                    <select id="recurrence_month_day" class="select select-bordered w-full" wire:model="recurrence_month_day">
+                        @for($i = 1; $i <= 31; $i++)
+                            <option value="{{ $i }}">{{ $i }}</option>
+                        @endfor
+                    </select>
+                    @error('recurrence_month_day') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                </div>
+                @endif
+            </div>
+            @endif
+            
             <div class="form-control mt-4">
                 <label class="label" for="assignees">
                     <span class="label-text">Assign To</span>

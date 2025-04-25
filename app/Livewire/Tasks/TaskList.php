@@ -19,6 +19,7 @@ class TaskList extends Component
     public $priorityFilter = '';
     public $statusFilter = '';
     public $assigneeFilter = '';
+    public $repetitiveFilter = '';
     public $sortField = 'due_date';
     public $sortDirection = 'asc';
     public $perPage = 10;
@@ -29,6 +30,7 @@ class TaskList extends Component
         'priorityFilter' => ['except' => ''],
         'statusFilter' => ['except' => ''],
         'assigneeFilter' => ['except' => ''],
+        'repetitiveFilter' => ['except' => ''],
         'sortField' => ['except' => 'due_date'],
         'sortDirection' => ['except' => 'asc'],
     ];
@@ -59,6 +61,11 @@ class TaskList extends Component
     {
         $this->resetPage();
     }
+    
+    public function updatingRepetitiveFilter()
+    {
+        $this->resetPage();
+    }
 
     public function sortBy($field)
     {
@@ -77,6 +84,7 @@ class TaskList extends Component
         $this->priorityFilter = '';
         $this->statusFilter = '';
         $this->assigneeFilter = '';
+        $this->repetitiveFilter = '';
         $this->resetPage();
     }
 
@@ -124,7 +132,7 @@ class TaskList extends Component
 
     public function render()
     {
-        $tasks = Task::with(['project', 'createdBy'])
+        $tasks = Task::with(['project', 'createdBy', 'repetitiveTask'])
             ->when($this->search, function (Builder $query) {
                 return $query->where(function (Builder $query) {
                     $query->where('title', 'like', '%' . $this->search . '%')
@@ -144,6 +152,13 @@ class TaskList extends Component
                 return $query->whereHas('taskAssignments', function (Builder $query) {
                     $query->where('user_id', $this->assigneeFilter);
                 });
+            })
+            ->when($this->repetitiveFilter !== '', function (Builder $query) {
+                if ($this->repetitiveFilter === 'yes') {
+                    return $query->whereHas('repetitiveTask');
+                } else {
+                    return $query->whereDoesntHave('repetitiveTask');
+                }
             })
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);

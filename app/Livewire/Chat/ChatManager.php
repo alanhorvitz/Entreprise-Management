@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Chat;
 
+use App\Events\NewChatMessage;
 use App\Models\Project;
 use App\Models\ProjectsChatMessage;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,7 @@ class ChatManager extends Component
     public $currentProject = null;
     public $messages = [];
     public $newMessage = '';
+    public $listeners = [];
     
     public function mount($projectId = null)
     {
@@ -44,6 +46,28 @@ class ChatManager extends Component
         // If a project exists, get its chat messages
         if ($this->currentProject) {
             $this->loadMessages();
+        }
+    }
+    
+    public function getListeners()
+    {
+        $listeners = [
+            'echo-private:chat.project.' . ($this->currentProject['id'] ?? 0) . '.new-message' => 'receiveMessage',
+            'refreshChat' => 'refreshChat',
+        ];
+        
+        return $listeners;
+    }
+    
+    public function receiveMessage($event)
+    {
+        // Only process if we're on the right project
+        if ($this->currentProject && $this->currentProject['id'] == $event['projectId']) {
+            // Add the new message to our messages array
+            $this->messages[] = $event['message'];
+            
+            // Scroll to bottom
+            $this->dispatch('newMessageReceived');
         }
     }
     
@@ -94,17 +118,30 @@ class ChatManager extends Component
         ]);
         
         // Create the message
-        ProjectsChatMessage::create([
+        $chatMessage = ProjectsChatMessage::create([
             'project_id' => $this->currentProject['id'],
             'user_id' => Auth::id(),
             'message' => $this->newMessage
         ]);
         
+        // Load the message with its user for broadcasting
+        $chatMessage->load('user');
+        
+        // Format the message for broadcast
+        $messageData = $chatMessage->toArray();
+        $messageData['user'] = $chatMessage->user->toArray();
+        
+        // Broadcast to all users in this project
+        event(new NewChatMessage($messageData, $this->currentProject['id']));
+        
         // Clear the message input
         $this->newMessage = '';
         
-        // Reload messages
-        $this->loadMessages();
+        // Add the message to our local messages array
+        $this->messages[] = $messageData;
+        
+        // Notify frontend to scroll down
+        $this->dispatch('chatMessagesLoaded');
     }
     
     #[On('refreshChat')]

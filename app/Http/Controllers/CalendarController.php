@@ -52,7 +52,7 @@ class CalendarController extends Controller
         // Also add a flag for repetitive tasks
         foreach ($allTasks as $task) {
             $task->assigned_to_user = in_array($task->id, $assignedTaskIds);
-            $task->is_repetitive = in_array($task->id, $repetitiveTaskIds);
+            $task->is_repetitive = $task->repetitiveTask !== null;
             
             // Add repetition info if this is a repetitive task
             if ($task->is_repetitive) {

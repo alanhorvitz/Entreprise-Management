@@ -9,7 +9,7 @@
                     <iconify-icon icon="lucide:plus" class="mr-2"></iconify-icon> New Task
                 </button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Project</span>
@@ -55,6 +55,17 @@
                         @foreach ($users as $user)
                             <option value="{{ $user->id }}">{{ $user->name }}</option>
                         @endforeach
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Repetitive</span>
+                    </label>
+                    <select class="select select-bordered w-full" wire:model.live="repetitiveFilter">
+                        <option value="">All Tasks</option>
+                        <option value="yes">Repetitive Only</option>
+                        <option value="no">Non-repetitive Only</option>
                     </select>
                 </div>
             </div>
@@ -120,7 +131,14 @@
                         </td>
                         <td>
                             <div>
-                                <div class="font-bold hover:text-primary cursor-pointer" wire:click="openViewModal({{ $task->id }})">{{ $task->title }}</div>
+                                <div class="font-bold hover:text-primary cursor-pointer" wire:click="openViewModal({{ $task->id }})">
+                                    {{ $task->title }}
+                                    @if($task->is_repetitive)
+                                        <span class="badge badge-sm badge-accent ml-1">
+                                            <iconify-icon icon="lucide:repeat" class="mr-1"></iconify-icon> Recurring
+                                        </span>
+                                    @endif
+                                </div>
                                 <div class="text-xs text-base-content/70 max-w-xs truncate">{{ $task->description }}</div>
                             </div>
                         </td>

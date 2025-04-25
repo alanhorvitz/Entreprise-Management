@@ -70,11 +70,43 @@
                     </div>
                 </div>
                 
-                <div class="mb-4">
-                    <h4 class="font-semibold text-sm text-gray-500 mb-1">Approval Status</h4>
-                    <span class="badge {{ $task->status === 'approved' ? 'badge-success' : 'badge-warning' }}">
-                        {{ $task->status === 'approved' ? 'Approved' : 'Pending Approval' }}
-                    </span>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <h4 class="font-semibold text-sm text-gray-500 mb-1">Repetition</h4>
+                        @if($task->repetitiveTask)
+                            <div class="flex items-center gap-1 flex-wrap">
+                                <iconify-icon icon="lucide:repeat" class="text-accent"></iconify-icon>
+                                <span class="badge badge-accent">
+                                    {{ ucfirst($task->repetitiveTask->repetition_rate) }}
+                                </span>
+                                @if($task->repetitiveTask->repetition_rate === 'weekly')
+                                    <span class="text-xs text-gray-600">
+                                        @php
+                                            $days = [];
+                                            $dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+                                            for ($i = 0; $i < 7; $i++) {
+                                                if ($task->repetitiveTask->recurrence_days & (1 << $i)) {
+                                                    $days[] = $dayNames[$i];
+                                                }
+                                            }
+                                            echo implode(', ', $days);
+                                        @endphp
+                                    </span>
+                                @elseif($task->repetitiveTask->repetition_rate === 'monthly')
+                                    <span class="text-xs text-gray-600">day {{ $task->repetitiveTask->recurrence_month_day }}</span>
+                                @endif
+                            </div>
+                        @else
+                            <span class="text-sm text-gray-500">Not repetitive</span>
+                        @endif
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-sm text-gray-500 mb-1">Approval Status</h4>
+                        <span class="badge {{ $task->status === 'approved' ? 'badge-success' : 'badge-warning' }}">
+                            {{ $task->status === 'approved' ? 'Approved' : 'Pending Approval' }}
+                        </span>
+                    </div>
                 </div>
                 
                 <div class="mb-4">
