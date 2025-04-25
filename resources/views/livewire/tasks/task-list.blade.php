@@ -6,7 +6,7 @@
                 <h2 class="card-title">Tasks</h2>
                 
                 <button wire:click="openCreateModal()" class="btn btn-primary">
-                    <iconify-icon icon="lucide:plus" class="mr-2"></iconify-icon> New Task
+                    <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> New Task
                 </button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -64,18 +64,18 @@
                     <div class="join">
                         <input class="input input-bordered join-item w-full" placeholder="Search tasks..." wire:model.live="search" />
                         <button class="btn join-item">
-                            <iconify-icon icon="lucide:search"></iconify-icon>
+                            <span class="iconify w-5 h-5" data-icon="solar:magnifer-bold-duotone"></span>
                         </button>
                     </div>
                 </div>
                 
                 <div class="flex gap-2">
                     <button class="btn btn-outline btn-sm" wire:click="clearFilters">
-                        <iconify-icon icon="lucide:x" class="mr-1"></iconify-icon> Clear Filters
+                        <span class="iconify w-5 h-5 mr-1" data-icon="solar:close-circle-bold-duotone"></span> Clear Filters
                     </button>
                     <div class="dropdown dropdown-end">
                         <div tabindex="0" role="button" class="btn btn-outline btn-sm">
-                            <iconify-icon icon="lucide:sort" class="mr-1"></iconify-icon> Sort By
+                            <span class="iconify w-5 h-5 mr-1" data-icon="solar:sort-from-bottom-to-top-bold-duotone"></span> Sort By
                         </div>
                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                             <li><a wire:click="sortBy('due_date')" class="cursor-pointer {{ $sortField === 'due_date' && $sortDirection === 'asc' ? 'active' : '' }}">Due Date (Earliest)</a></li>
@@ -182,17 +182,17 @@
                         <td>
                             <div class="dropdown dropdown-end">
                                 <div tabindex="0" role="button" class="btn btn-ghost btn-xs">
-                                    <iconify-icon icon="lucide:ellipsis-vertical"></iconify-icon>
+                                    <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
                                 </div>
                                 <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                     <li><a wire:click="openViewModal({{ $task->id }})">
-                                        <iconify-icon icon="lucide:eye"></iconify-icon> View Details
+                                        <span class="iconify w-5 h-5 mr-2" data-icon="solar:eye-bold-duotone"></span> View Details
                                     </a></li>
                                     <li><a wire:click="openEditModal({{ $task->id }})">
-                                        <iconify-icon icon="lucide:edit"></iconify-icon> Edit Task
+                                        <span class="iconify w-5 h-5 mr-2" data-icon="solar:pen-bold-duotone"></span> Edit Task
                                     </a></li>
                                     <li><a wire:click="deleteTask({{ $task->id }})" class="text-error">
-                                        <iconify-icon icon="lucide:trash-2"></iconify-icon> Delete Task
+                                        <span class="iconify w-5 h-5 mr-2" data-icon="solar:trash-bin-trash-bold-duotone"></span> Delete Task
                                     </a></li>
                                 </ul>
                             </div>
@@ -202,9 +202,13 @@
                     <tr>
                         <td colspan="8" class="text-center py-4">
                             <div class="flex flex-col items-center justify-center space-y-2">
-                                <iconify-icon icon="lucide:clipboard-list" class="text-4xl text-gray-400"></iconify-icon>
+                                <div class="w-16 h-16 bg-neutral text-neutral-content rounded-full inline-flex items-center justify-center">
+                                    <span class="iconify w-8 h-8" data-icon="solar:clipboard-list-bold-duotone"></span>
+                                </div>
                                 <p class="text-gray-500">No tasks found</p>
-                                <button wire:click="openCreateModal()" class="btn btn-sm btn-primary">Create a task</button>
+                                <button wire:click="openCreateModal()" class="btn btn-sm btn-primary">
+                                    <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> Create a task
+                                </button>
                             </div>
                         </td>
                     </tr>

@@ -23,7 +23,7 @@
         <div class="card bg-base-100 shadow-xl form-section">
             <div class="card-body">
                 <h2 class="card-title text-xl flex items-center gap-2">
-                    <span class="iconify lucide--info text-primary"></span> Task Information
+                    <span class="iconify w-6 h-6 text-primary" data-icon="solar:info-circle-bold-duotone"></span> Task Information
                 </h2>
                 <p class="text-sm text-base-content/70 mb-4">Enter the essential details about your task</p>
                 
@@ -107,7 +107,7 @@
         <div class="card bg-base-100 shadow-xl form-section">
             <div class="card-body">
                 <h2 class="card-title text-xl flex items-center gap-2">
-                    <span class="iconify lucide--users text-primary"></span> Task Assignment
+                    <span class="iconify w-6 h-6 text-primary" data-icon="solar:users-group-rounded-bold-duotone"></span> Task Assignment
                 </h2>
                 <p class="text-sm text-base-content/70 mb-4">Assign team members to this task</p>
                 
@@ -130,7 +130,7 @@
         <div class="card bg-base-100 shadow-xl form-section">
             <div class="card-body">
                 <h2 class="card-title text-xl flex items-center gap-2">
-                    <span class="iconify lucide--repeat text-primary"></span> Recurrence Settings
+                    <span class="iconify w-6 h-6 text-primary" data-icon="solar:repeat-bold-duotone"></span> Recurrence Settings
                 </h2>
                 <p class="text-sm text-base-content/70 mb-4">Configure if this task should repeat on a schedule</p>
                 
@@ -162,7 +162,7 @@
         <div class="card bg-base-100 shadow-xl form-section">
             <div class="card-body">
                 <h2 class="card-title text-xl flex items-center gap-2">
-                    <span class="iconify lucide--bell text-primary"></span> Reminders
+                    <span class="iconify w-6 h-6 text-primary" data-icon="solar:bell-bold-duotone"></span> Reminders
                 </h2>
                 <p class="text-sm text-base-content/70 mb-4">Configure reminders for this task</p>
                 
