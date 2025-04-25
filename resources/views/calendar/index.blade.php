@@ -191,22 +191,36 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store task colors to keep them consistent
     const taskColors = {};
     
-    // Function to generate random theme-compatible colors
-    function getRandomTaskColor(taskId) {
-        // Return cached color if exists
-        if (taskColors[taskId]) {
-            return taskColors[taskId];
+    // Function to generate colors based on task priority
+    function getTaskColor(task) {
+        // If we've already calculated this task's color, return it
+        if (taskColors[task.id]) {
+            return taskColors[task.id];
         }
         
-        // Generate a random hue (0-360)
-        const hue = Math.floor(Math.random() * 360);
+        // Get priority-based colors
+        let colorLight, colorDark;
         
-        // Store different versions for light/dark themes
-        const colorLight = `hsla(${hue}, 85%, 85%, 0.8)`;
-        const colorDark = `hsla(${hue}, 70%, 40%, 0.8)`;
+        switch((task.priority || '').toLowerCase()) {
+            case 'high':
+                colorLight = 'hsla(0, 85%, 85%, 0.9)'; // Light red
+                colorDark = 'hsla(0, 80%, 40%, 0.9)';  // Dark red
+                break;
+            case 'medium':
+                colorLight = 'hsla(40, 85%, 85%, 0.9)'; // Light amber
+                colorDark = 'hsla(40, 80%, 40%, 0.9)';  // Dark amber
+                break;
+            case 'low':
+                colorLight = 'hsla(200, 85%, 85%, 0.9)'; // Light blue
+                colorDark = 'hsla(200, 80%, 40%, 0.9)';  // Dark blue
+                break;
+            default:
+                colorLight = 'hsla(260, 60%, 85%, 0.9)'; // Light purple (default)
+                colorDark = 'hsla(260, 60%, 40%, 0.9)';  // Dark purple (default)
+        }
         
         // Store the colors
-        taskColors[taskId] = { light: colorLight, dark: colorDark };
+        taskColors[task.id] = { light: colorLight, dark: colorDark };
         
         // Determine if we're in dark mode
         const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -515,8 +529,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     taskItem.setAttribute('data-task-id', task.id);
                     taskItem.className = `task-item ${priorityClass}`;
                     
-                    // Apply random background color based on task ID
-                    taskItem.style.backgroundColor = getRandomTaskColor(task.id);
+                    // Apply priority-based background color
+                    taskItem.style.backgroundColor = getTaskColor(task);
                     
                     // Task title with repetitive indicator if applicable
                     const taskTitle = document.createElement('span');
@@ -682,8 +696,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 taskItem.setAttribute('data-task-id', task.id);
                 taskItem.className = `task-item ${priorityClass}`;
                 
-                // Apply random background color based on task ID
-                taskItem.style.backgroundColor = getRandomTaskColor(task.id);
+                // Apply priority-based background color
+                taskItem.style.backgroundColor = getTaskColor(task);
                 
                 // Task title with repetitive indicator if applicable
                 const taskTitle = document.createElement('span');
@@ -1202,9 +1216,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Set task ID for color consistency
             taskCard.setAttribute('data-task-id', task.id);
             
-            // Apply random background color based on task ID
-            const randomColor = getRandomTaskColor(task.id);
-            taskCard.style.backgroundColor = randomColor;
+            // Apply priority-based background color
+            taskCard.style.backgroundColor = getTaskColor(task);
             
             // Priority color strip
             const priorityColor = getPriorityColor(task.priority);
