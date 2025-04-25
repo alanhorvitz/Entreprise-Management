@@ -1,86 +1,96 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="light">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title')</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>{{ config('app.name', 'Laravel') }}</title>
+
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
-    <!-- Iconify -->
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@iconify/iconify@3.1.0/dist/iconify.min.js"></script>
-    
-    <!-- Theme Toggle Script -->
+    <!-- Scripts -->
+     
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+</head>
+
+<body class="font-sans antialiased bg-base-100/50">
+    <div class="min-h-screen">
+        @include('layout.sidebar')
+        @include('layout.navbar')
+
+        <!-- Page Content -->
+        <main class="pl-64 pt-16 transition-all duration-300">
+            <div class="container mx-auto px-4 py-6">
+                @yield('content')
+            </div>
+        </main>
+    </div>
+
     <script>
-        // Check for saved theme preference
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-            document.documentElement.setAttribute('data-theme', 'light');
-        }
-
-        // Theme toggle function
+        // Theme toggle functionality
         function toggleTheme() {
             const html = document.documentElement;
             const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
         }
-    </script>
 
-    <link rel="stylesheet" href="{{ asset('style.css') }}">
-    <link rel="stylesheet" href="{{ asset('supp-daisy.css') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @livewireStyles
+        // Set initial theme from localStorage or system preference
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        });
 
-    <!-- Styles / Scripts -->
-</head>
+        // Sidebar toggle functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.querySelector('#layout-sidebar');
+            const navbar = document.querySelector('#main-navbar');
+            const main = document.querySelector('main');
+            const sidebarToggles = document.querySelectorAll('[aria-label="Toggle sidebar"]');
+            
+            function toggleSidebar() {
+                sidebar.classList.toggle('-translate-x-full');
+                main.classList.toggle('pl-64');
+                main.classList.toggle('pl-0');
+                navbar.classList.toggle('left-64');
+                navbar.classList.toggle('left-0');
+            }
 
-<body>
-    <div id="root">
-        <div class="size-full" id="layout-main">
-            <div class="flex">
-                <input id="layout-sidebar-toggle-trigger" class="hidden" aria-label="Toggle layout sidebar" type="checkbox" />
-                @include('layout.sidebar')
-                <label for="layout-sidebar-toggle-trigger" id="layout-sidebar-backdrop"></label>
-                <div class="flex h-screen min-w-0 grow flex-col overflow-auto">
-                    @include('layout.navbar')
-                    <div id="layout-content">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-medium">@yield('title')</h3>
-                            <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-                                <ul>
-                                    <li><a href="/" data-discover="true">Dashboard</a></li>
-                                    <li class="opacity-80">@yield('title')</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="mt-6">
-                            @yield('content')
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+            sidebarToggles.forEach(toggle => {
+                toggle.addEventListener('click', toggleSidebar);
+            });
 
-    <!-- Livewire Scripts -->
-    @livewireScripts
-
-    <script>
-        new MutationObserver(() => {
-            document.querySelector("#splash-screen")?.classList.add("remove");
-        }).observe(document.querySelector("#root"), {
-            childList: true
+            // Handle responsive behavior
+            const mediaQuery = window.matchMedia('(max-width: 1024px)');
+            function handleResponsive(e) {
+                if (e.matches) {
+                    sidebar.classList.add('-translate-x-full');
+                    main.classList.remove('pl-64');
+                    main.classList.add('pl-0');
+                    navbar.classList.remove('left-64');
+                    navbar.classList.add('left-0');
+                } else {
+                    sidebar.classList.remove('-translate-x-full');
+                    main.classList.add('pl-64');
+                    main.classList.remove('pl-0');
+                    navbar.classList.add('left-64');
+                    navbar.classList.remove('left-0');
+                }
+            }
+            
+            mediaQuery.addListener(handleResponsive);
+            handleResponsive(mediaQuery);
         });
     </script>
     
