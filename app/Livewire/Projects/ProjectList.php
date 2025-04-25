@@ -53,7 +53,7 @@ class ProjectList extends Component
     {
         try {
             $project = Project::findOrFail($this->projectToDelete);
-
+            // dd($project);
             // Delete project members
             ProjectMember::where('project_id', $project->id)->delete();
 
