@@ -540,6 +540,47 @@ document.addEventListener('DOMContentLoaded', function() {
                         taskItem.appendChild(projectTag);
                     }
                     
+                    // Add click event to task item to show task details in modal
+                    taskItem.style.cursor = 'pointer';
+                    taskItem.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent triggering day click event
+                        
+                        // Format date for display in modal
+                        let displayDate;
+                        if (task.due_date) {
+                            displayDate = new Date(task.due_date);
+                        } else {
+                            // If no due date, use current displayed date
+                            displayDate = new Date(currentYear, currentMonth, day);
+                        }
+                        
+                        // Show task details in modal
+                        taskModal.showModal();
+                        
+                        // Update modal title with task date
+                        modalDate.innerHTML = `
+                            <div class="flex flex-col">
+                                <div class="flex items-center">
+                                    <span class="text-3xl font-bold mr-2">${displayDate.getDate()}</span>
+                                    <div class="flex flex-col">
+                                        <span class="font-medium">${displayDate.toLocaleDateString(undefined, { month: 'long' })}</span>
+                                        <span class="text-sm opacity-70">${displayDate.toLocaleDateString(undefined, { weekday: 'long' })}, ${displayDate.getFullYear()}</span>
+                                    </div>
+                                </div>
+                                <div class="flex mt-2 text-sm space-x-2">
+                                    <button class="link link-hover text-primary" id="view-this-day">Day View</button>
+                                    <button class="link link-hover text-primary" id="view-this-week">Week View</button>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Render just this task in the modal
+                        renderTasksList([task]);
+                        
+                        // Setup event listeners for the modal buttons
+                        setupModalEventListeners(displayDate, formatDateForInput(displayDate));
+                    });
+                    
                     dayContent.appendChild(taskItem);
                 });
                 
@@ -665,6 +706,47 @@ document.addEventListener('DOMContentLoaded', function() {
                     projectTag.textContent = task.project.name;
                     taskItem.appendChild(projectTag);
                 }
+                
+                // Add click event to task item to show task details in modal
+                taskItem.style.cursor = 'pointer';
+                taskItem.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent triggering day click event
+                    
+                    // Format date for display in modal
+                    let displayDate;
+                    if (task.due_date) {
+                        displayDate = new Date(task.due_date);
+                    } else {
+                        // If no due date, use current displayed date
+                        displayDate = new Date(currentYear, currentMonth, currentDay);
+                    }
+                    
+                    // Show task details in modal
+                    taskModal.showModal();
+                    
+                    // Update modal title with task date
+                    modalDate.innerHTML = `
+                        <div class="flex flex-col">
+                            <div class="flex items-center">
+                                <span class="text-3xl font-bold mr-2">${displayDate.getDate()}</span>
+                                <div class="flex flex-col">
+                                    <span class="font-medium">${displayDate.toLocaleDateString(undefined, { month: 'long' })}</span>
+                                    <span class="text-sm opacity-70">${displayDate.toLocaleDateString(undefined, { weekday: 'long' })}, ${displayDate.getFullYear()}</span>
+                                </div>
+                            </div>
+                            <div class="flex mt-2 text-sm space-x-2">
+                                <button class="link link-hover text-primary" id="view-this-day">Day View</button>
+                                <button class="link link-hover text-primary" id="view-this-week">Week View</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Render just this task in the modal
+                    renderTasksList([task]);
+                    
+                    // Setup event listeners for the modal buttons
+                    setupModalEventListeners(displayDate, formatDateForInput(displayDate));
+                });
                 
                 dayContent.appendChild(taskItem);
             });
@@ -862,6 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const viewBtn = document.createElement('a');
                 viewBtn.href = `/tasks/${task.id}`;
                 viewBtn.className = 'btn btn-sm btn-outline btn-primary';
+                viewBtn.target = '_blank';
                 viewBtn.innerHTML = `
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -873,6 +956,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 cardBody.appendChild(actions);
                 taskCard.appendChild(cardBody);
+                
+                // Add click event listener to make the entire task card clickable
+                taskCard.style.cursor = 'pointer';
+                taskCard.addEventListener('click', function(e) {
+                    // Prevent event triggering when clicking specific buttons/links
+                    if (e.target.tagName === 'A' || e.target.closest('a') || 
+                        e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                        return;
+                    }
+                    // Show task details in modal
+                    let displayDate;
+                    if (task.due_date) {
+                        displayDate = new Date(task.due_date);
+                    } else {
+                        // If no due date, use current displayed date
+                        displayDate = new Date(currentYear, currentMonth, currentDay);
+                    }
+                    
+                    // Show task details in modal
+                    taskModal.showModal();
+                    
+                    // Update modal title with task date
+                    modalDate.innerHTML = `
+                        <div class="flex flex-col">
+                            <div class="flex items-center">
+                                <span class="text-3xl font-bold mr-2">${displayDate.getDate()}</span>
+                                <div class="flex flex-col">
+                                    <span class="font-medium">${displayDate.toLocaleDateString(undefined, { month: 'long' })}</span>
+                                    <span class="text-sm opacity-70">${displayDate.toLocaleDateString(undefined, { weekday: 'long' })}, ${displayDate.getFullYear()}</span>
+                                </div>
+                            </div>
+                            <div class="flex mt-2 text-sm space-x-2">
+                                <button class="link link-hover text-primary" id="view-this-day">Day View</button>
+                                <button class="link link-hover text-primary" id="view-this-week">Week View</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Render just this task in the modal
+                    renderTasksList([task]);
+                    
+                    // Setup event listeners for the modal buttons
+                    setupModalEventListeners(displayDate, formatDateForInput(displayDate));
+                });
+                
                 taskContainer.appendChild(taskCard);
             });
             
@@ -1220,6 +1348,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const viewBtn = document.createElement('a');
             viewBtn.href = `/tasks/${task.id}`;
             viewBtn.className = 'btn btn-sm btn-outline btn-primary';
+            viewBtn.target = '_blank';
             viewBtn.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
