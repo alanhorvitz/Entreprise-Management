@@ -95,6 +95,7 @@
     </script>
     
     <livewire:notification-manager />
+    @stack('scripts')
 </body>
 
 </html>

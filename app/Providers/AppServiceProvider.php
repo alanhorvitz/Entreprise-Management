@@ -27,5 +27,6 @@ class AppServiceProvider extends ServiceProvider
         \Livewire\Livewire::component('tasks.create-task-page', \App\Livewire\Tasks\CreateTaskPage::class);
         \Livewire\Livewire::component('modals.modal-manager', \App\Livewire\Modals\ModalManager::class);
         \Livewire\Livewire::component('notification-manager', \App\Livewire\NotificationManager::class);
+        \Livewire\Livewire::component('chat.chat-manager', \App\Livewire\Chat\ChatManager::class);
     }
 }

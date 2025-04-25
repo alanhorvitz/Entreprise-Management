@@ -136,12 +136,12 @@
                                 ][$task->current_status] ?? 'badge-ghost';
                                 
                                 $statusLabel = [
-                                    'todo' => 'Not Started',
+                                    'todo' => 'To Do',
                                     'in_progress' => 'In Progress',
-                                    'completed' => 'Completed',
+                                    'completed' => 'Done',
                                 ][$task->current_status] ?? $task->current_status;
                             @endphp
-                            <span class="badge {{ $statusClass }}">{{ $statusLabel }}</span>
+                            <span class="badge badge-sm whitespace-nowrap !px-2 min-w-[60px] text-center {{ $statusClass }}">{{ $statusLabel }}</span>
                         </td>
                         <td>
                             @php
@@ -151,7 +151,7 @@
                                     'low' => 'badge-info',
                                 ][$task->priority] ?? 'badge-ghost';
                             @endphp
-                            <span class="badge {{ $priorityClass }}">{{ ucfirst($task->priority) }}</span>
+                            <span class="badge badge-sm whitespace-nowrap !px-2 min-w-[60px] text-center {{ $priorityClass }}">{{ ucfirst($task->priority) }}</span>
                         </td>
                         <td>{{ $task->due_date ? $task->due_date->format('M d, Y') : 'No due date' }}</td>
                         <td>

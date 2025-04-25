@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
+use App\Models\ProjectsChatMessage;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ChatsController extends Controller
 {
@@ -11,52 +15,44 @@ class ChatsController extends Controller
      */
     public function index()
     {
+        // Simply return the view, Livewire component will handle the rest
         return view('chats.index');
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display the specified project's chat.
+     */
+    public function show(string $id)
+    {
+        // Just return the index view with the project ID
+        return view('chats.index', ['projectId' => $id]);
+    }
+
+    /**
+     * These methods are left for API compatibility, but 
+     * functionality has been moved to the Livewire component
      */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        // Functionality moved to Livewire component
+        return redirect()->back();
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         //

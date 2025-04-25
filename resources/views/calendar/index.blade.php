@@ -118,10 +118,10 @@
             <div id="modal-tasks" class="tab-content">
                 <div class="flex justify-between items-center mb-5">
                     <h4 class="text-lg font-medium">Tasks for this date</h4>
-                    <a href="{{ route('tasks.create') }}" id="new-task-modal-btn" class="btn btn-sm btn-primary" data-date="">
-                        <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
-                        New Task
-                    </a>
+                        <a href="{{ route('tasks.create') }}" id="new-task-modal-btn" class="btn btn-sm btn-primary" data-date="">
+                            <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
+                            New Task
+                        </a>
                 </div>
                 
                 <div id="tasks-list" class="space-y-4">
