@@ -6,7 +6,7 @@
                 <h2 class="card-title">Projects</h2>
                 
                 <a href="{{ route('projects.create') }}" class="btn btn-primary">
-                    <iconify-icon icon="lucide:plus" class="mr-2"></iconify-icon> New Project
+                    <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> New Project
                 </a>
             </div>
             
@@ -15,7 +15,7 @@
                     <div class="join w-full">
                         <input type="text" wire:model.live="search" class="input input-bordered join-item w-full" placeholder="Search projects...">
                         <button class="btn join-item">
-                            <iconify-icon icon="lucide:search"></iconify-icon>
+                            <span class="iconify w-5 h-5" data-icon="solar:magnifer-bold-duotone"></span>
                         </button>
                     </div>
                 </div>
@@ -46,15 +46,15 @@
                         </div>
                         <div class="dropdown dropdown-end">
                             <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle">
-                                <iconify-icon icon="lucide:more-vertical"></iconify-icon>
+                                <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
                             </div>
                             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                 <li><a href="{{ route('projects.edit', $project) }}">
-                                    <iconify-icon icon="lucide:edit"></iconify-icon> Edit
+                                    <span class="iconify w-5 h-5 mr-2" data-icon="solar:pen-bold-duotone"></span> Edit
                                 </a></li>
                                 <li>
                                     <button wire:click="confirmDelete('{{ $project->id }}')" class="text-error">
-                                        <iconify-icon icon="lucide:trash-2"></iconify-icon> Delete
+                                        <span class="iconify w-5 h-5 mr-2" data-icon="solar:trash-bin-trash-bold-duotone"></span> Delete
                                     </button>
                                 </li>
                             </ul>
@@ -122,13 +122,13 @@
                 <div class="text-center py-10">
                     <div class="avatar placeholder mb-4">
                         <div class="bg-neutral text-neutral-content rounded-full w-16">
-                            <iconify-icon icon="lucide:folder" class="w-8 h-8"></iconify-icon>
+                            <span class="iconify w-8 h-8" data-icon="solar:folder-bold-duotone"></span>
                         </div>
                     </div>
                     <h3 class="text-lg font-semibold">No Projects Found</h3>
                     <p class="text-base-content/70 mt-1">Get started by creating a new project</p>
                     <a href="{{ route('projects.create') }}" class="btn btn-primary mt-4">
-                        <iconify-icon icon="lucide:plus" class="mr-2"></iconify-icon> New Project
+                        <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> New Project
                     </a>
                 </div>
             </div>
@@ -152,7 +152,7 @@
                     <div class="flex flex-col items-center justify-center text-center">
                         <div class="avatar placeholder mb-4">
                             <div class="bg-error text-error-content rounded-full w-16">
-                                <iconify-icon icon="lucide:trash-2" class="w-8 h-8"></iconify-icon>
+                                <span class="iconify w-8 h-8" data-icon="solar:trash-bin-trash-bold-duotone"></span>
                             </div>
                         </div>
                         <h3 class="text-lg font-bold">Delete Project</h3>
