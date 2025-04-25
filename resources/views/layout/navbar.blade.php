@@ -1,4 +1,4 @@
-<nav class="bg-base-100 border-b border-base-200 fixed right-0 top-0 transition-all duration-300 left-64" id="main-navbar">
+<nav class="bg-base-100 border-b border-base-200 fixed right-0 top-0 transition-all duration-300 left-64 z-[40]" id="main-navbar">
     <div class="px-4 py-3">
         <div class="flex items-center justify-between">
             <!-- Left side -->
@@ -33,7 +33,7 @@
                         <span class="iconify w-5 h-5" data-icon="solar:bell-bold-duotone"></span>
                         <span class="badge badge-sm badge-primary badge-pill absolute -top-1 -right-1">3</span>
                     </button>
-                    <div class="dropdown-content bg-base-100 rounded-box shadow-lg mt-2 w-80">
+                    <div class="dropdown-content bg-base-100 rounded-box shadow-lg mt-2 w-80 z-[50]">
                         <div class="p-4">
                             <div class="flex items-center justify-between mb-4">
                                 <h6 class="text-sm font-medium">Notifications</h6>
@@ -69,8 +69,8 @@
                         </div>
                         <span class="iconify w-4 h-4 text-base-content/60" data-icon="solar:alt-arrow-down-bold-duotone"></span>
                     </button>
-                    <div class="dropdown-content bg-base-100 rounded-box shadow-lg mt-2 w-48">
-                        <ul class="menu menu-sm">
+                    <div class="dropdown-content bg-base-100 rounded-box shadow-lg mt-2 w-48 z-[50]">
+                        <ul class="menu menu-sm w-full">
                             <li>
                                 <a href="/pages/settings" class="flex items-center px-4 py-2">
                                     <span class="iconify w-4 h-4 mr-2" data-icon="solar:user-bold-duotone"></span>
@@ -84,9 +84,9 @@
                                 </a>
                             </li>
                             <li>
-                                <form method="POST" action="{{ route('logout') }}" class="w-full">
+                                <form method="POST" action="{{ route('logout') }}" class="w-full flex p-0">
                                     @csrf
-                                    <button type="submit" class="flex items-center px-4 py-2 w-full text-error hover:bg-error/10">
+                                    <button type="submit" class="flex items-center px-4 py-2 w-full text-error hover:bg-error/10 gap-2">
                                         <span class="iconify w-4 h-4 mr-2" data-icon="solar:logout-3-bold-duotone"></span>
                                         <span>Logout</span>
                                     </button>
