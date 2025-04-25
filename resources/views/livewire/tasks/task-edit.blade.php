@@ -1,6 +1,8 @@
 <div>
     <div class="modal-header">
-        <h3 class="text-lg font-bold">Edit Task</h3>
+        <h2 class="card-title text-xl flex items-center gap-2">
+            <span class="iconify w-6 h-6 text-primary" data-icon="solar:pen-new-square-bold-duotone"></span> Edit Task
+        </h2>
     </div>
     
     <form wire:submit.prevent="update">
@@ -102,8 +104,14 @@
         </div>
         
         <div class="modal-footer mt-6 flex justify-end gap-2">
-            <button type="button" class="btn" wire:click="$dispatch('closeModal')">Cancel</button>
-            <button type="submit" class="btn btn-primary">Update Task</button>
+            <button type="button" class="btn" wire:click="$dispatch('closeModal')">
+                <span class="iconify w-5 h-5 mr-2" data-icon="solar:close-circle-bold-duotone"></span>
+                Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+                <span class="iconify w-5 h-5 mr-2" data-icon="solar:disk-bold-duotone"></span>
+                Update Task
+            </button>
         </div>
     </form>
 </div> 

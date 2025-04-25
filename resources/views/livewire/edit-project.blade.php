@@ -4,7 +4,7 @@
         <div class="card bg-base-100 shadow-xl form-section">
             <div class="card-body">
                 <h2 class="card-title text-xl flex items-center gap-2">
-                    <span class="iconify lucide--info"></span> Basic Information
+                    <span class="iconify w-5 h-5" data-icon="solar:info-circle-bold-duotone"></span> Basic Information
                 </h2>
                 <p class="text-sm text-base-content/70 mb-4">Update the essential details about your project</p>
                 
@@ -78,7 +78,7 @@
         <div class="card bg-base-100 shadow-xl form-section">
             <div class="card-body">
                 <h2 class="card-title text-xl flex items-center gap-2">
-                    <span class="iconify lucide--users"></span> Team & Resources
+                    <span class="iconify w-5 h-5" data-icon="solar:users-group-two-rounded-bold-duotone"></span> Team & Resources
                 </h2>
                 <p class="text-sm text-base-content/70 mb-4">Assign project members and allocate resources</p>
                 
@@ -166,7 +166,7 @@
         <div class="card bg-base-100 shadow-xl form-section">
             <div class="card-body">
                 <h2 class="card-title text-xl flex items-center gap-2">
-                    <span class="iconify lucide--cog"></span> Additional Settings
+                    <span class="iconify w-5 h-5" data-icon="solar:settings-bold-duotone"></span> Additional Settings
                 </h2>
                 <p class="text-sm text-base-content/70 mb-4">Configure additional project settings</p>
                 <div class="form-control w-full mt-4">
@@ -185,4 +185,3 @@
         </div>
     </form>
 </div>
-

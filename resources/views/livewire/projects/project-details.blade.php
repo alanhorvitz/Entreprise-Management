@@ -119,9 +119,9 @@
                             @foreach($members->take(5) as $member)
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center space-x-3">
-                                        <div class="avatar">
+                                        <div class="avatar flex items-center justify-center">
                                             <div class="w-8 h-8">
-                                                <img src="https://ui-avatars.com/api/?name={{ urlencode($member->name) }}" />
+                                                <img src="https://ui-avatars.com/api/?name={{ urlencode($member->name) }}" class="w-full h-full object-cover" />
                                             </div>
                                         </div>
                                         <div>
