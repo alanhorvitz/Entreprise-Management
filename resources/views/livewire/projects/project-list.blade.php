@@ -39,10 +39,8 @@
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body">
                     <div class="flex justify-between items-start">
-                        <div class="avatar placeholder">
-                            <div class="bg-neutral text-neutral-content rounded-lg w-12">
-                                <span class="text-xl">{{ strtoupper(substr($project->name, 0, 2)) }}</span>
-                            </div>
+                        <div class="w-12 h-12 bg-neutral text-neutral-content rounded-lg inline-flex items-center justify-center">
+                            <span class="text-xl font-medium">{{ strtoupper(substr($project->name, 0, 2)) }}</span>
                         </div>
                         <div class="dropdown dropdown-end">
                             <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle">
@@ -86,27 +84,23 @@
                     </div>
 
                     <div class="card-actions justify-between items-center mt-4">
-                        <div class="avatar-group -space-x-6">
+                        <div class="flex -space-x-3">
                             @forelse($project->members as $member)
                                 @if($loop->iteration <= 3)
-                                <div class="avatar">
-                                    <div class="w-8">
-                                        <img src="https://ui-avatars.com/api/?name={{ urlencode($member->name) }}" />
-                                    </div>
+                                <div class="w-8 h-8 rounded-full border-2 border-base-100 overflow-hidden">
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($member->name) }}" 
+                                         class="w-full h-full object-cover"
+                                         alt="{{ $member->name }}" />
                                 </div>
                                 @endif
                             @empty
-                                <div class="avatar placeholder">
-                                    <div class="w-8 bg-neutral text-neutral-content">
-                                        <span>0</span>
-                                    </div>
+                                <div class="w-8 h-8 bg-neutral text-neutral-content rounded-full inline-flex items-center justify-center">
+                                    <span class="text-sm font-medium">0</span>
                                 </div>
                             @endforelse
                             @if($project->members->count() > 3)
-                                <div class="avatar placeholder">
-                                    <div class="w-8 bg-neutral text-neutral-content">
-                                        <span>+{{ $project->members->count() - 3 }}</span>
-                                    </div>
+                                <div class="w-8 h-8 bg-neutral text-neutral-content rounded-full inline-flex items-center justify-center border-2 border-base-100">
+                                    <span class="text-sm font-medium">+{{ $project->members->count() - 3 }}</span>
                                 </div>
                             @endif
                         </div>
@@ -120,10 +114,8 @@
         @empty
             <div class="col-span-full">
                 <div class="text-center py-10">
-                    <div class="avatar placeholder mb-4">
-                        <div class="bg-neutral text-neutral-content rounded-full w-16">
-                            <span class="iconify w-8 h-8" data-icon="solar:folder-bold-duotone"></span>
-                        </div>
+                    <div class="w-16 h-16 bg-neutral text-neutral-content rounded-full inline-flex items-center justify-center mb-4 mx-auto">
+                        <span class="iconify w-8 h-8" data-icon="solar:folder-bold-duotone"></span>
                     </div>
                     <h3 class="text-lg font-semibold">No Projects Found</h3>
                     <p class="text-base-content/70 mt-1">Get started by creating a new project</p>
@@ -150,10 +142,8 @@
 
                 <div class="relative w-full max-w-lg p-6 my-8 overflow-hidden text-left transition-all transform bg-base-100 rounded-lg shadow-xl">
                     <div class="flex flex-col items-center justify-center text-center">
-                        <div class="avatar placeholder mb-4">
-                            <div class="bg-error text-error-content rounded-full w-16">
-                                <span class="iconify w-8 h-8" data-icon="solar:trash-bin-trash-bold-duotone"></span>
-                            </div>
+                        <div class="w-16 h-16 bg-error text-error-content rounded-full inline-flex items-center justify-center mb-4">
+                            <span class="iconify w-8 h-8" data-icon="solar:trash-bin-trash-bold-duotone"></span>
                         </div>
                         <h3 class="text-lg font-bold">Delete Project</h3>
                         <p class="py-4 text-base-content/70">Are you sure you want to delete this project? This action will remove all associated data and cannot be undone.</p>
