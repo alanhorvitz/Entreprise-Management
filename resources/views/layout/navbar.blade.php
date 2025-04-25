@@ -72,18 +72,18 @@
                     <div class="dropdown-content bg-base-100 rounded-box shadow-lg mt-2 w-48 z-[50]">
                         <ul class="menu menu-sm w-full">
                             <li>
-                                <a href="/pages/settings" class="flex items-center px-4 py-2">
+                                <a href="{{ route('profile.index') }}" class="flex items-center px-4 py-2">
                                     <span class="iconify w-4 h-4 mr-2" data-icon="solar:user-bold-duotone"></span>
                                     <span>Profile</span>
                                 </a>
-                                        </li>
-                                        <li>
+                            </li>
+                            <li>
                                 <a href="/pages/settings" class="flex items-center px-4 py-2">
                                     <span class="iconify w-4 h-4 mr-2" data-icon="solar:settings-bold-duotone"></span>
                                     <span>Settings</span>
                                 </a>
-                                        </li>
-                                        <li>
+                            </li>
+                            <li>
                                 <form method="POST" action="{{ route('logout') }}" class="w-full flex p-0">
                                                 @csrf
                                     <button type="submit" class="flex items-center px-4 py-2 w-full text-error hover:bg-error/10 gap-2">
