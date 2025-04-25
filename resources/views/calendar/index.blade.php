@@ -25,6 +25,10 @@
                 </div>
 
                 <div class="flex items-center space-x-2">
+                    <a href="{{ route('tasks.create') }}?from=calendar" class="btn btn-sm btn-primary mr-2">
+                        <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
+                        New Task
+                    </a>
                     <div class="btn-group">
                         <button id="view-month" class="btn btn-sm btn-active">Month</button>
                         <button id="view-week" class="btn btn-sm">Week</button>
@@ -119,18 +123,24 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
-                    <div class="dropdown dropdown-end">
-                        <label tabindex="0" class="btn btn-sm btn-outline">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                            </svg>
-                            <span>Sort</span>
-                        </label>
-                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                            <li><a data-sort="priority">Priority</a></li>
-                            <li><a data-sort="duedate">Due Date</a></li>
-                            <li><a data-sort="status">Status</a></li>
-                        </ul>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('tasks.create') }}" id="new-task-modal-btn" class="btn btn-sm btn-primary" data-date="">
+                            <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
+                            New Task
+                        </a>
+                        <div class="dropdown dropdown-end">
+                            <label tabindex="0" class="btn btn-sm btn-outline">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                </svg>
+                                <span>Sort</span>
+                            </label>
+                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                <li><a data-sort="priority">Priority</a></li>
+                                <li><a data-sort="duedate">Due Date</a></li>
+                                <li><a data-sort="status">Status</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 
@@ -138,12 +148,15 @@
                     <!-- Tasks will be loaded here -->
                 </div>
             </div>
-                    </div>
-                    </div>
+        </div>
+    </div>
     <form method="dialog" class="modal-backdrop">
         <button>close</button>
-                </form>
+    </form>
 </dialog>
+
+<!-- Include Livewire Modal Manager -->
+<livewire:modals.modal-manager />
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -156,6 +169,76 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentYear = currentDate.getFullYear();
     let currentDay = currentDate.getDate();
     let currentView = 'month'; // month, week, day
+    
+    // Listen for Livewire events to refresh calendar
+    document.addEventListener('livewire:initialized', () => {
+        Livewire.on('taskCreated', () => {
+            // Reload tasks via AJAX instead of refreshing the whole page
+            fetchUpdatedTasks();
+        });
+        
+        Livewire.on('taskUpdated', () => {
+            // Reload tasks via AJAX instead of refreshing the whole page
+            fetchUpdatedTasks();
+        });
+        
+        Livewire.on('taskDeleted', () => {
+            // Reload tasks via AJAX instead of refreshing the whole page
+            fetchUpdatedTasks();
+        });
+    });
+    
+    // Store task colors to keep them consistent
+    const taskColors = {};
+    
+    // Function to generate random theme-compatible colors
+    function getRandomTaskColor(taskId) {
+        // Return cached color if exists
+        if (taskColors[taskId]) {
+            return taskColors[taskId];
+        }
+        
+        // Generate a random hue (0-360)
+        const hue = Math.floor(Math.random() * 360);
+        
+        // Store different versions for light/dark themes
+        const colorLight = `hsla(${hue}, 85%, 85%, 0.8)`;
+        const colorDark = `hsla(${hue}, 70%, 40%, 0.8)`;
+        
+        // Store the colors
+        taskColors[taskId] = { light: colorLight, dark: colorDark };
+        
+        // Determine if we're in dark mode
+        const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+        
+        // Return appropriate color based on current theme
+        return isDarkMode ? colorDark : colorLight;
+    }
+    
+    // Function to update task colors when theme changes
+    function updateTaskColors() {
+        const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+        
+        // Update all task items with their theme-appropriate colors
+        document.querySelectorAll('.task-item').forEach(taskItem => {
+            const taskId = taskItem.getAttribute('data-task-id');
+            if (taskId && taskColors[taskId]) {
+                taskItem.style.backgroundColor = isDarkMode ? taskColors[taskId].dark : taskColors[taskId].light;
+            }
+        });
+    }
+    
+    // Watch for theme changes (using MutationObserver)
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'data-theme') {
+                updateTaskColors();
+            }
+        });
+    });
+    
+    // Start observing theme changes
+    observer.observe(document.documentElement, { attributes: true });
     
     // Filter states
     let filters = {
@@ -428,7 +511,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     const taskStatus = task.status || task.current_status || 'unknown';
                     const priorityClass = `priority-${task.priority ? task.priority.toLowerCase() : 'medium'}`;
                     
+                    // Set task ID for color management
+                    taskItem.setAttribute('data-task-id', task.id);
                     taskItem.className = `task-item ${priorityClass}`;
+                    
+                    // Apply random background color based on task ID
+                    taskItem.style.backgroundColor = getRandomTaskColor(task.id);
                     
                     // Task title with repetitive indicator if applicable
                     const taskTitle = document.createElement('span');
@@ -463,16 +551,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     dayContent.appendChild(moreTasks);
                 }
                 
+                // Store data attributes for the task information
                 dayElement.classList.add('cursor-pointer');
-                dayElement.addEventListener('click', () => {
-                    showTasksModal(day, dayTasks);
-                });
-                
-                // Add double-click to go to day view
-                dayElement.addEventListener('dblclick', () => {
-                    currentDay = day;
-                    setActiveView('day');
-                });
+                dayElement.setAttribute('data-calendar-day', day);
+                dayElement.setAttribute('data-has-tasks', 'true');
             }
             
             calendarDaysElement.appendChild(dayElement);
@@ -518,11 +600,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 yearOfDay === today.getFullYear();
             
             // Create day container
-        const dayElement = document.createElement('div');
+            const dayElement = document.createElement('div');
             dayElement.className = `day week-day ${isCurrentMonth ? 'current-month' : 'other-month'} ${isToday ? 'is-today' : ''} bg-base-100`;
         
             // Day header
-        const dayHeader = document.createElement('div');
+            const dayHeader = document.createElement('div');
             dayHeader.className = 'week-header';
             
             const dayOfWeekLabel = document.createElement('div');
@@ -536,58 +618,64 @@ document.addEventListener('DOMContentLoaded', function() {
             dayHeader.appendChild(dateLabel);
             
             // Day content
-        const dayContent = document.createElement('div');
-        dayContent.className = 'day-content';
+            const dayContent = document.createElement('div');
+            dayContent.className = 'day-content';
         
             // Get tasks for this day
-        const dayTasks = filteredTasks.filter(task => {
-            const dueDate = task.due_date ? new Date(task.due_date) : null;
-            if (!dueDate) return false;
-            
+            const dayTasks = filteredTasks.filter(task => {
+                const dueDate = task.due_date ? new Date(task.due_date) : null;
+                if (!dueDate) return false;
+                
                 return dueDate.getDate() === dayOfMonth && 
                        dueDate.getMonth() === monthOfDay && 
                        dueDate.getFullYear() === yearOfDay;
-        });
+            });
         
-        // Add tasks to day content
+            // Add tasks to day content
             dayTasks.forEach(task => {
-                    const taskItem = document.createElement('div');
-                    const taskStatus = task.status || task.current_status || 'unknown';
-                    const priorityClass = `priority-${task.priority ? task.priority.toLowerCase() : 'medium'}`;
-                    
-                    taskItem.className = `task-item ${priorityClass}`;
-                    
-                    // Task title with repetitive indicator if applicable
-                    const taskTitle = document.createElement('span');
-                    taskTitle.textContent = task.title;
-                    
-                    taskItem.appendChild(taskTitle);
-                    
-                    // Add repetitive task indicator if this is a repetitive task
-                    if (task.is_repetitive) {
-                        const repetitiveBadge = document.createElement('span');
-                        repetitiveBadge.className = 'badge badge-secondary badge-sm';
-                        repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
-                        taskTitle.appendChild(repetitiveBadge);
-                    }
-                    
-                    // Project tag if available
-                    if (task.project && task.project.name) {
-                        const projectTag = document.createElement('div');
-                        projectTag.className = 'project-tag mt-1';
-                        projectTag.textContent = task.project.name;
-                        taskItem.appendChild(projectTag);
-                    }
-                    
-                    dayContent.appendChild(taskItem);
-                });
+                const taskItem = document.createElement('div');
+                const taskStatus = task.status || task.current_status || 'unknown';
+                const priorityClass = `priority-${task.priority ? task.priority.toLowerCase() : 'medium'}`;
+                
+                // Set task ID for color management
+                taskItem.setAttribute('data-task-id', task.id);
+                taskItem.className = `task-item ${priorityClass}`;
+                
+                // Apply random background color based on task ID
+                taskItem.style.backgroundColor = getRandomTaskColor(task.id);
+                
+                // Task title with repetitive indicator if applicable
+                const taskTitle = document.createElement('span');
+                taskTitle.textContent = task.title;
+                
+                taskItem.appendChild(taskTitle);
+                
+                // Add repetitive task indicator if this is a repetitive task
+                if (task.is_repetitive) {
+                    const repetitiveBadge = document.createElement('span');
+                    repetitiveBadge.className = 'badge badge-secondary badge-sm';
+                    repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
+                    taskTitle.appendChild(repetitiveBadge);
+                }
+                
+                // Project tag if available
+                if (task.project && task.project.name) {
+                    const projectTag = document.createElement('div');
+                    projectTag.className = 'project-tag mt-1';
+                    projectTag.textContent = task.project.name;
+                    taskItem.appendChild(projectTag);
+                }
+                
+                dayContent.appendChild(taskItem);
+            });
                 
             if (dayTasks.length > 0) {
                 dayElement.classList.add('cursor-pointer');
-                dayElement.addEventListener('click', () => {
-                    const modalDate = new Date(yearOfDay, monthOfDay, dayOfMonth);
-                    showTasksModal(dayOfMonth, dayTasks, modalDate);
-                });
+                // Store data attributes for the task information
+                dayElement.setAttribute('data-calendar-day', dayOfMonth);
+                dayElement.setAttribute('data-calendar-month', monthOfDay);
+                dayElement.setAttribute('data-calendar-year', yearOfDay);
+                dayElement.setAttribute('data-has-tasks', 'true');
             }
             
             dayElement.appendChild(dayHeader);
@@ -903,35 +991,60 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
-        // Add event listeners to view links
-        setTimeout(() => {
-            const viewDayLink = document.getElementById('view-this-day');
-            const viewWeekLink = document.getElementById('view-this-week');
-            
-            if (viewDayLink) {
-                viewDayLink.addEventListener('click', () => {
-                    currentDay = date.getDate();
-                    currentMonth = date.getMonth();
-                    currentYear = date.getFullYear();
-                    taskModal.close();
-                    setActiveView('day');
-                });
-            }
-            
-            if (viewWeekLink) {
-                viewWeekLink.addEventListener('click', () => {
-                    currentDay = date.getDate();
-                    currentMonth = date.getMonth();
-                    currentYear = date.getFullYear();
-                    taskModal.close();
-                    setActiveView('week');
-                });
-            }
-        }, 10);
+        // Format date for potential task creation
+        const formattedDate = formatDateForInput(date);
         
         renderTasksList(dayTasks);
         
+        // Show the modal
         taskModal.showModal();
+        
+        // Setup event listeners for the modal buttons
+        setupModalEventListeners(date, formattedDate);
+    }
+    
+    function setupModalEventListeners(date, formattedDate) {
+        // Remove any existing event listeners first (to prevent duplicates)
+        document.querySelectorAll('#view-this-day, #view-this-week, #new-task-modal-btn')
+            .forEach(el => {
+                const newEl = el.cloneNode(true);
+                el.parentNode.replaceChild(newEl, el);
+            });
+        
+        // Add new event listeners
+        const viewDayLink = document.getElementById('view-this-day');
+        const viewWeekLink = document.getElementById('view-this-week');
+        const newTaskModalBtn = document.getElementById('new-task-modal-btn');
+        
+        if (viewDayLink) {
+            viewDayLink.addEventListener('click', () => {
+                currentDay = date.getDate();
+                currentMonth = date.getMonth();
+                currentYear = date.getFullYear();
+                taskModal.close();
+                setActiveView('day');
+            });
+        }
+        
+        if (viewWeekLink) {
+            viewWeekLink.addEventListener('click', () => {
+                currentDay = date.getDate();
+                currentMonth = date.getMonth();
+                currentYear = date.getFullYear();
+                taskModal.close();
+                setActiveView('week');
+            });
+        }
+        
+        if (newTaskModalBtn) {
+            // Set the href attribute with the date parameter
+            newTaskModalBtn.setAttribute('href', "{{ route('tasks.create') }}?date=" + formattedDate + "&from=calendar");
+            
+            // Add event listener to close the modal when clicking the link
+            newTaskModalBtn.addEventListener('click', () => {
+                taskModal.close();
+            });
+        }
     }
     
     function renderTasksList(specificTasks = null) {
@@ -957,6 +1070,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create task card
             const taskCard = document.createElement('div');
             taskCard.className = 'card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-300 border border-base-200 overflow-hidden';
+            
+            // Set task ID for color consistency
+            taskCard.setAttribute('data-task-id', task.id);
+            
+            // Apply random background color based on task ID
+            const randomColor = getRandomTaskColor(task.id);
+            taskCard.style.backgroundColor = randomColor;
             
             // Priority color strip
             const priorityColor = getPriorityColor(task.priority);
@@ -1186,6 +1306,170 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return 'badge-ghost';
     }
+    
+    // Function to fetch updated task data via AJAX
+    function fetchUpdatedTasks() {
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTasksScript = doc.querySelector('script:not([src])');
+                
+                if (newTasksScript) {
+                    const scriptContent = newTasksScript.textContent;
+                    const tasksMatch = scriptContent.match(/const tasks = (.*?);/);
+                    const assignedTaskIdsMatch = scriptContent.match(/const assignedTaskIds = (.*?);/);
+                    
+                    if (tasksMatch && tasksMatch[1]) {
+                        // Update tasks with new data
+                        tasks.length = 0; // Clear the array
+                        const newTasks = JSON.parse(tasksMatch[1]);
+                        newTasks.forEach(task => tasks.push(task));
+                        
+                        // Update assigned task IDs if available
+                        if (assignedTaskIdsMatch && assignedTaskIdsMatch[1]) {
+                            const newAssignedTaskIds = JSON.parse(assignedTaskIdsMatch[1]);
+                            assignedTaskIds.length = 0;
+                            newAssignedTaskIds.forEach(id => assignedTaskIds.push(id));
+                        }
+                        
+                        // Refresh the calendar view with new data
+                        renderCalendar();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching updated tasks:', error);
+                // Fallback to page reload if the AJAX approach fails
+                window.location.reload();
+            });
+    }
+    
+    // Use event delegation for dropdown menu sorting
+    document.addEventListener('click', function(e) {
+        const sortLink = e.target.closest('[data-sort]');
+        if (sortLink) {
+            const sortBy = sortLink.getAttribute('data-sort');
+            // Implement sorting logic here
+            console.log('Sorting by:', sortBy);
+            
+            // Example sorting implementation (if needed)
+            if (sortBy === 'priority') {
+                // Sort tasks by priority
+            } else if (sortBy === 'duedate') {
+                // Sort tasks by due date
+            } else if (sortBy === 'status') {
+                // Sort tasks by status
+            }
+            
+            // Re-render the tasks list with sorted tasks
+            renderTasksList();
+        }
+    });
+    
+    // Add event listener to the task modal to ensure it's initialized properly
+    taskModal.addEventListener('close', () => {
+        // Clean up any event listeners if needed
+    });
+    
+    // Use event delegation for calendar day interactions
+    calendarDaysElement.addEventListener('click', function(e) {
+        // Find the closest day element
+        const dayElement = e.target.closest('.day');
+        if (!dayElement) return;
+        
+        // Check if it has tasks
+        if (dayElement.getAttribute('data-has-tasks') === 'true') {
+            const day = parseInt(dayElement.getAttribute('data-calendar-day'));
+            if (!isNaN(day)) {
+                // Handle which month/year - check if we have explicit month/year attributes (week view)
+                let targetMonth, targetYear;
+                
+                // Check if we have explicit month and year attributes (from week view)
+                const storedMonth = dayElement.getAttribute('data-calendar-month');
+                const storedYear = dayElement.getAttribute('data-calendar-year');
+                
+                if (storedMonth !== null && storedYear !== null) {
+                    // Use the explicitly stored month and year from week view
+                    targetMonth = parseInt(storedMonth);
+                    targetYear = parseInt(storedYear);
+                } else {
+                    // Handle based on month view classes
+                    targetMonth = currentMonth;
+                    targetYear = currentYear;
+                    
+                    if (dayElement.classList.contains('prev-month')) {
+                        targetMonth = currentMonth - 1;
+                        if (targetMonth < 0) {
+                            targetMonth = 11;
+                            targetYear = currentYear - 1;
+                        }
+                    } else if (dayElement.classList.contains('next-month')) {
+                        targetMonth = currentMonth + 1;
+                        if (targetMonth > 11) {
+                            targetMonth = 0;
+                            targetYear = currentYear + 1;
+                        }
+                    }
+                }
+                
+                // Create the date object
+                const date = new Date(targetYear, targetMonth, day);
+                
+                // Get tasks for this date
+                const dayTasks = filterTasks(tasks).filter(task => {
+                    if (!task.due_date) return false;
+                    const dueDate = new Date(task.due_date);
+                    return dueDate.getDate() === day && 
+                           dueDate.getMonth() === targetMonth && 
+                           dueDate.getFullYear() === targetYear;
+                });
+                
+                // Show modal with tasks
+                showTasksModal(day, dayTasks, date);
+            }
+        }
+    });
+    
+    // Handle double-click to day view
+    calendarDaysElement.addEventListener('dblclick', function(e) {
+        const dayElement = e.target.closest('.day');
+        if (!dayElement) return;
+        
+        const day = parseInt(dayElement.getAttribute('data-calendar-day'));
+        if (!isNaN(day)) {
+            // Check if we have explicit month and year attributes (from week view)
+            const storedMonth = dayElement.getAttribute('data-calendar-month');
+            const storedYear = dayElement.getAttribute('data-calendar-year');
+            
+            if (storedMonth !== null && storedYear !== null) {
+                // Use the explicitly stored month and year from week view
+                currentMonth = parseInt(storedMonth);
+                currentYear = parseInt(storedYear);
+                currentDay = day;
+            } else {
+                // Set current day based on which month section was clicked
+                currentDay = day;
+                
+                if (dayElement.classList.contains('prev-month')) {
+                    currentMonth--;
+                    if (currentMonth < 0) {
+                        currentMonth = 11;
+                        currentYear--;
+                    }
+                } else if (dayElement.classList.contains('next-month')) {
+                    currentMonth++;
+                    if (currentMonth > 11) {
+                        currentMonth = 0;
+                        currentYear++;
+                    }
+                }
+            }
+            
+            setActiveView('day');
+        }
+    });
 });
 </script>
 
@@ -1251,13 +1535,13 @@ document.addEventListener('DOMContentLoaded', function() {
     text-overflow: ellipsis;
     cursor: pointer;
     border-left: 3px solid transparent;
-    background-color: hsl(var(--b1));
     transition: all 0.2s ease;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    color: hsl(var(--bc));
 }
 
 .task-item:hover {
-    background-color: hsl(var(--b2));
+    filter: brightness(0.95);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
 }

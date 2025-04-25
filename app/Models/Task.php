@@ -26,6 +26,7 @@ class Task extends Model
         'current_status',
         'start_date',
         'status',
+        'is_repetitive',
     ];
 
     /**
@@ -70,6 +71,14 @@ class Task extends Model
     public function statusHistory(): HasMany
     {
         return $this->hasMany(TaskStatusHistory::class);
+    }
+    
+    /**
+     * Get all reminders for this task
+     */
+    public function taskReminders(): HasMany
+    {
+        return $this->hasMany(TaskReminder::class);
     }
     
     /**

@@ -34,6 +34,13 @@ class TaskCreate extends Component
         'assignees.*' => 'exists:users,id',
     ];
     
+    public function mount($due_date = null)
+    {
+        if ($due_date) {
+            $this->due_date = $due_date;
+        }
+    }
+    
     public function save()
     {
         $this->validate();

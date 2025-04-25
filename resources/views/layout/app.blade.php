@@ -85,8 +85,6 @@
     </script>
     
     <livewire:notification-manager />
-
-    @livewireScripts
 </body>
 
 </html>

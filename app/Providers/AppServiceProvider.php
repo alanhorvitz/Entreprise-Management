@@ -24,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
         \Livewire\Livewire::component('tasks.task-edit', \App\Livewire\Tasks\TaskEdit::class);
         \Livewire\Livewire::component('tasks.task-show', \App\Livewire\Tasks\TaskShow::class);
         \Livewire\Livewire::component('tasks.task-delete', \App\Livewire\Tasks\TaskDelete::class);
+        \Livewire\Livewire::component('tasks.create-task-page', \App\Livewire\Tasks\CreateTaskPage::class);
         \Livewire\Livewire::component('modals.modal-manager', \App\Livewire\Modals\ModalManager::class);
         \Livewire\Livewire::component('notification-manager', \App\Livewire\NotificationManager::class);
     }
