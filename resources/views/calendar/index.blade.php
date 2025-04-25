@@ -322,6 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentYear = currentDate.getFullYear();
         }
         renderCalendar();
+        setTimeout(applyTaskColors, 10);
     });
     
     nextMonthBtn.addEventListener('click', () => {
@@ -348,6 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentYear = currentDate.getFullYear();
         }
         renderCalendar();
+        setTimeout(applyTaskColors, 10);
     });
     
     todayBtn.addEventListener('click', () => {
@@ -480,6 +482,9 @@ document.addEventListener('DOMContentLoaded', function() {
             calendarHeaderElement.style.display = 'none';
             renderDayView(filteredTasks);
         }
+        
+        // Apply colors to tasks after rendering
+        setTimeout(applyTaskColors, 10);
     }
     
     function renderMonthView(filteredTasks) {
@@ -1611,6 +1616,45 @@ document.addEventListener('DOMContentLoaded', function() {
             
             setActiveView('day');
         }
+    });
+    
+    // Function to apply colors to all task elements
+    function applyTaskColors() {
+        // Find all elements with task-id attributes
+        document.querySelectorAll('[data-task-id]').forEach(taskItem => {
+            const taskId = taskItem.getAttribute('data-task-id');
+            if (taskId) {
+                // Find matching task
+                const task = tasks.find(t => t.id == taskId);
+                if (task) {
+                    // Get priority-based color
+                    let color;
+                    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+                    
+                    switch((task.priority || '').toLowerCase()) {
+                        case 'high':
+                            color = isDarkMode ? 'hsla(0, 80%, 40%, 0.9)' : 'hsla(0, 85%, 85%, 0.9)'; // Red
+                            break;
+                        case 'medium':
+                            color = isDarkMode ? 'hsla(40, 80%, 40%, 0.9)' : 'hsla(40, 85%, 85%, 0.9)'; // Amber
+                            break;
+                        case 'low':
+                            color = isDarkMode ? 'hsla(200, 80%, 40%, 0.9)' : 'hsla(200, 85%, 85%, 0.9)'; // Blue
+                            break;
+                        default:
+                            color = isDarkMode ? 'hsla(260, 60%, 40%, 0.9)' : 'hsla(260, 60%, 85%, 0.9)'; // Purple
+                    }
+                    
+                    // Apply color to the task element
+                    taskItem.style.backgroundColor = color;
+                }
+            }
+        });
+    }
+    
+    // Apply colors on initial load
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(applyTaskColors, 100);
     });
 });
 </script>
