@@ -27,6 +27,11 @@ class EditProject extends Component
     public $departmentMembers = [];
     public $availableSupervisors = [];
 
+    // Add message properties
+    public $showMessage = false;
+    public $message = '';
+    public $messageType = '';
+
     protected $rules = [
         'name' => 'required|string|max:255',
         'description' => 'required|string',
@@ -138,55 +143,66 @@ class EditProject extends Component
             ->get();
     }
 
+    private function showMessage($message, $type)
+    {
+        $this->message = $message;
+        $this->messageType = $type;
+        $this->showMessage = true;
+    }
+
     public function update()
     {
         $this->validate();
 
-        // Update project basic information
-        $this->project->update([
-            'name' => $this->name,
-            'description' => $this->description,
-            'department_id' => $this->department_id,
-            'start_date' => $this->start_date,
-            'end_date' => $this->end_date,
-            'status' => $this->status,
-            'budget' => $this->budget,
-            'supervised_by' => $this->supervised_by,
-        ]);
+        try {
+            // Update project basic information
+            $this->project->update([
+                'name' => $this->name,
+                'description' => $this->description,
+                'department_id' => $this->department_id,
+                'start_date' => $this->start_date,
+                'end_date' => $this->end_date,
+                'status' => $this->status,
+                'budget' => $this->budget,
+                'supervised_by' => $this->supervised_by,
+            ]);
 
-        // Prepare member data with roles
-        $memberData = [];
+            // Prepare member data with roles
+            $memberData = [];
 
-        // Add team manager as project_manager
-        if ($this->team_manager_id) {
-            $memberData[$this->team_manager_id] = [
-                'role' => 'project_manager',
-                'joined_at' => now()
-            ];
-        }
-
-        // Add regular team members
-        foreach ($this->selectedTeamMembers as $memberId) {
-            // Skip if this member is already set as team manager
-            if ($memberId != $this->team_manager_id) {
-                $memberData[$memberId] = [
-                    'role' => 'member',
+            // Add team manager as project_manager
+            if ($this->team_manager_id) {
+                $memberData[$this->team_manager_id] = [
+                    'role' => 'project_manager',
                     'joined_at' => now()
                 ];
             }
+
+            // Add regular team members
+            foreach ($this->selectedTeamMembers as $memberId) {
+                // Skip if this member is already set as team manager
+                if ($memberId != $this->team_manager_id) {
+                    $memberData[$memberId] = [
+                        'role' => 'member',
+                        'joined_at' => now()
+                    ];
+                }
+            }
+
+            // Sync all members with their roles
+            $this->project->members()->sync($memberData);
+
+            if ($this->send_notifications) {
+                // TODO: Implement notification logic
+            }
+
+            session()->flash('success', 'Project updated successfully!');
+            return redirect()->route('projects.show', $this->project);
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to update project: ' . $e->getMessage());
+            return null;
         }
-
-        // Sync all members with their roles
-        // This will remove any members not in the memberData array
-        $this->project->members()->sync($memberData);
-
-        if ($this->send_notifications) {
-            // TODO: Implement notification logic
-        }
-
-        session()->flash('message', 'Project updated successfully.');
-        
-        return redirect()->route('projects.show', $this->project);
     }
 
     public function render()

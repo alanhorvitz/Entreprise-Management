@@ -93,7 +93,7 @@
                     </div>
                 </div>
                 
-                <div class="form-control w-full mt-4">
+                <div class="form-control w-full mt-4 flex flex-col gap-2">
                     <label class="label">
                         <span class="label-text required-field">Task Description</span>
                     </label>

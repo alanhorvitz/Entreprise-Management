@@ -71,7 +71,7 @@
                     </button>
                     <div class="dropdown-content bg-base-100 rounded-box shadow-lg mt-2 w-48 z-[50]">
                         <ul class="menu menu-sm w-full">
-                            <li>
+                                        <li>
                                 <a href="{{ route('profile.index') }}" class="flex items-center px-4 py-2">
                                     <span class="iconify w-4 h-4 mr-2" data-icon="solar:user-bold-duotone"></span>
                                     <span>Profile</span>

@@ -1,5 +1,41 @@
 <div>
     <form wire:submit.prevent="update" id="edit-project-form" class="space-y-6 max-w-5xl mx-auto">
+        <!-- Message Display -->
+        @if($showMessage)
+            <div class="fixed top-4 right-4 z-50 animate-fade-in-down">
+                <div class="rounded-md p-4 {{ $messageType === 'success' ? 'bg-green-50' : 'bg-red-50' }} shadow-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            @if($messageType === 'success')
+                                <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            @else
+                                <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            @endif
+                        </div>
+                        <div class="ml-3">
+                            <p class="{{ $messageType === 'success' ? 'text-green-800' : 'text-red-800' }}">
+                                {{ $message }}
+                            </p>
+                        </div>
+                        <div class="ml-auto pl-3">
+                            <div class="-mx-1.5 -my-1.5">
+                                <button wire:click="$set('showMessage', false)" class="{{ $messageType === 'success' ? 'text-green-500 hover:text-green-600' : 'text-red-500 hover:text-red-600' }} rounded-md p-1.5">
+                                    <span class="sr-only">Dismiss</span>
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+        
         <!-- Basic Information Section -->
         <div class="card bg-base-100 shadow-xl form-section">
             <div class="card-body">

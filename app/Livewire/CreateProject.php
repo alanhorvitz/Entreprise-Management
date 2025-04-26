@@ -28,6 +28,11 @@ class CreateProject extends Component
     public $departmentMembers = [];
     public $availableSupervisors = [];
     public $availableTeamManagers = [];
+    
+    // Add message properties
+    public $showMessage = false;
+    public $message = '';
+    public $messageType = '';
 
     protected function rules()
     {
@@ -121,6 +126,13 @@ class CreateProject extends Component
         $this->availableSupervisors = $query->get();
     }
 
+    private function showMessage($message, $type)
+    {
+        $this->message = $message;
+        $this->messageType = $type;
+        $this->showMessage = true;
+    }
+
     public function create()
     {
         $this->validate();
@@ -170,7 +182,7 @@ class CreateProject extends Component
             return redirect()->route('projects.index');
 
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to create project. ' . $e->getMessage());
+            session()->flash('error', 'Failed to create project: ' . $e->getMessage());
             return null;
         }
     }

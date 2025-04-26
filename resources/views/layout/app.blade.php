@@ -24,6 +24,43 @@
         @include('layout.sidebar')
         @include('layout.navbar')
 
+        <!-- Flash Messages -->
+        @if (session()->has('success') || session()->has('error'))
+            <div class="fixed top-4 right-4 z-50 animate-fade-in-down">
+                <div class="rounded-md p-4 {{ session()->has('success') ? 'bg-green-50' : 'bg-red-50' }} shadow-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            @if(session()->has('success'))
+                                <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            @else
+                                <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            @endif
+                        </div>
+                        <div class="ml-3">
+                            <p class="{{ session()->has('success') ? 'text-green-800' : 'text-red-800' }}">
+                                {{ session()->get('success') ?? session()->get('error') }}
+                            </p>
+                        </div>
+                        <div class="ml-auto pl-3">
+                            <div class="-mx-1.5 -my-1.5">
+                                <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove()" 
+                                    class="{{ session()->has('success') ? 'text-green-500 hover:text-green-600' : 'text-red-500 hover:text-red-600' }} rounded-md p-1.5">
+                                    <span class="sr-only">Dismiss</span>
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Page Content -->
         <main class="pl-64 pt-16 transition-all duration-300">
             <div class="container mx-auto px-4 py-6">
@@ -50,6 +87,14 @@
             } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.documentElement.setAttribute('data-theme', 'dark');
             }
+
+            // Auto-hide flash messages after 5 seconds
+            setTimeout(() => {
+                const flashMessage = document.querySelector('.animate-fade-in-down');
+                if (flashMessage) {
+                    flashMessage.remove();
+                }
+            }, 5000);
         });
 
         // Sidebar toggle functionality
