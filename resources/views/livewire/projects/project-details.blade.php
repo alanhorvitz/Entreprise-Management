@@ -149,7 +149,7 @@
                 <div class="card-body">
                     <div class="flex justify-between items-center">
                         <h2 class="card-title">Tasks</h2>
-                        <button class="btn btn-primary btn-sm">
+                        <button class="btn btn-primary btn-sm" wire:click="openCreateModal">
                             <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span>
                             New Task
                         </button>
@@ -182,7 +182,7 @@
                                             <td>{{ $task->due_date?->format('M d, Y') ?? 'No due date' }}</td>
                                             <td>{{ $task->createdBy->name }}</td>
                                             <td>
-                                                <button class="btn btn-ghost btn-sm">
+                                                <button class="btn btn-ghost btn-sm" wire:click="openViewModal({{ $task->id }})">
                                                     <span class="iconify w-5 h-5" data-icon="solar:eye-bold-duotone"></span>
                                                 </button>
                                             </td>
@@ -203,7 +203,7 @@
                                 </div>
                                 <h3 class="text-lg font-semibold">No Tasks Yet</h3>
                                 <p class="text-base-content/70 mt-1">Create your first task to get started</p>
-                                <button class="btn btn-primary mt-4">
+                                <button class="btn btn-primary mt-4" wire:click="openCreateModal">
                                     <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span>
                                     New Task
                                 </button>
@@ -341,4 +341,7 @@
             </div>
         </div>
     @endif
+
+    <!-- Add Modal Manager and Task Show Component -->
+    <livewire:modals.modal-manager />
 </div> 

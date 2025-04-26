@@ -20,7 +20,10 @@ class ProjectDetails extends Component
     public $showDeleteModal = false;
     public $showProjectDeleteModal = false;
     
-    protected $listeners = ['memberAdded' => '$refresh'];
+    protected $listeners = [
+        'memberAdded' => '$refresh',
+        'taskUpdated' => '$refresh'
+    ];
 
     public function mount(Project $project)
     {
@@ -91,6 +94,28 @@ class ProjectDetails extends Component
     public function closeProjectDeleteModal()
     {
         $this->showProjectDeleteModal = false;
+    }
+
+    public function openViewModal($taskId)
+    {
+        $params = [
+            'component' => 'tasks.task-show',
+            'arguments' => [
+                'taskId' => $taskId
+            ]
+        ];
+        $this->dispatch('openModal', $params);
+    }
+
+    public function openCreateModal()
+    {
+        $params = [
+            'component' => 'tasks.task-create',
+            'arguments' => [
+                'project_id' => $this->project->id
+            ]
+        ];
+        $this->dispatch('openModal', $params);
     }
 
     public function render()
