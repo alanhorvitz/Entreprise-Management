@@ -25,7 +25,11 @@ class AddMemberModal extends Component
 
     public function loadAvailableMembers()
     {
-        $this->availableMembers = User::where('department_id', $this->project->department_id)
+        // Get all employees assigned to this department (primary or secondary)
+        // who are not already project members
+        $this->availableMembers = User::whereHas('userDepartments', function($query) {
+                $query->where('department_id', $this->project->department_id);
+            })
             ->whereNotIn('id', function($query) {
                 $query->select('user_id')
                     ->from('project_members')
@@ -33,6 +37,10 @@ class AddMemberModal extends Component
             })
             ->where('is_active', true)
             ->where('role', 'employee')
+            ->orderByRaw("CASE 
+                WHEN department_id = ? THEN 0 
+                ELSE 1 
+            END", [$this->project->department_id])
             ->get();
     }
 

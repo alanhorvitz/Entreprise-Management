@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskAssignment;
 use App\Models\ProjectMember;
+use App\Models\UserDepartment;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 
@@ -112,6 +113,32 @@ class DatabaseSeeder extends Seeder
         $createdUsers = [];
         foreach ($users as $userData) {
             $createdUsers[] = User::create($userData);
+        }
+
+        // Assign users to multiple departments
+        foreach ($createdUsers as $user) {
+            // Ensure user is assigned to their primary department
+            UserDepartment::create([
+                'user_id' => $user->id,
+                'department_id' => $user->department_id
+            ]);
+            
+            // Randomly assign additional departments (0-2 more departments)
+            $additionalDepartments = rand(0, 2);
+            $availableDepartments = range(1, 10);
+            // Remove primary department from available departments
+            $availableDepartments = array_diff($availableDepartments, [$user->department_id]);
+            
+            // Shuffle and take random number of departments
+            shuffle($availableDepartments);
+            $selectedDepartments = array_slice($availableDepartments, 0, $additionalDepartments);
+            
+            foreach ($selectedDepartments as $departmentId) {
+                UserDepartment::create([
+                    'user_id' => $user->id,
+                    'department_id' => $departmentId
+                ]);
+            }
         }
 
         // Create projects

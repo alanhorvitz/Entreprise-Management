@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Project;
 use App\Models\Department;
 use App\Models\ProjectMember;
+use App\Models\UserDepartment;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,7 +26,7 @@ class CreateProject extends Component
     public $is_featured = false;
 
     public $departmentMembers = [];
-    public $supervisors = [];
+    public $availableSupervisors = [];
     public $availableTeamManagers = [];
 
     protected function rules()
@@ -50,28 +51,24 @@ class CreateProject extends Component
     public function mount()
     {
         $this->status = 'planning';
-        $this->supervisors = User::where('role', 'supervisor')->get();
         $this->selectedTeamMembers = [];
         $this->availableTeamManagers = collect();
+        $this->loadSupervisors();
     }
     
     public function updatedDepartmentId($value)
     {
         $this->loadDepartmentMembers();
+        $this->loadSupervisors();
         $this->reset(['project_manager_id', 'team_manager_id', 'selectedTeamMembers']);
     }
 
     public function updatedSelectedTeamMembers($value)
     {
-        // Reset team manager when team members change
-        // $this->team_manager_id = null;
-        
-        
         // Update available team managers based on selected team members
         if (!empty($this->selectedTeamMembers)) {
             $this->availableTeamManagers = User::whereIn('id', $this->selectedTeamMembers)
                 ->get(['id', 'first_name', 'last_name']);
-            
         } 
         else {
             $this->availableTeamManagers = collect();
@@ -81,10 +78,13 @@ class CreateProject extends Component
     public function loadDepartmentMembers()
     {
         if ($this->departmentId) {
-            // Get all employees in this department
-            $this->departmentMembers = User::where('department_id', $this->departmentId)
+            // Get all employees assigned to this department through user_departments table
+            $this->departmentMembers = User::whereHas('userDepartments', function($query) {
+                    $query->where('department_id', $this->departmentId);
+                })
                 ->where('role', 'employee')
                 ->get();
+
             // Reset team members and manager when department changes
             $this->selectedTeamMembers = [];
             $this->team_manager_id = null;
@@ -95,6 +95,30 @@ class CreateProject extends Component
             $this->team_manager_id = null;
             $this->availableTeamManagers = collect();
         }
+    }
+
+    /**
+     * Load all supervisors, prioritizing those from the selected department
+     */
+    private function loadSupervisors()
+    {
+        // Get all supervisors
+        $query = User::where('role', 'supervisor');
+        
+        // If a department is selected, order by relevance
+        if ($this->departmentId) {
+            $query->orderByRaw("CASE 
+                WHEN department_id = ? THEN 0 
+                WHEN id IN (
+                    SELECT user_id 
+                    FROM user_departments 
+                    WHERE department_id = ?
+                ) THEN 1 
+                ELSE 2 
+            END", [$this->departmentId, $this->departmentId]);
+        }
+
+        $this->availableSupervisors = $query->get();
     }
 
     public function create()
@@ -155,6 +179,7 @@ class CreateProject extends Component
     {
         return view('livewire.create-project', [
             'departments' => Department::all(),
+            'supervisors' => $this->availableSupervisors,
             'availableTeamManagers' => $this->selectedTeamMembers ? 
                 User::whereIn('id', $this->selectedTeamMembers)->get() : 
                 collect(),

@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
@@ -27,7 +28,8 @@ class User extends Authenticatable
         'last_name',
         'last_login',
         'is_active',
-        'role'
+        'role',
+        'department_id'
     ];
 
     /**
@@ -71,12 +73,28 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the departments that the user belongs to.
+     * Get the user's primary department.
+     */
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * Get all departments that the user belongs to through user_departments.
      */
     public function departments(): BelongsToMany
     {
-        return $this->belongsToMany(Department::class, 'department_members', 'user_id', 'department_id')
+        return $this->belongsToMany(Department::class, 'user_departments')
                     ->withTimestamps();
+    }
+
+    /**
+     * Get all department assignments for the user.
+     */
+    public function userDepartments(): HasMany
+    {
+        return $this->hasMany(UserDepartment::class);
     }
 
     /**

@@ -25,6 +25,7 @@ class EditProject extends Component
     public $teamMembers = [];
     public $send_notifications = true;
     public $departmentMembers = [];
+    public $availableSupervisors = [];
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -67,15 +68,13 @@ class EditProject extends Component
 
         // Load selected team members (both regular members and project manager)
         $this->selectedTeamMembers = $project->members()
-            // ->wherePivot('role', ['member', 'project_manager'])
             ->pluck('users.id')
             ->toArray();
 
-        // Load department members for selection
+        // Load department members and supervisors for selection
         if ($this->department_id) {
-            $this->departmentMembers = User::where('department_id', $this->department_id)
-                ->where('role', 'employee')
-                ->get();
+            $this->loadDepartmentMembers();
+            $this->loadSupervisors();
         }
     }
  
@@ -88,7 +87,6 @@ class EditProject extends Component
 
     public function updatedDepartmentId($value)
     {
-
         $this->selectedTeamMembers = [];
         // Reset all member-related fields
         $this->reset([
@@ -101,13 +99,43 @@ class EditProject extends Component
         
         // Load new department members if a department is selected
         if ($value) {
-            $this->departmentMembers = User::where('department_id', $value)
-                ->where('role', 'employee')
-                ->get();
+            $this->loadDepartmentMembers();
+            $this->loadSupervisors();
         } else {
             $this->departmentMembers = collect();
+            $this->availableSupervisors = collect();
         }
+    }
 
+    /**
+     * Load department members including those with secondary assignments
+     */
+    private function loadDepartmentMembers()
+    {
+        $this->departmentMembers = User::whereHas('departments', function($query) {
+                $query->where('departments.id', $this->department_id);
+            })
+            ->where('role', 'employee')
+            ->get();
+    }
+
+    /**
+     * Load all supervisors, prioritizing those from the current department
+     */
+    private function loadSupervisors()
+    {
+        // Get all supervisors
+        $this->availableSupervisors = User::where('role', 'supervisor')
+            ->orderByRaw("CASE 
+                WHEN department_id = ? THEN 0 
+                WHEN id IN (
+                    SELECT user_id 
+                    FROM user_departments 
+                    WHERE department_id = ?
+                ) THEN 1 
+                ELSE 2 
+            END", [$this->department_id, $this->department_id])
+            ->get();
     }
 
     public function update()
@@ -166,7 +194,7 @@ class EditProject extends Component
         return view('livewire.edit-project', [
             'departments' => Department::all(),
             'departmentMembers' => $this->departmentMembers,
-            'supervisors' => User::where('role', 'supervisor')->get(),
+            'supervisors' => $this->availableSupervisors,
         ]);
     }
 } 
