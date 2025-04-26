@@ -64,7 +64,7 @@ class CreateProject extends Component
     public function updatedSelectedTeamMembers($value)
     {
         // Reset team manager when team members change
-        $this->team_manager_id = null;
+        // $this->team_manager_id = null;
         
         
         // Update available team managers based on selected team members
@@ -72,7 +72,8 @@ class CreateProject extends Component
             $this->availableTeamManagers = User::whereIn('id', $this->selectedTeamMembers)
                 ->get(['id', 'first_name', 'last_name']);
             
-        } else {
+        } 
+        else {
             $this->availableTeamManagers = collect();
         }
     }

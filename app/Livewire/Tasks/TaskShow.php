@@ -36,11 +36,27 @@ class TaskShow extends Component
         TaskComment::create([
             'task_id' => $this->taskId,
             'user_id' => Auth::id(),
-            'comment' => $this->comment,
+            'text' => $this->comment,
         ]);
         
         $this->comment = '';
         $this->loadTask();
+    }
+    
+    public function deleteComment($commentId)
+    {
+        $comment = TaskComment::findOrFail($commentId);
+        
+        // Only allow deletion if the user is the comment author or has special permissions
+        if ($comment->user_id === Auth::id()) {
+            $comment->delete();
+            $this->loadTask();
+            
+            $this->dispatch('notify', [
+                'message' => 'Comment deleted successfully!',
+                'type' => 'success',
+            ]);
+        }
     }
     
     public function updateStatus($status)

@@ -78,6 +78,13 @@ class EditProject extends Component
                 ->get();
         }
     }
+ 
+    public function updatedSelectedTeamMembers()
+    {
+        $this->teamMembers = User::whereIn('id', $this->selectedTeamMembers)
+            ->select('id', 'first_name', 'last_name')
+            ->get();
+    }
 
     public function updatedDepartmentId($value)
     {
