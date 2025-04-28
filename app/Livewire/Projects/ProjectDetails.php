@@ -27,6 +27,12 @@ class ProjectDetails extends Component
 
     public function mount(Project $project)
     {
+        // Check if user has permission to view this project
+        if (!auth()->user()->hasPermissionTo('view all projects') && 
+            !$project->members()->where('user_id', auth()->id())->exists()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $this->project = $project->load(['createdBy', 'supervisedBy', 'members', 'tasks']);
     }
 
@@ -37,17 +43,29 @@ class ProjectDetails extends Component
 
     public function confirmDelete($memberId)
     {
+        if (!auth()->user()->hasPermissionTo('edit projects')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $this->memberToDelete = $memberId;
         $this->showDeleteModal = true;
     }
 
     public function confirmDeleteProject()
     {
+        if (!auth()->user()->hasPermissionTo('delete projects')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $this->showProjectDeleteModal = true;
     }
 
     public function deleteMember()
     {
+        if (!auth()->user()->hasPermissionTo('edit projects')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         try {
             ProjectMember::where('project_id', $this->project->id)
                 ->where('user_id', $this->memberToDelete)
@@ -65,6 +83,10 @@ class ProjectDetails extends Component
 
     public function deleteProject()
     {
+        if (!auth()->user()->hasPermissionTo('delete projects')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         try {
             // Delete project members
             ProjectMember::where('project_id', $this->project->id)->delete();
@@ -109,6 +131,10 @@ class ProjectDetails extends Component
 
     public function openCreateModal()
     {
+        if (!auth()->user()->hasPermissionTo('create tasks')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $params = [
             'component' => 'tasks.task-create',
             'arguments' => [
@@ -124,6 +150,10 @@ class ProjectDetails extends Component
             'project' => $this->project,
             'tasks' => $this->project->tasks()->paginate(5),
             'members' => $this->project->members,
+            'canEdit' => auth()->user()->hasPermissionTo('edit projects'),
+            'canDelete' => auth()->user()->hasPermissionTo('delete projects'),
+            'canCreateTasks' => auth()->user()->hasPermissionTo('create tasks'),
+            'canManageMembers' => auth()->user()->hasPermissionTo('edit projects'),
         ]);
     }
 } 

@@ -5,9 +5,11 @@
             <div class="flex justify-between items-center mb-5">
                 <h2 class="card-title">Projects</h2>
                 
-                <a href="{{ route('projects.create') }}" class="btn btn-primary">
-                    <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> New Project
-                </a>
+                @if($canCreate)
+                    <a href="{{ route('projects.create') }}" class="btn btn-primary">
+                        <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> New Project
+                    </a>
+                @endif
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -42,21 +44,27 @@
                         <div class="w-12 h-12 bg-neutral text-neutral-content rounded-lg inline-flex items-center justify-center">
                             <span class="text-xl font-medium">{{ strtoupper(substr($project->name, 0, 2)) }}</span>
                         </div>
-                        <div class="dropdown dropdown-end">
-                            <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle">
-                                <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
+                        @if($canEdit || $canDelete)
+                            <div class="dropdown dropdown-end">
+                                <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle">
+                                    <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
+                                </div>
+                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                    @if($canEdit)
+                                        <li><a href="{{ route('projects.edit', $project) }}">
+                                            <span class="iconify w-5 h-5 mr-2" data-icon="solar:pen-bold-duotone"></span> Edit
+                                        </a></li>
+                                    @endif
+                                    @if($canDelete)
+                                        <li>
+                                            <button wire:click="confirmDelete('{{ $project->id }}')" class="text-error">
+                                                <span class="iconify w-5 h-5 mr-2" data-icon="solar:trash-bin-trash-bold-duotone"></span> Delete
+                                            </button>
+                                        </li>
+                                    @endif
+                                </ul>
                             </div>
-                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                <li><a href="{{ route('projects.edit', $project) }}">
-                                    <span class="iconify w-5 h-5 mr-2" data-icon="solar:pen-bold-duotone"></span> Edit
-                                </a></li>
-                                <li>
-                                    <button wire:click="confirmDelete('{{ $project->id }}')" class="text-error">
-                                        <span class="iconify w-5 h-5 mr-2" data-icon="solar:trash-bin-trash-bold-duotone"></span> Delete
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
+                        @endif
                     </div>
 
                     <h2 class="card-title mt-4">{{ $project->name }}</h2>
@@ -119,9 +127,11 @@
                     </div>
                     <h3 class="text-lg font-semibold">No Projects Found</h3>
                     <p class="text-base-content/70 mt-1">Get started by creating a new project</p>
-                    <a href="{{ route('projects.create') }}" class="btn btn-primary mt-4">
-                        <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> New Project
-                    </a>
+                    @if($canCreate)
+                        <a href="{{ route('projects.create') }}" class="btn btn-primary mt-4">
+                            <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> New Project
+                        </a>
+                    @endif
                 </div>
             </div>
         @endforelse

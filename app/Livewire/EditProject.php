@@ -62,6 +62,7 @@ class EditProject extends Component
         
         // Load all team members for the team manager dropdown
         $this->teamMembers = $project->members()
+            ->whereIn('users.id', $this->selectedTeamMembers)
             ->select('users.*')
             ->get();
 

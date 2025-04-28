@@ -7,21 +7,27 @@
                     <h1 class="text-2xl font-bold">{{ $project->name }}</h1>
                     <p class="text-base-content/70 mt-2">{{ $project->description }}</p>
                 </div>
-                <div class="dropdown dropdown-end">
-                    <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle">
-                        <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
+                @if($canEdit || $canDelete)
+                    <div class="dropdown dropdown-end">
+                        <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle">
+                            <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
+                        </div>
+                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                            @if($canEdit)
+                                <li><a href="{{ route('projects.edit', $project) }}">
+                                    <span class="iconify w-5 h-5 mr-2" data-icon="solar:pen-bold-duotone"></span> Edit Project
+                                </a></li>
+                            @endif
+                            @if($canDelete)
+                                <li>
+                                    <button wire:click="confirmDeleteProject" class="text-error">
+                                        <span class="iconify w-5 h-5 mr-2" data-icon="solar:trash-bin-trash-bold-duotone"></span> Delete Project
+                                    </button>
+                                </li>
+                            @endif
+                        </ul>
                     </div>
-                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                        <li><a href="{{ route('projects.edit', $project) }}">
-                            <span class="iconify w-5 h-5 mr-2" data-icon="solar:pen-bold-duotone"></span> Edit Project
-                        </a></li>
-                        <li>
-                            <button wire:click="confirmDeleteProject" class="text-error">
-                                <span class="iconify w-5 h-5 mr-2" data-icon="solar:trash-bin-trash-bold-duotone"></span> Delete Project
-                            </button>
-                        </li>
-                    </ul>
-                </div>
+                @endif
             </div>
 
             <!-- Project Stats -->
@@ -149,10 +155,12 @@
                 <div class="card-body">
                     <div class="flex justify-between items-center">
                         <h2 class="card-title">Tasks</h2>
-                        <button class="btn btn-primary btn-sm" wire:click="openCreateModal">
-                            <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span>
-                            New Task
-                        </button>
+                        @if($canCreateTasks)
+                            <button class="btn btn-primary btn-sm" wire:click="openCreateModal">
+                                <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span>
+                                New Task
+                            </button>
+                        @endif
                     </div>
                     
                     <div class="overflow-x-auto mt-4">
@@ -203,10 +211,12 @@
                                 </div>
                                 <h3 class="text-lg font-semibold">No Tasks Yet</h3>
                                 <p class="text-base-content/70 mt-1">Create your first task to get started</p>
-                                <button class="btn btn-primary mt-4" wire:click="openCreateModal">
-                                    <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span>
-                                    New Task
-                                </button>
+                                @if($canCreateTasks)
+                                    <button class="btn btn-primary mt-4" wire:click="openCreateModal">
+                                        <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span>
+                                        New Task
+                                    </button>
+                                @endif
                             </div>
                         @endif
                     </div>
@@ -218,10 +228,12 @@
                 <div class="card-body">
                     <div class="flex justify-between items-center">
                         <h2 class="card-title">Team Members</h2>
-                        <button wire:click="$dispatch('openAddMemberModal')" class="btn btn-primary btn-sm">
-                            <span class="iconify w-5 h-5 mr-2" data-icon="solar:user-plus-bold-duotone"></span>
-                            Add Member
-                        </button>
+                        @if($canManageMembers)
+                            <button wire:click="$dispatch('openAddMemberModal')" class="btn btn-primary btn-sm">
+                                <span class="iconify w-5 h-5 mr-2" data-icon="solar:user-plus-bold-duotone"></span>
+                                Add Member
+                            </button>
+                        @endif
                     </div>
                     
                     <div class="overflow-x-auto mt-4 relative">
@@ -232,7 +244,9 @@
                                         <th>Member</th>
                                         <th>Role</th>
                                         <th>Joined</th>
-                                        <th></th>
+                                        @if($canManageMembers)
+                                            <th></th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -251,23 +265,15 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>{{ ucfirst($member->pivot->role) }}</td>
+                                            <td>{{ $member->pivot->role }}</td>
                                             <td>{{ $member->pivot->joined_at->format('M d, Y') }}</td>
-                                            <td class="relative">
-                                                <div class="dropdown dropdown-end">
-                                                    <button class="btn btn-ghost btn-sm" tabindex="0">
-                                                        <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
+                                            @if($canManageMembers)
+                                                <td>
+                                                    <button wire:click="confirmDelete({{ $member->id }})" class="btn btn-ghost btn-sm text-error">
+                                                        <span class="iconify w-5 h-5" data-icon="solar:trash-bin-trash-bold-duotone"></span>
                                                     </button>
-                                                    <ul tabindex="0" class="dropdown-content z-[999999] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                                        <li>
-                                                            <button wire:click="confirmDelete('{{ $member->id }}')" class="text-error">
-                                                                <span class="iconify w-5 h-5 mr-2" data-icon="solar:user-minus-bold-duotone"></span>
-                                                                Remove Member
-                                                            </button>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </td>
+                                                </td>
+                                            @endif
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -275,14 +281,16 @@
                         @else
                             <div class="text-center py-8">
                                 <div class="w-16 h-16 bg-neutral text-neutral-content rounded-full inline-flex items-center justify-center mb-4">
-                                    <span class="iconify w-8 h-8" data-icon="solar:users-group-bold-duotone"></span>
+                                    <span class="iconify w-8 h-8" data-icon="solar:users-group-rounded-bold-duotone"></span>
                                 </div>
                                 <h3 class="text-lg font-semibold">No Team Members</h3>
-                                <p class="text-base-content/70 mt-1">Add team members to collaborate on this project</p>
-                                <button wire:click="$dispatch('openAddMemberModal')" class="btn btn-primary mt-4">
-                                    <span class="iconify w-5 h-5 mr-2" data-icon="solar:user-plus-bold-duotone"></span>
-                                    Add Member
-                                </button>
+                                <p class="text-base-content/70 mt-1">Add team members to get started</p>
+                                @if($canManageMembers)
+                                    <button wire:click="$dispatch('openAddMemberModal')" class="btn btn-primary mt-4">
+                                        <span class="iconify w-5 h-5 mr-2" data-icon="solar:user-plus-bold-duotone"></span>
+                                        Add Member
+                                    </button>
+                                @endif
                             </div>
                         @endif
                     </div>
@@ -291,10 +299,7 @@
         @endif
     </div>
 
-    <!-- Add this at the bottom of your view -->
-    <livewire:projects.add-member-modal :project="$project" />
-
-    <!-- Delete Confirmation Modal -->
+    <!-- Delete Member Modal -->
     @if($showDeleteModal)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0">
@@ -303,13 +308,13 @@
                 <div class="relative w-full max-w-lg p-6 my-8 overflow-hidden text-left transition-all transform bg-base-100 rounded-lg shadow-xl">
                     <div class="flex flex-col items-center justify-center text-center">
                         <div class="w-16 h-16 bg-error text-error-content rounded-full inline-flex items-center justify-center mb-4">
-                            <span class="iconify w-8 h-8" data-icon="solar:user-minus-bold-duotone"></span>
+                            <span class="iconify w-8 h-8" data-icon="solar:trash-bin-trash-bold-duotone"></span>
                         </div>
-                        <h3 class="text-lg font-bold">Remove Team Member</h3>
-                        <p class="py-4 text-base-content/70">Are you sure you want to remove this member from the project? This action cannot be undone.</p>
+                        <h3 class="text-lg font-bold">Remove Member</h3>
+                        <p class="py-4 text-base-content/70">Are you sure you want to remove this member from the project?</p>
                     </div>
 
-                    <div class="flex justify-between gap-2 mt-6">
+                    <div class="flex justify-end gap-2 mt-6">
                         <button wire:click="closeDeleteModal" class="btn">Cancel</button>
                         <button wire:click="deleteMember" class="btn btn-error">Remove Member</button>
                     </div>
@@ -318,7 +323,7 @@
         </div>
     @endif
 
-    <!-- Delete Project Confirmation Modal -->
+    <!-- Delete Project Modal -->
     @if($showProjectDeleteModal)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0">

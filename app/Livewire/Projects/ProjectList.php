@@ -45,12 +45,20 @@ class ProjectList extends Component
 
     public function confirmDelete($projectId)
     {
+        if (!auth()->user()->hasPermissionTo('delete projects')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $this->projectToDelete = $projectId;
         $this->showDeleteModal = true;
     }
 
     public function deleteProject()
     {
+        if (!auth()->user()->hasPermissionTo('delete projects')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         try {
             $project = Project::findOrFail($this->projectToDelete);
             // dd($project);
@@ -80,22 +88,46 @@ class ProjectList extends Component
 
     public function render()
     {
-        $projects = Project::query()
-            ->with(['createdBy', 'supervisedBy', 'members'])
-            ->when($this->search, function ($query) {
+        $query = Project::query()
+            ->with(['createdBy', 'supervisedBy', 'members']);
+
+        // Apply permission-based filtering
+        if (auth()->user()->hasPermissionTo('view all projects')) {
+            // Director can see all projects
+            $query->when($this->search, function ($query) {
                 $query->where(function ($query) {
                     $query->where('name', 'like', '%' . $this->search . '%')
                         ->orWhere('description', 'like', '%' . $this->search . '%');
                 });
-            })
-            ->when($this->statusFilter, function ($query) {
-                $query->where('status', $this->statusFilter);
-            })
-            ->orderBy($this->sortField, $this->sortDirection)
+            });
+        } else if (auth()->user()->hasPermissionTo('view assigned projects')) {
+            // Supervisor and Employee can only see their assigned projects
+            $query->whereHas('members', function ($query) {
+                $query->where('user_id', auth()->id());
+            })->when($this->search, function ($query) {
+                $query->where(function ($query) {
+                    $query->where('name', 'like', '%' . $this->search . '%')
+                        ->orWhere('description', 'like', '%' . $this->search . '%');
+                });
+            });
+        } else {
+            // No permission to view projects
+            $query->where('id', 0); // Return empty result
+        }
+
+        // Apply status filter if selected
+        $query->when($this->statusFilter, function ($query) {
+            $query->where('status', $this->statusFilter);
+        });
+
+        $projects = $query->orderBy($this->sortField, $this->sortDirection)
             ->paginate(10);
 
         return view('livewire.projects.project-list', [
-            'projects' => $projects
+            'projects' => $projects,
+            'canCreate' => auth()->user()->hasPermissionTo('create projects'),
+            'canEdit' => auth()->user()->hasPermissionTo('edit projects'),
+            'canDelete' => auth()->user()->hasPermissionTo('delete projects')
         ]);
     }
 } 

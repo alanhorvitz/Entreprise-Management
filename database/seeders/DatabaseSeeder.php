@@ -19,9 +19,42 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Call role seeder first to ensure roles exist
-        $this->call(RoleSeeder::class);
-        
+        // Seed roles and permissions first
+        $this->call(RoleAndPermissionSeeder::class);
+
+        // Create director user
+        $director = User::create([
+            'first_name' => 'Director',
+            'last_name' => 'User',
+            'email' => 'director@example.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => Carbon::now(),
+            'is_active' => true,
+        ]);
+        $director->assignRole('director');
+
+        // Create supervisor user
+        $supervisor = User::create([
+            'first_name' => 'Supervisor',
+            'last_name' => 'User',
+            'email' => 'supervisor@example.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => Carbon::now(),
+            'is_active' => true,
+        ]);
+        $supervisor->assignRole('supervisor');
+
+        // Create employee user
+        $employee = User::create([
+            'first_name' => 'Employee',
+            'last_name' => 'User',
+            'email' => 'employee@example.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => Carbon::now(),
+            'is_active' => true,
+        ]);
+        $employee->assignRole('employee');
+
         // Call department seeder before creating users
         $this->call(DepartmentSeeder::class);
         
