@@ -31,33 +31,56 @@
                 <div class="dropdown dropdown-end">
                     <button class="btn btn-ghost btn-sm rounded-lg" aria-label="Notifications">
                         <span class="iconify w-5 h-5" data-icon="solar:bell-bold-duotone"></span>
-                        <span class="badge badge-sm badge-primary badge-pill absolute -top-1 -right-1">3</span>
+                        <span class="badge badge-sm badge-primary badge-pill absolute -top-1 -right-1">{{ \App\Models\Notification::where('user_id', auth()->id())->where('is_read', false)->count() }}</span>
                     </button>
                     <div class="dropdown-content bg-base-100 rounded-box shadow-lg mt-2 w-80 z-[50]">
                         <div class="p-4">
                             <div class="flex items-center justify-between mb-4">
                                 <h6 class="text-sm font-medium">Notifications</h6>
-                                <a href="#" class="text-xs text-primary hover:underline">Mark all as read</a>
+                                <a href="{{ route('notifications.index') }}" class="text-xs text-primary hover:underline">View All</a>
                             </div>
-                            <div class="space-y-4">
-                                <!-- Notification Item -->
-                                <div class="flex items-start space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <img class="h-8 w-8 rounded-full" src="/images/avatars/4.png" alt="">
+                            <div class="space-y-4 max-h-[60vh] overflow-y-auto">
+                                @forelse(\App\Models\Notification::where('user_id', auth()->id())->where('is_read', false)->with('from')->latest()->take(5)->get() as $notification)
+                                    <div class="flex items-start space-x-3 p-3 rounded-lg {{ !$notification->is_read ? 'bg-base-200' : '' }}">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center">
+                                                <span class="iconify w-5 h-5" data-icon="solar:notification-unread-bold-duotone"></span>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm text-base-content font-medium">{{ $notification->title }}</p>
+                                            <p class="text-sm text-base-content/70">{{ $notification->message }}</p>
+                                            <div class="flex items-center justify-between mt-1">
+                                                <p class="text-xs text-base-content/60">From: {{ $notification->from->name }}</p>
+                                                <p class="text-xs text-base-content/60">{{ $notification->created_at->diffForHumans() }}</p>
+                                            </div>
+                                        </div>
+                                        @if(!$notification->is_read)
+                                            <form method="POST" action="{{ route('notifications.markAsRead', $notification) }}" class="inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-ghost btn-xs">
+                                                    <span class="iconify w-4 h-4" data-icon="solar:check-circle-bold-duotone"></span>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm text-base-content">New task assigned to you</p>
-                                        <p class="text-xs text-base-content/60">1 hour ago</p>
+                                @empty
+                                    <div class="text-center py-4">
+                                        <div class="w-16 h-16 bg-neutral text-neutral-content rounded-full inline-flex items-center justify-center mb-4 mx-auto">
+                                            <span class="iconify w-8 h-8" data-icon="solar:bell-off-bold-duotone"></span>
+                                        </div>
+                                        <p class="text-base-content/70">No notifications</p>
                                     </div>
-                                </div>
-                                <!-- More notification items -->
+                                @endforelse
                             </div>
-                            <div class="mt-4 pt-4 border-t border-base-200">
-                                <a href="#" class="btn btn-primary btn-sm w-full">View All</a>
-                                        </div>
-                                        </div>
-                                    </div>
+                            @if(\App\Models\Notification::where('user_id', auth()->id())->count() > 0)
+                                <div class="mt-4 pt-4 border-t border-base-200">
+                                    <a href="{{ route('notifications.index') }}" class="btn btn-primary btn-sm w-full">View All Notifications</a>
                                 </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
 
                 <!-- User Menu -->
                 <div class="dropdown dropdown-end">

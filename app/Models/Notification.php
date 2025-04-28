@@ -17,11 +17,11 @@ class Notification extends Model
      */
     protected $fillable = [
         'user_id',
+        'from_id',
         'title',
         'message',
-        'is_read',
-        'from_id',
         'type',
+        'is_read'
     ];
 
     /**
@@ -29,13 +29,11 @@ class Notification extends Model
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'is_read' => 'boolean',
-            'created_at' => 'timestamp',
-        ];
-    }
+    protected $casts = [
+        'is_read' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
+    ];
 
     public function user(): BelongsTo
     {
@@ -44,6 +42,6 @@ class Notification extends Model
 
     public function from(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'from_id');
     }
 }

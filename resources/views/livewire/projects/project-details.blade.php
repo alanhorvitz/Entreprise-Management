@@ -299,6 +299,9 @@
         @endif
     </div>
 
+    <!-- Add Member Modal -->
+    <livewire:projects.add-member-modal :project="$project" />
+
     <!-- Delete Member Modal -->
     @if($showDeleteModal)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">

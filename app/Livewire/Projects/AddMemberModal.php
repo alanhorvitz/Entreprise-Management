@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\User;
 use App\Models\Project;
 use App\Models\ProjectMember;
+use App\Models\Notification;
 use Illuminate\Support\Facades\DB;
 
 class AddMemberModal extends Component
@@ -25,8 +26,6 @@ class AddMemberModal extends Component
 
     public function loadAvailableMembers()
     {
-        // Get all employees assigned to this department (primary or secondary)
-        // who are not already project members
         $this->availableMembers = User::whereHas('userDepartments', function($query) {
                 $query->where('department_id', $this->project->department_id);
             })
@@ -38,7 +37,7 @@ class AddMemberModal extends Component
             ->where('is_active', true)
             ->where('role', 'employee')
             ->orderByRaw("CASE 
-                WHEN department_id = ? THEN 0 
+                WHEN department_id = ? THEN 0
                 ELSE 1 
             END", [$this->project->department_id])
             ->get();
@@ -66,11 +65,22 @@ class AddMemberModal extends Component
             DB::beginTransaction();
 
             foreach ($this->selectedMembers as $memberId) {
+                // Add member to project
                 ProjectMember::create([
                     'project_id' => $this->project->id,
                     'user_id' => $memberId,
                     'role' => 'member',
                     'joined_at' => now(),
+                ]);
+
+                // Create notification for the added member
+                Notification::create([
+                    'user_id' => $memberId,
+                    'title' => 'New Project Assignment',
+                    'message' => "You have been added to the project '{$this->project->name}' by " . auth()->user()->name,
+                    'from_id' => auth()->id(),
+                    'type' => 'assignment',
+                    'is_read' => false,
                 ]);
             }
 

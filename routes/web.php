@@ -55,6 +55,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/notifications', function () {
+        return view('notifications.index');
+    })->name('notifications.index');
+
+    Route::post('/notifications/{notification}/mark-as-read', function (\App\Models\Notification $notification) {
+        if ($notification->user_id === auth()->id()) {
+            $notification->update(['is_read' => true]);
+        }
+        return back();
+    })->name('notifications.markAsRead');
 });
 
 require __DIR__.'/auth.php';

@@ -19,7 +19,7 @@
                             <div class="w-16 h-16 bg-neutral text-neutral-content rounded-full inline-flex items-center justify-center mb-4">
                                 <span class="iconify w-8 h-8" data-icon="solar:users-group-two-rounded-bold-duotone"></span>
                             </div>
-                                     <h3 class="font-semibold">No Available Members</h3>
+                            <h3 class="font-semibold">No Available Members</h3>
                             <p class="text-base-content/70 mt-1">No available members to add from this department.</p>
                         </div>
                     @else
