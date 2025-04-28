@@ -10,18 +10,16 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-lg">Add Project Members</h3>
                         <button wire:click="close" class="btn btn-sm btn-circle btn-ghost text-xl">
-                            <iconify-icon icon="lucide:x" class="w-5 h-5"></iconify-icon>
+                            <span class="iconify w-8 h-8" data-icon="solar:close-circle-line-duotone"></span>
                         </button>
                     </div>
 
                     @if($availableMembers->isEmpty())
                         <div class="text-center py-6">
-                            <div class="avatar placeholder mb-4">
-                                <div class="bg-neutral text-neutral-content rounded-full w-16 text-2xl">
-                                    <iconify-icon icon="lucide:users" class=""></iconify-icon>
-                                </div>
+                            <div class="w-16 h-16 bg-neutral text-neutral-content rounded-full inline-flex items-center justify-center mb-4">
+                                <span class="iconify w-8 h-8" data-icon="solar:users-group-two-rounded-bold-duotone"></span>
                             </div>
-                            <h3 class="font-semibold">No Available Members</h3>
+                                     <h3 class="font-semibold">No Available Members</h3>
                             <p class="text-base-content/70 mt-1">No available members to add from this department.</p>
                         </div>
                     @else
