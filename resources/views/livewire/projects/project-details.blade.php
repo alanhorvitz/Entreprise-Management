@@ -67,15 +67,15 @@
         <!-- Tabs -->
         <div class="tabs tabs-bordered px-6">
             <button wire:click="setActiveTab('overview')" 
-                class="tab tab-lg {{ $activeTab === 'overview' ? 'tab-active' : '' }}">
+                class="tab tab-lg {{ $activeTab === 'overview' ? 'tab-active border-b-2 border-primary font-bold' : '' }}">
                 Overview
             </button>
             <button wire:click="setActiveTab('tasks')" 
-                class="tab tab-lg {{ $activeTab === 'tasks' ? 'tab-active' : '' }}">
+                class="tab tab-lg {{ $activeTab === 'tasks' ? 'tab-active border-b-2 border-primary font-bold' : '' }}">
                 Tasks
             </button>
             <button wire:click="setActiveTab('members')" 
-                class="tab tab-lg {{ $activeTab === 'members' ? 'tab-active' : '' }}">
+                class="tab tab-lg {{ $activeTab === 'members' ? 'tab-active border-b-2 border-primary font-bold ' : '' }}">
                 Team Members
             </button>
         </div>
