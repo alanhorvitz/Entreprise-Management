@@ -52,8 +52,8 @@
                 <img class="h-8 w-8 rounded-full" src="{{ asset('images/image.png') }}" alt="User avatar">
                             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-base-content truncate">Denish</p>
-                <p class="text-xs text-base-content/60 truncate">Administrator</p>
+                <p class="text-sm font-medium text-base-content truncate">{{ auth()->user()->name }}</p>
+                <p class="text-xs text-base-content/60 truncate">{{ auth()->user()->role }}</p>
                             </div>
                         </div>
                     </div>
