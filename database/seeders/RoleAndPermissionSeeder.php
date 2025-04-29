@@ -22,6 +22,7 @@ class RoleAndPermissionSeeder extends Seeder
             'edit projects',
             'delete projects',
             'assign projects',
+            'update project status',
             
             // Task Management
             'view all tasks',
@@ -72,7 +73,7 @@ class RoleAndPermissionSeeder extends Seeder
         // Create roles and assign permissions
         $director = Role::create(['name' => 'director']);
         $director->givePermissionTo([
-            'view all projects', 'create projects', 'edit projects', 'delete projects', 'assign projects',
+            'view all projects', 'create projects', 'edit projects', 'delete projects', 'assign projects', 'update project status',
             'view all tasks', 'create tasks', 'edit tasks', 'delete tasks', 'assign tasks', 'update task status',
             'view users', 'create users', 'edit users', 'delete users',
             'view departments', 'create departments', 'edit departments', 'delete departments',
@@ -85,7 +86,7 @@ class RoleAndPermissionSeeder extends Seeder
 
         $supervisor = Role::create(['name' => 'supervisor']);
         $supervisor->givePermissionTo([
-            'view all projects', 'create projects', 'edit projects', 'assign projects',
+            'view all projects', 'create projects', 'edit projects', 'assign projects', 'update project status',
             'view all tasks', 'create tasks', 'edit tasks', 'assign tasks', 'update task status',
             'view users',
             'view departments',

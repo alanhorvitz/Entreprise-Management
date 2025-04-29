@@ -35,13 +35,39 @@
                 <div class="stat bg-base-200 rounded-lg p-4 [border-inline-end:none!important]">
                     <div class="stat-title">Status</div>
                     <div class="stat-value">
-                        <span class="badge {{ 
-                            $project->status === 'completed' ? 'badge-success' : 
-                            ($project->status === 'in_progress' ? 'badge-primary' : 
-                            ($project->status === 'on_hold' ? 'badge-warning' : 'badge-secondary')) 
-                        }} text-sm">
-                            {{ str_replace('_', ' ', ucfirst($project->status)) }}
-                        </span>
+                        <div class="dropdown">
+                            @php
+                                $statusClass = [
+                                    'planning' => 'badge-info',
+                                    'in_progress' => 'badge-primary',
+                                    'on_hold' => 'badge-warning',
+                                    'completed' => 'badge-success',
+                                ][$project->status] ?? 'badge-secondary';
+                                
+                                $statusLabel = [
+                                    'planning' => 'Planning',
+                                    'in_progress' => 'In Progress',
+                                    'on_hold' => 'On Hold',
+                                    'completed' => 'Completed',
+                                ][$project->status] ?? $project->status;
+                            @endphp
+                            
+                            <div tabindex="0" class="badge {{ $statusClass }} badge-lg cursor-pointer m-1">
+                                {{ $statusLabel }}
+                                @if($canModifyStatus)
+                                    <span class="iconify ml-1" data-icon="solar:alt-arrow-down-bold-duotone"></span>
+                                @endif
+                            </div>
+                            
+                            @if($canModifyStatus)
+                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
+                                    <li><button wire:click="updateStatus('planning')" class="{{ $project->status === 'planning' ? 'active' : '' }}">Planning</button></li>
+                                    <li><button wire:click="updateStatus('in_progress')" class="{{ $project->status === 'in_progress' ? 'active' : '' }}">In Progress</button></li>
+                                    <li><button wire:click="updateStatus('on_hold')" class="{{ $project->status === 'on_hold' ? 'active' : '' }}">On Hold</button></li>
+                                    <li><button wire:click="updateStatus('completed')" class="{{ $project->status === 'completed' ? 'active' : '' }}">Completed</button></li>
+                                </ul>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 

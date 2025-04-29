@@ -19,10 +19,12 @@ class ProjectDetails extends Component
     public $memberToDelete = null;
     public $showDeleteModal = false;
     public $showProjectDeleteModal = false;
+    public $canModifyStatus = false;
     
     protected $listeners = [
         'memberAdded' => '$refresh',
-        'taskUpdated' => '$refresh'
+        'taskUpdated' => '$refresh',
+        'statusUpdated' => '$refresh'
     ];
 
     public function mount(Project $project)
@@ -34,6 +36,7 @@ class ProjectDetails extends Component
         }
 
         $this->project = $project->load(['createdBy', 'supervisedBy', 'members', 'tasks']);
+        $this->canModifyStatus = auth()->user()->hasPermissionTo('update project status');
     }
 
     public function setActiveTab($tab)
@@ -142,6 +145,28 @@ class ProjectDetails extends Component
             ]
         ];
         $this->dispatch('openModal', $params);
+    }
+
+    public function updateStatus($status)
+    {
+        if (!$this->canModifyStatus) {
+            return;
+        }
+
+        if (!in_array($status, ['planning', 'in_progress', 'on_hold', 'completed'])) {
+            return;
+        }
+
+        $this->project->update([
+            'status' => $status
+        ]);
+
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'message' => 'Project status updated successfully!'
+        ]);
+
+        $this->dispatch('statusUpdated');
     }
 
     public function render()

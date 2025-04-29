@@ -55,7 +55,8 @@ class Project extends Model
         'end_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'budget' => 'decimal:2'
+        'budget' => 'decimal:2',
+        'status' => 'string'
     ];
 
     /**
