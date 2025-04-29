@@ -31,7 +31,8 @@ class ProjectDetails extends Component
     {
         // Check if user has permission to view this project
         if (!auth()->user()->hasPermissionTo('view all projects') && 
-            !$project->members()->where('user_id', auth()->id())->exists()) {
+            !$project->members()->where('user_id', auth()->id())->exists() &&
+            $project->supervised_by !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
 

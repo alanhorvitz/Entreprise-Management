@@ -86,7 +86,7 @@ class RoleAndPermissionSeeder extends Seeder
 
         $supervisor = Role::create(['name' => 'supervisor']);
         $supervisor->givePermissionTo([
-            'view all projects', 'create projects', 'edit projects', 'assign projects', 'update project status',
+            'view assigned projects', 'assign projects', 'update project status',
             'view all tasks', 'create tasks', 'edit tasks', 'assign tasks', 'update task status',
             'view users',
             'view departments',
