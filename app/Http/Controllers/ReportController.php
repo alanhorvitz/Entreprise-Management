@@ -11,7 +11,7 @@ class ReportController extends Controller
      */
     public function index()
     {
-        return view('report.index');
+        return view('reports.index');
     }
 
     /**
@@ -19,7 +19,7 @@ class ReportController extends Controller
      */
     public function create()
     {
-        //
+        return view('reports.create');
     }
 
     /**

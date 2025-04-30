@@ -18,8 +18,7 @@ class ReportTask extends Model
     protected $fillable = [
         'report_id',
         'task_id',
-        'hours_spent',
-        'progress_notes',
+        'progress_notes'
     ];
 
     /**
@@ -34,12 +33,12 @@ class ReportTask extends Model
         ];
     }
 
-    public function report(): BelongsTo
+    public function dailyReport()
     {
-        return $this->belongsTo(DailyReport::class);
+        return $this->belongsTo(DailyReport::class, 'report_id');
     }
 
-    public function task(): BelongsTo
+    public function task()
     {
         return $this->belongsTo(Task::class);
     }

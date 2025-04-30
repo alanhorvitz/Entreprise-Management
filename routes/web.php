@@ -45,7 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('projects', ProjectsController::class);
     Route::resource('tasks', TasksController::class);
     Route::resource('calendar', CalendarController::class);
-    Route::resource('report', ReportController::class);
+    Route::resource('reports', ReportController::class);
     Route::resource('chats', ChatsController::class);
     // Authentication
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
@@ -66,6 +66,8 @@ Route::middleware('auth')->group(function () {
         }
         return back();
     })->name('notifications.markAsRead');
+
+    // Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
 });
 
 require __DIR__.'/auth.php';
