@@ -66,9 +66,9 @@ class EditProject extends Component
             ->select('users.*')
             ->get();
 
-        // Load team manager (project_manager from project_members)
+        // Load team manager (team_leader from project_members)
         $teamManager = $project->members()
-            ->where('project_members.role', 'project_manager')
+            ->where('project_members.role', 'team_leader')
             ->first();
         $this->team_manager_id = $teamManager?->id;
 
@@ -168,13 +168,19 @@ class EditProject extends Component
                 'supervised_by' => $this->supervised_by,
             ]);
 
+            // Assign team_leader role to the chosen team leader
+            $teamLeader = User::find($this->supervised_by);
+            if ($teamLeader) {
+                $teamLeader->assignRole('team_leader');
+            }
+
             // Prepare member data with roles
             $memberData = [];
 
-            // Add team manager as project_manager
+            // Add team manager as team_leader
             if ($this->team_manager_id) {
                 $memberData[$this->team_manager_id] = [
-                    'role' => 'project_manager',
+                    'role' => 'team_leader',
                     'joined_at' => now()
                 ];
             }

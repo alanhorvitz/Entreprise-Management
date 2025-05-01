@@ -66,7 +66,7 @@
                             <option value="" disabled selected>Select a role</option>
                             <option value="director" {{ old('role') == 'director' ? 'selected' : '' }}>Director</option>
                             <option value="supervisor" {{ old('role') == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-                            <option value="project_manager" {{ old('role') == 'project_manager' ? 'selected' : '' }}>Project Manager</option>
+                            <option value="team_leader" {{ old('role') == 'team_leader' ? 'selected' : '' }}>Project Manager</option>
                             <option value="employee" {{ old('role') == 'employee' ? 'selected' : '' }}>Employee</option>
                         </select>
                         @error('role')

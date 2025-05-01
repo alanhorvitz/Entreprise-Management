@@ -29,7 +29,7 @@ class UserFactory extends Factory
             'created_at' => fake()->dateTime(),
             'last_login' => fake()->dateTime(),
             'is_active' => fake()->boolean(),
-            'role' => fake()->randomElement(["director", "supervisor", "project_manager", "employee"]),
+            'role' => fake()->randomElement(["director", "supervisor", "team_leader", "employee"]),
         ];
     }
 }

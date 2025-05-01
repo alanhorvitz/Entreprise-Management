@@ -96,6 +96,20 @@ class RoleAndPermissionSeeder extends Seeder
             'view notifications'
         ]);
 
+        $team_leader = Role::create(['name' => 'team_leader']);
+        $team_leader->givePermissionTo([
+            'view assigned projects',
+            'view assigned tasks', 'update task status',
+            'view users',
+            'view departments',
+            'view reports', 'generate reports',
+            'view chat', 'send messages',
+            'view daily reports', 'create daily reports', 'edit daily reports',
+            'view notifications'
+        ]);
+        
+        
+
         $employee = Role::create(['name' => 'employee']);
         $employee->givePermissionTo([
             'view assigned projects',

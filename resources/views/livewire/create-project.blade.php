@@ -123,13 +123,13 @@
                         <label class="label">
                             <span class="label-text required-field">Project Supervisor</span>
                         </label>
-                        <select wire:model.live="project_manager_id" class="select select-bordered w-full" required>
+                        <select wire:model.live="team_leader_id" class="select select-bordered w-full" required>
                             <option value="">Select project supervisor</option>
                             @foreach($supervisors as $supervisor)
                                 <option value="{{ $supervisor->id }}">{{ $supervisor->first_name }} {{ $supervisor->last_name }}</option>
                             @endforeach
                         </select>
-                        @error('project_manager_id') <span class="text-error text-sm">{{ $message }}</span> @enderror
+                        @error('team_leader_id') <span class="text-error text-sm">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-control w-full">
                         <label class="label">

@@ -9,6 +9,14 @@ use App\Models\Task;
 use App\Models\TaskAssignment;
 use App\Models\ProjectMember;
 use App\Models\UserDepartment;
+use App\Models\DailyReport;
+use App\Models\ReportTask;
+use App\Models\TaskStatusHistory;
+use App\Models\TaskComment;
+use App\Models\ProjectsChatMessage;
+use App\Models\Notification;
+use App\Models\EmailReminder;
+use App\Models\RepetitiveTask;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 
@@ -66,86 +74,107 @@ class DatabaseSeeder extends Seeder
                 'email' => 'admin@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'director',
-                'department_id' => rand(1, 10)
+                'department_id' => rand(1, 10),
+                'email_verified_at' => Carbon::now(),
+                'is_active' => true
             ],
             [
                 'first_name' => 'Project',
                 'last_name' => 'Manager',
                 'email' => 'pm@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'project_manager',
-                'department_id' => rand(1, 10)
-                ],
+                'role' => 'team_leader',
+                'department_id' => rand(1, 10),
+                'email_verified_at' => Carbon::now(),
+                'is_active' => true
+            ],
             [
                 'first_name' => 'Team',
                 'last_name' => 'Member1',
                 'email' => 'member1@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'department_id' => rand(1, 10)
-                ],
+                'department_id' => rand(1, 10),
+                'email_verified_at' => Carbon::now(),
+                'is_active' => true
+            ],
             [
                 'first_name' => 'Team',
                 'last_name' => 'Member2',
                 'email' => 'member2@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'department_id' => rand(1, 10)
-                ],
-            // Adding more employees
+                'department_id' => rand(1, 10),
+                'email_verified_at' => Carbon::now(),
+                'is_active' => true
+            ],
             [
                 'first_name' => 'Sarah',
                 'last_name' => 'Johnson',
                 'email' => 'sarah@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'supervisor',
-                'department_id' => rand(1, 10)
-                ],
+                'department_id' => rand(1, 10),
+                'email_verified_at' => Carbon::now(),
+                'is_active' => true
+            ],
             [
                 'first_name' => 'Michael',
                 'last_name' => 'Williams',
                 'email' => 'michael@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'department_id' => rand(1, 10)
-                ],
+                'department_id' => rand(1, 10),
+                'email_verified_at' => Carbon::now(),
+                'is_active' => true
+            ],
             [
                 'first_name' => 'Emily',
                 'last_name' => 'Clark',
                 'email' => 'emily@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'department_id' => rand(1, 10)
-                ],
+                'department_id' => rand(1, 10),
+                'email_verified_at' => Carbon::now(),
+                'is_active' => true
+            ],
             [
                 'first_name' => 'James',
                 'last_name' => 'Brown',
                 'email' => 'james@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'project_manager',
-                'department_id' => rand(1, 10)
-                ],
+                'role' => 'team_leader',
+                'department_id' => rand(1, 10),
+                'email_verified_at' => Carbon::now(),
+                'is_active' => true
+            ],
             [
                 'first_name' => 'Jessica',
                 'last_name' => 'Miller',
                 'email' => 'jessica@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'department_id' => rand(1, 10)
-                ],
+                'department_id' => rand(1, 10),
+                'email_verified_at' => Carbon::now(),
+                'is_active' => true
+            ],
             [
                 'first_name' => 'David',
                 'last_name' => 'Wilson',
                 'email' => 'david@example.com',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
-                'department_id' => rand(1, 10)
-                    ]
+                'department_id' => rand(1, 10),
+                'email_verified_at' => Carbon::now(),
+                'is_active' => true
+            ]
         ];
 
         $createdUsers = [];
         foreach ($users as $userData) {
-            $createdUsers[] = User::create($userData);
+            $user = User::create($userData);
+            $user->assignRole($userData['role']);
+            $createdUsers[] = $user;
         }
 
         // Assign users to multiple departments
@@ -242,7 +271,7 @@ class DatabaseSeeder extends Seeder
             ProjectMember::create([
                 'project_id' => $project->id,
                 'user_id' => $createdUsers[1]->id,
-                'role' => 'project_manager',
+                'role' => 'team_leader',
                 'joined_at' => Carbon::now()->subDays(rand(30, 60))
             ]);
             
@@ -251,7 +280,7 @@ class DatabaseSeeder extends Seeder
                 ProjectMember::create([
                     'project_id' => $project->id,
                     'user_id' => $createdUsers[7]->id, // James Brown (new PM)
-                    'role' => 'project_manager',
+                    'role' => 'team_leader',
                     'joined_at' => Carbon::now()->subDays(rand(25, 55))
                 ]);
             }
@@ -373,8 +402,30 @@ class DatabaseSeeder extends Seeder
                     'priority' => $priorities[array_rand($priorities)],
                     'current_status' => $currentStatuses[array_rand($currentStatuses)],
                     'start_date' => Carbon::now()->subDays(rand(1, 15)),
-                    'status' => $statuses[array_rand($statuses)]
+                    'status' => $statuses[array_rand($statuses)],
+                    'is_repetitive' => rand(0, 1) == 1
                 ]);
+                
+                // Create task status history
+                TaskStatusHistory::create([
+                    'task_id' => $task->id,
+                    'user_id' => $createdUsers[1]->id,
+                    'old_status' => null,
+                    'new_status' => $task->current_status,
+                    'changed_at' => Carbon::now(),
+                    'notes' => 'Initial status'
+                ]);
+                
+                // Create some task comments
+                $commentCount = rand(1, 3);
+                for ($i = 0; $i < $commentCount; $i++) {
+                    TaskComment::create([
+                        'task_id' => $task->id,
+                        'user_id' => $createdUsers[rand(1, 9)]->id,
+                        'text' => "This is a comment on the task: {$taskTitle}",
+                        'created_at' => Carbon::now()->subDays(rand(1, 5))
+                    ]);
+                }
                 
                 // Assign tasks in a distributed pattern
                 // Some tasks assigned to team member 1
@@ -441,8 +492,91 @@ class DatabaseSeeder extends Seeder
                 }
             }
         }
-        
+
+        // Create daily reports
+        foreach ($createdUsers as $user) {
+            $reportCount = rand(5, 15);
+            $usedDates = [];
+            
+            // Get all projects the user is a member of
+            $userProjects = ProjectMember::where('user_id', $user->id)
+                ->pluck('project_id')
+                ->toArray();
+            
+            // Only create reports if user is a member of any projects
+            if (!empty($userProjects)) {
+                for ($i = 0; $i < $reportCount; $i++) {
+                    // Generate a unique date for this user
+                    do {
+                        $date = Carbon::now()->subDays(rand(0, 30));
+                    } while (isset($usedDates[$user->id][$date->format('Y-m-d')]));
+                    
+                    $usedDates[$user->id][$date->format('Y-m-d')] = true;
+                    
+                    // Randomly select one of the user's projects
+                    $projectId = $userProjects[array_rand($userProjects)];
+                    
+                    $report = DailyReport::create([
+                        'user_id' => $user->id,
+                        'project_id' => $projectId,
+                        'date' => $date,
+                        'summary' => "Daily report for " . $date->format('Y-m-d')
+                    ]);
+
+                    // Add tasks from the selected project to the report
+                    $taskCount = rand(1, 5);
+                    $userTasks = TaskAssignment::where('user_id', $user->id)
+                        ->whereHas('task', function($query) use ($projectId) {
+                            $query->where('project_id', $projectId);
+                        })
+                        ->inRandomOrder()
+                        ->take($taskCount)
+                        ->get();
+
+                    foreach ($userTasks as $taskAssignment) {
+                        ReportTask::create([
+                            'report_id' => $report->id,
+                            'task_id' => $taskAssignment->task_id
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // Create project chat messages
+        foreach ($createdProjects as $project) {
+            $messageCount = rand(10, 30);
+            for ($i = 0; $i < $messageCount; $i++) {
+                ProjectsChatMessage::create([
+                    'project_id' => $project->id,
+                    'user_id' => $createdUsers[rand(0, 9)]->id,
+                    'message' => "This is a chat message for project {$project->name}",
+                    'created_at' => Carbon::now()->subDays(rand(0, 30))
+                ]);
+            }
+        }
+
+
         // Create repetitive tasks
-        $this->call(RepetitiveTaskSeeder::class);
+        foreach ($createdProjects as $project) {
+            $repetitiveCount = rand(1, 3);
+            for ($i = 0; $i < $repetitiveCount; $i++) {
+                $task = Task::where('project_id', $project->id)->inRandomOrder()->first();
+                if ($task) {
+                    RepetitiveTask::create([
+                        'task_id' => $task->id,
+                        'project_id' => $project->id,
+                        'created_by' => $project->created_by,
+                        'repetition_rate' => ['daily', 'weekly', 'monthly', 'yearly'][rand(0, 3)],
+                        'recurrence_interval' => Carbon::now()->addDays(rand(1, 30)),
+                        'recurrence_days' => rand(1, 7),
+                        'recurrence_month_day' => rand(1, 28),
+                        'start_date' => Carbon::now()->subDays(rand(0, 30))->timestamp,
+                        'end_date' => Carbon::now()->addDays(rand(30, 90))->timestamp,
+                        'next_occurrence' => Carbon::now()->addDays(rand(1, 7))->timestamp
+                    ]);
+                }
+            }
+        }
     }
 }

@@ -13,7 +13,7 @@ class RoleSeeder extends Seeder
         // Create roles
         $director = Role::create(['name' => 'director']);
         $supervisor = Role::create(['name' => 'supervisor']);
-        $projectManager = Role::create(['name' => 'project_manager']);
+        $projectManager = Role::create(['name' => 'team_leader']);
         $employee = Role::create(['name' => 'employee']);
 
         // Create permissions

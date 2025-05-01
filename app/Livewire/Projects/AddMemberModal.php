@@ -61,38 +61,17 @@ class AddMemberModal extends Component
             'selectedMembers' => 'required|array|min:1',
         ]);
 
-        try {
-            DB::beginTransaction();
-
-            foreach ($this->selectedMembers as $memberId) {
-                // Add member to project
-                ProjectMember::create([
-                    'project_id' => $this->project->id,
-                    'user_id' => $memberId,
-                    'role' => 'member',
-                    'joined_at' => now(),
-                ]);
-
-                // Create notification for the added member
-                Notification::create([
-                    'user_id' => $memberId,
-                    'title' => 'New Project Assignment',
-                    'message' => "You have been added to the project '{$this->project->name}' by " . auth()->user()->name,
-                    'from_id' => auth()->id(),
-                    'type' => 'assignment',
-                    'is_read' => false,
-                ]);
-            }
-
-            DB::commit();
-            $this->dispatch('memberAdded');
-            $this->close();
-            session()->flash('success', 'Members added successfully!');
-            
-        } catch (\Exception $e) {
-            DB::rollBack();
-            session()->flash('error', 'Failed to add members. ' . $e->getMessage());
+        foreach ($this->selectedMembers as $memberId) {
+            ProjectMember::create([
+                'project_id' => $this->project->id,
+                'user_id' => $memberId,
+                'role' => 'member',
+                'joined_at' => now(),
+            ]);
         }
+
+        $this->dispatch('memberAdded');
+        $this->close();
     }
 
     public function render()

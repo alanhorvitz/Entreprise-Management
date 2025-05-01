@@ -45,7 +45,7 @@ class RefreshCalendar extends Command
                     ['Name', 'Email', 'Password', 'Role'],
                     [
                         ['Admin User', 'admin@example.com', 'password', 'director'],
-                        ['Project Manager', 'pm@example.com', 'password', 'project_manager'],
+                        ['Project Manager', 'pm@example.com', 'password', 'team_leader'],
                         ['Team Member1', 'member1@example.com', 'password', 'employee'],
                         ['Team Member2', 'member2@example.com', 'password', 'employee'],
                     ]

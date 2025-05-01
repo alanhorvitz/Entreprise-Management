@@ -31,7 +31,7 @@ class UserSeeder extends Seeder
         //         'password' => Hash::make('password'),
         //         'first_name' => 'Project',
         //         'last_name' => 'Manager ' . $i,
-        //         'role' => 'project_manager',
+        //         'role' => 'team_leader',
         //         'is_active' => true,
         //         'department_id' => rand(1, 10), 
         //     ]);

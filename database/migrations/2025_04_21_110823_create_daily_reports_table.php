@@ -17,10 +17,12 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unsignedBigInteger('project_id');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->date('date');
             $table->text('summary')->nullable();
             $table->timestamp('submitted_at')->nullable()->useCurrent();
-            $table->unique(['user_id', 'date']);
+            $table->unique(['user_id', 'project_id', 'date']);
             $table->timestamps();
         });
 

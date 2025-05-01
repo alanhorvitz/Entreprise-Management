@@ -25,7 +25,7 @@ class ProjectMemberFactory extends Factory
         return [
             'project_id' => Project::factory(),
             'user_id' => User::factory(),
-            'role' => fake()->randomElement(["project_manager", "member"]),
+            'role' => fake()->randomElement(["team_leader", "member"]),
             'joined_at' => fake()->dateTime(),
         ];
     }

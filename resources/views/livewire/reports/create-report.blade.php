@@ -16,8 +16,22 @@
                 <!-- Date and Summary Card -->
                 <div class="card bg-base-100 shadow-sm">
                     <div class="card-body">
-                        <!-- Date Input -->
+                        <!-- Project Selection -->
                         <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text font-medium">Project</span>
+                            </label>
+                            <select wire:model="project_id" class="select select-bordered w-full" required>
+                                <option value="">Select a project</option>
+                                @foreach($availableProjects as $project)
+                                    <option value="{{ $project->id }}">{{ $project->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('project_id') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                        </div>
+
+                        <!-- Date Input -->
+                        <div class="form-control w-full mt-4">
                             <label class="label">
                                 <span class="label-text font-medium">Date</span>
                             </label>

@@ -7,3 +7,4 @@
         <livewire:create-project />
     </div>
 @endsection
+  
