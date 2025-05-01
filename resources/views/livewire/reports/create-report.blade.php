@@ -57,45 +57,19 @@
                             @foreach($reportTasks as $index => $task)
                                 <div class="card bg-base-200">
                                     <div class="card-body">
-                                        <div class="flex justify-between items-center gap-4">
-                                            <!-- Task Selection -->
-                                            <div class="form-control flex-1">
-                                                <label class="label">
-                                                    <span class="label-text font-medium">Select Task</span>
-                                                </label>
+                                        <div class="flex justify-between items-center">
                                                 <select wire:model="reportTasks.{{ $index }}.task_id" 
                                                         class="select select-bordered w-full">
-                                                    <option value="">Choose a task...</option>
-                                                    @foreach($availableTasks as $availableTask)
-                                                        <option value="{{ $availableTask->id }}">
-                                                            {{ $availableTask->title }}
-                                                        </option>
+                                                <option value="">Select a task</option>
+                                                @foreach($availableTasks as $task)
+                                                    <option value="{{ $task->id }}">{{ $task->title }}</option>
                                                     @endforeach
                                                 </select>
-                                                @error("reportTasks.{$index}.task_id") 
-                                                    <span class="text-error text-sm mt-1">{{ $message }}</span> 
-                                                @enderror
-                                            </div>
-
                                             <button type="button" 
                                                     class="btn btn-ghost btn-sm btn-circle text-error" 
                                                     wire:click="removeTask({{ $index }})">
                                                 <span class="iconify w-5 h-5" data-icon="solar:trash-bin-trash-bold-duotone"></span>
                                             </button>
-                                        </div>
-
-                                        <!-- Progress Notes -->
-                                        <div class="form-control mt-4 flex flex-col gap-2">
-                                            <label class="label">
-                                                <span class="label-text font-medium">Progress Notes</span>
-                                                <span class="label-text-alt text-base-content/70">What did you accomplish?</span>
-                                            </label>
-                                            <textarea wire:model="reportTasks.{{ $index }}.progress_notes" 
-                                                    class="textarea textarea-bordered min-h-24 w-full" 
-                                                    placeholder="Describe the progress made on this task..."></textarea>
-                                            @error("reportTasks.{$index}.progress_notes") 
-                                                <span class="text-error text-sm mt-1">{{ $message }}</span> 
-                                            @enderror
                                         </div>
                                     </div>
                                 </div>

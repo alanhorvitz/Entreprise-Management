@@ -19,8 +19,7 @@ class CreateReport extends Component
     protected $rules = [
         'date' => 'required|date',
         'summary' => 'nullable|string',
-        'reportTasks.*.task_id' => 'required|exists:tasks,id',
-        'reportTasks.*.progress_notes' => 'nullable|string'
+        'reportTasks.*.task_id' => 'required|exists:tasks,id'
     ];
 
     public function mount()
@@ -31,17 +30,15 @@ class CreateReport extends Component
 
     public function loadAvailableTasks()
     {
-        // Get tasks assigned to the current user
         $this->availableTasks = Task::whereHas('taskAssignments', function($query) {
             $query->where('user_id', auth()->id());
-        })->where('current_status', '!=', 'completed')->get();
+        })->whereIn('current_status', ['in_progress', 'not_started'])->get();
     }
 
     public function addTask()
     {
         $this->reportTasks[] = [
-            'task_id' => '',
-            'progress_notes' => ''
+            'task_id' => ''
         ];
     }
 
@@ -77,14 +74,19 @@ class CreateReport extends Component
                 ReportTask::create([
                     'report_id' => $report->id,
                     'task_id' => $taskData['task_id'],
-                    'progress_notes' => $taskData['progress_notes']
                 ]);
             }
 
-            session()->flash('success', 'Report created successfully.');
+            $this->dispatch('notify', [
+                'message' => 'Report created successfully!',
+                'type' => 'success',
+            ]);
             return redirect()->route('reports.index');
         } catch (QueryException $e) {
-            $this->addError('date', 'Unable to create report for this date. Please try again.');
+            $this->dispatch('notify', [
+                'message' => 'Unable to create report for this date. Please try again.',
+                'type' => 'error',
+            ]);
             return;
         }
     }

@@ -17,11 +17,14 @@ class ReportList extends Component
     public $projectFilter = '';
     public $departmentFilter = '';
     public $searchAssignee = '';
-    public $startDate;
-    public $endDate;
-    public $showDateRangePicker = false;
     public $showAssigneeModal = false;
     public $selectedAssigneeId = null;
+    public $showEditModal = false;
+    public $selectedReportId = null;
+    public $showDeleteModal = false;
+    public $reportToDeleteId = null;
+    public $startDate;
+    public $endDate;
 
     protected $queryString = [
         'dateRange' => ['except' => 'today'],
@@ -30,9 +33,40 @@ class ReportList extends Component
         'searchAssignee' => ['except' => ''],
     ];
 
+    protected $listeners = [
+        'closeAssigneeModal' => 'closeAssigneeModal',
+        'closeEditModal' => 'closeEditModal',
+        'closeDeleteModal' => 'closeDeleteModal',
+        'reportUpdated' => '$refresh',
+        'reportDeleted' => '$refresh'
+    ];
+
     public function mount()
     {
         $this->setDateRange('today');
+    }
+
+    public function deleteReport($reportId)
+    {
+        $report = DailyReport::with('reportTasks')->find($reportId);
+        
+        if ($report) {
+            // Delete all related report tasks first
+            $report->reportTasks()->delete();
+            
+            // Then delete the report
+            $report->delete();
+            
+            $this->dispatch('notify', [
+                'message' => 'Report deleted successfully!',
+                'type' => 'success',
+            ]);
+        } else {
+            $this->dispatch('notify', [
+                'message' => 'Report not found.',
+                'type' => 'error',
+            ]);
+        }
     }
 
     public function setDateRange($range)
@@ -57,16 +91,8 @@ class ReportList extends Component
                 $this->startDate = $today->subDays(29);
                 $this->endDate = $today;
                 break;
-            case 'this_month':
-                $this->startDate = $today->startOfMonth();
-                $this->endDate = $today->endOfMonth();
-                break;
-            case 'custom':
-                $this->showDateRangePicker = true;
-                return;
         }
 
-        $this->showDateRangePicker = false;
         $this->resetPage();
     }
 
@@ -80,6 +106,30 @@ class ReportList extends Component
     {
         $this->showAssigneeModal = false;
         $this->selectedAssigneeId = null;
+    }
+
+    public function showEditReport($reportId)
+    {
+        $this->selectedReportId = $reportId;
+        $this->showEditModal = true;
+    }
+
+    public function closeEditModal()
+    {
+        $this->showEditModal = false;
+        $this->selectedReportId = null;
+    }
+
+    public function showDeleteReport($reportId)
+    {
+        $this->reportToDeleteId = $reportId;
+        $this->showDeleteModal = true;
+    }
+
+    public function closeDeleteModal()
+    {
+        $this->showDeleteModal = false;
+        $this->reportToDeleteId = null;
     }
 
     public function updatingSearchAssignee()
@@ -99,7 +149,7 @@ class ReportList extends Component
 
     public function render()
     {
-        $reportsQuery = DailyReport::with(['user', 'user.departments', 'reportTasks.task'])
+        $reportsQuery = DailyReport::with(['user', 'user.departments', 'reportTasks.task.project'])
             ->when($this->startDate && $this->endDate, function($query) {
                 $query->whereBetween('date', [$this->startDate, $this->endDate]);
             })
@@ -133,9 +183,7 @@ class ReportList extends Component
                 'today' => 'Today (' . Carbon::today()->format('M d, Y') . ')',
                 'yesterday' => 'Yesterday',
                 'last_7_days' => 'Last 7 Days',
-                'last_30_days' => 'Last 30 Days',
-                'this_month' => 'This Month',
-                'custom' => 'Custom Range'
+                'last_30_days' => 'Last 30 Days'
             ]
         ]);
     }

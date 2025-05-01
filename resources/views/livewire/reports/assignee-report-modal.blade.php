@@ -13,18 +13,20 @@
                 <p class="text-base-content/70">{{ $user->departments->first()?->name ?? 'No Department' }}</p>
             </div>
         </div>
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" wire:click="close">✕</button>
     </div>
 
-    <!-- Date Range Filter -->
-    <div class="form-control w-full max-w-xs mb-6">
-        <select class="select select-bordered" wire:model.live="dateRange" wire:change="setDateRange($event.target.value)">
-            <option value="today">Today</option>
-            <option value="yesterday">Yesterday</option>
-            <option value="last_7_days">Last 7 Days</option>
-            <option value="last_30_days">Last 30 Days</option>
-            <option value="this_month">This Month</option>
-        </select>
+    <!-- Date Filter -->
+    <div class="mb-6">
+        <div class="form-control w-full max-w-xs">
+            <label class="label">
+                <span class="label-text">Date Range</span>
+            </label>
+            <select class="select select-bordered w-full" wire:model.live="dateRange" wire:change="setDateRange($event.target.value)">
+                @foreach($dateRangeOptions as $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
 
     <!-- Reports List -->
@@ -39,7 +41,6 @@
                                 Submitted {{ \Carbon\Carbon::parse($report['submitted_at'])->diffForHumans() }}
                             </p>
                         </div>
-                        <div class="badge badge-primary">{{ $report['total_hours'] }} hours</div>
                     </div>
 
                     @if($report['summary'])
@@ -54,18 +55,12 @@
                         <div class="space-y-3">
                             @foreach($report['tasks'] as $task)
                                 <div class="bg-base-100 p-3 rounded-lg">
-                                    <div class="flex justify-between items-start mb-2">
+                                    <div class="flex justify-between items-start">
                                         <h5 class="font-medium">{{ $task['title'] }}</h5>
-                                        <div class="flex gap-2">
-                                            <span class="badge badge-ghost">{{ $task['hours_spent'] }} hrs</span>
-                                            <span class="badge badge-{{ $task['status'] === 'completed' ? 'success' : 'info' }}">
-                                                {{ ucfirst($task['status']) }}
-                                            </span>
-                                        </div>
+                                        <span class="badge badge-{{ $task['status'] === 'completed' ? 'success' : 'info' }}">
+                                            {{ ucfirst($task['status']) }}
+                                        </span>
                                     </div>
-                                    @if($task['progress_notes'])
-                                        <p class="text-sm text-base-content/70">{{ $task['progress_notes'] }}</p>
-                                    @endif
                                 </div>
                             @endforeach
                         </div>
@@ -81,5 +76,11 @@
                 <p class="text-base-content/70 mt-1">No reports available for the selected date range</p>
             </div>
         @endforelse
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-action">
+        <button class="btn btn-ghost" wire:click="$parent.closeAssigneeModal">Cancel</button>
+        <button class="btn btn-primary">Approve</button>
     </div>
 </div> 

@@ -14,12 +14,11 @@ class AssigneeReportModal extends Component
     public $userId;
     public $user;
     public $reports = [];
-    public $selectedDate;
     public $dateRange = 'today';
     public $startDate;
     public $endDate;
 
-    protected $listeners = ['closeModal' => 'close'];
+    protected $listeners = [];
 
     public function mount($userId)
     {
@@ -51,10 +50,6 @@ class AssigneeReportModal extends Component
                 $this->startDate = $today->subDays(29);
                 $this->endDate = $today;
                 break;
-            case 'this_month':
-                $this->startDate = $today->startOfMonth();
-                $this->endDate = $today->endOfMonth();
-                break;
         }
 
         $this->loadReports();
@@ -64,23 +59,21 @@ class AssigneeReportModal extends Component
     {
         $this->reports = DailyReport::with(['reportTasks.task'])
             ->where('user_id', $this->userId)
-            ->whereBetween('date', [$this->startDate, $this->endDate])
+            ->when($this->startDate && $this->endDate, function($query) {
+                $query->whereBetween('date', [$this->startDate, $this->endDate]);
+            })
             ->orderBy('date', 'desc')
             ->get()
             ->map(function($report) {
-                $totalHours = $report->reportTasks->sum('hours_spent');
                 return [
                     'id' => $report->id,
                     'date' => $report->date,
                     'summary' => $report->summary,
                     'submitted_at' => $report->submitted_at,
-                    'total_hours' => $totalHours,
                     'tasks' => $report->reportTasks->map(function($reportTask) {
                         return [
                             'id' => $reportTask->task->id,
                             'title' => $reportTask->task->title,
-                            'hours_spent' => $reportTask->hours_spent,
-                            'progress_notes' => $reportTask->progress_notes,
                             'status' => $reportTask->task->current_status
                         ];
                     })
@@ -88,13 +81,15 @@ class AssigneeReportModal extends Component
             });
     }
 
-    public function close()
-    {
-        $this->dispatch('closeModal');
-    }
-
     public function render()
     {
-        return view('livewire.reports.assignee-report-modal');
+        return view('livewire.reports.assignee-report-modal', [
+            'dateRangeOptions' => [
+                'today' => 'Today (' . Carbon::today()->format('M d, Y') . ')',
+                'yesterday' => 'Yesterday',
+                'last_7_days' => 'Last 7 Days',
+                'last_30_days' => 'Last 30 Days'
+            ]
+        ]);
     }
 } 

@@ -17,8 +17,7 @@ class ReportTask extends Model
      */
     protected $fillable = [
         'report_id',
-        'task_id',
-        'progress_notes'
+        'task_id'
     ];
 
     /**
@@ -28,9 +27,7 @@ class ReportTask extends Model
      */
     protected function casts(): array
     {
-        return [
-            'hours_spent' => 'decimal:2',
-        ];
+        return [];
     }
 
     public function dailyReport()

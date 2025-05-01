@@ -1,4 +1,19 @@
 <div>
+    <!-- Alert Messages -->
+    @if (session()->has('success'))
+        <div class="alert alert-success mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+
+    @if (session()->has('error'))
+        <div class="alert alert-error mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
+
     <!-- Header with Create Button -->
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">Daily Reports</h2>
@@ -75,62 +90,46 @@
                         <div class="flex items-center gap-4">
                             <div class="avatar">
                                 <div class="w-12 rounded-full">
-                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($report->user->first_name . ' ' . $report->user->last_name) }}" 
-                                         alt="{{ $report->user->first_name }} {{ $report->user->last_name }}" />
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($report->reportTasks->first()?->task?->project?->name ?? 'Project') }}" 
+                                         alt="{{ $report->reportTasks->first()?->task?->project?->name ?? 'Project' }}" />
                                 </div>
                             </div>
                             <div>
-                                <h3 class="font-semibold">{{ $report->user->first_name }} {{ $report->user->last_name }}</h3>
-                                <p class="text-sm text-base-content/70">
-                                    {{ $report->user->departments->first()?->name ?? 'No Department' }}
-                                </p>
-                                <p class="text-sm text-base-content/70">
-                                    Submitted {{ $report->submitted_at?->diffForHumans() }}
-                                </p>
+                                <h3 class="font-semibold">{{ $report->reportTasks->first()?->task?->project?->name ?? 'No Project' }}</h3>
+                                <p class="text-sm text-base-content/70">{{ $report->date->format('F j, Y') }}</p>
                             </div>
                         </div>
-                        <div class="flex flex-col items-end gap-2">
-                            <div class="badge badge-primary">{{ $report->reportTasks->sum('hours_spent') }} hours</div>
-                            <span class="text-sm text-base-content/70">{{ $report->date->format('F j, Y') }}</span>
+                        <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1">
+                                <span class="badge badge-success">{{ $report->reportTasks->where('task.current_status', 'completed')->count() }}</span>
+                                <span class="text-sm">Completed</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="badge badge-info">{{ $report->reportTasks->where('task.current_status', 'in_progress')->count() }}</span>
+                                <span class="text-sm">In Progress</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="btn btn-sm btn-ghost" wire:click="showAssigneeReport({{ $report->user_id }})">
+                                    <span class="iconify w-4 h-4" data-icon="solar:eye-bold-duotone"></span>
+                                </button>
+                                <button wire:click="showEditReport({{ $report->id }})" class="btn btn-sm btn-ghost">
+                                    <span class="iconify w-4 h-4" data-icon="solar:pen-2-bold-duotone"></span>
+                                </button>
+                                <button wire:click="showDeleteReport({{ $report->id }})" class="btn btn-sm btn-ghost text-error">
+                                    <span class="iconify w-4 h-4" data-icon="solar:trash-bin-trash-bold-duotone"></span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    @if($report->summary)
-                        <div class="mb-4">
-                            <h4 class="font-medium mb-2">Daily Summary</h4>
-                            <p class="text-base-content/80">{{ $report->summary }}</p>
-                        </div>
-                    @endif
-
                     <div>
-                        <h4 class="font-medium mb-2">Tasks Worked On</h4>
-                        <div class="space-y-3">
+                        <div class="space-y-2">
                             @foreach($report->reportTasks as $reportTask)
-                                <div class="bg-base-200 p-3 rounded-lg">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <div>
-                                            <h5 class="font-medium">{{ $reportTask->task->title }}</h5>
-                                            <span class="text-sm text-base-content/70">{{ $reportTask->task->project->name }}</span>
-                                        </div>
-                                        <div class="flex gap-2">
-                                            <span class="badge badge-{{ $reportTask->task->current_status === 'completed' ? 'success' : 'info' }}">
-                                                {{ ucfirst($reportTask->task->current_status) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    @if($reportTask->progress_notes)
-                                        <p class="text-sm text-base-content/70">{{ $reportTask->progress_notes }}</p>
-                                    @endif
+                                <div class="bg-base-200 p-2 rounded-lg">
+                                    <h5 class="font-medium">{{ $reportTask->task->title }}</h5>
                                 </div>
                             @endforeach
                         </div>
-                    </div>
-
-                    <div class="card-actions justify-end mt-4">
-                        <button class="btn btn-sm btn-outline" wire:click="showAssigneeReport({{ $report->user_id }})">
-                            <span class="iconify w-4 h-4 mr-1" data-icon="solar:user-id-bold-duotone"></span>
-                            View All Reports
-                        </button>
                     </div>
                 </div>
             </div>
@@ -154,9 +153,33 @@
     @if($showAssigneeModal && $selectedAssigneeId)
         <div class="modal modal-open">
             <div class="modal-box w-11/12 max-w-5xl">
-                <livewire:reports.assignee-report-modal :userId="$selectedAssigneeId" />
+                <livewire:reports.assignee-report-modal :userId="$selectedAssigneeId" :key="$selectedAssigneeId" />
             </div>
             <div class="modal-backdrop" wire:click="closeAssigneeModal">
+                <button class="cursor-pointer">close</button>
+            </div>
+        </div>
+    @endif
+
+    <!-- Edit Report Modal -->
+    @if($showEditModal && $selectedReportId)
+        <div class="modal modal-open">
+            <div class="modal-box w-11/12 max-w-5xl">
+                <livewire:reports.edit-report-modal :reportId="$selectedReportId" :key="$selectedReportId" />
+            </div>
+            <div class="modal-backdrop" wire:click="closeEditModal">
+                <button class="cursor-pointer">close</button>
+            </div>
+        </div>
+    @endif
+
+    <!-- Delete Report Modal -->
+    @if($showDeleteModal && $reportToDeleteId)
+        <div class="modal modal-open">
+            <div class="modal-box">
+                <livewire:reports.delete-report-modal :reportId="$reportToDeleteId" />
+            </div>
+            <div class="modal-backdrop" wire:click="closeDeleteModal">
                 <button class="cursor-pointer">close</button>
             </div>
         </div>

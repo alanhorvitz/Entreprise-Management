@@ -19,8 +19,8 @@ return new class extends Migration
             $table->foreign('report_id')->references('id')->on('daily_reports');
             $table->unsignedBigInteger('task_id');
             $table->foreign('task_id')->references('id')->on('tasks');
-            $table->decimal('hours_spent', 5, 2)->nullable();
-            $table->text('progress_notes')->nullable();
+            // $table->decimal('hours_spent', 5, 2)->nullable();
+            // $table->text('progress_notes')->nullable();
             $table->unique(['report_id', 'task_id']);
             $table->timestamps();
         });
