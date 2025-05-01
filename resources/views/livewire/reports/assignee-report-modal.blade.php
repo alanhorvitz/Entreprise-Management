@@ -36,7 +36,7 @@
                 <div class="card-body p-4">
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <h3 class="font-semibold">{{ \Carbon\Carbon::parse($report['date'])->format('F j, Y') }}</h3>
+                            <h3 class="font-semibold">{{ \Carbon\Carbon::parse($report['date'])->format('F j, Y g:i A') }}</h3>
                             <p class="text-sm text-base-content/70">
                                 Submitted {{ \Carbon\Carbon::parse($report['submitted_at'])->diffForHumans() }}
                             </p>

@@ -98,7 +98,7 @@
                             </div>
                             <div>
                                 <h3 class="font-semibold">{{ $report->project?->name ?? 'No Project' }}</h3>
-                                <p class="text-sm text-base-content/70">{{ $report->date->format('F j, Y') }}</p>
+                                <p class="text-sm text-base-content/70">{{ $report->date->format('F j, Y g:i A') }}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">

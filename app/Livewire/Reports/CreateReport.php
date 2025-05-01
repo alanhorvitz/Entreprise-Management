@@ -23,7 +23,7 @@ class CreateReport extends Component
 
     public function mount()
     {
-        $this->date = Carbon::today()->format('Y-m-d');
+        $this->date = Carbon::now()->format('Y-m-d H:i:s');
         $this->loadAvailableProjects();
     }
 

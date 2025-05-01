@@ -5,7 +5,7 @@
             <span class="iconify w-8 h-8" data-icon="solar:trash-bin-trash-bold-duotone"></span>
         </div>
         <h3 class="text-lg font-bold mb-2">Delete Report</h3>
-        <p class="mb-4">Are you sure you want to delete this report? This action cannot be undone and all associated tasks will also be deleted.</p>
+        <p class="mb-4">Are you sure you want to delete this report? This action cannot be undone.</p>
     </div>
     
     <div class="flex justify-center gap-2 mt-6">

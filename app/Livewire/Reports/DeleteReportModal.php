@@ -4,6 +4,7 @@ namespace App\Livewire\Reports;
 
 use App\Models\DailyReport;
 use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
 
 class DeleteReportModal extends Component
 {
@@ -13,25 +14,36 @@ class DeleteReportModal extends Component
     public function mount($reportId)
     {
         $this->reportId = $reportId;
-        $this->report = DailyReport::with(['user', 'reportTasks.task'])->find($reportId);
+        $this->report = DailyReport::with('user')->find($reportId);
     }
 
     public function delete()
     {
-        if ($this->report) {
-            // Delete all related report tasks first
-            $this->report->reportTasks()->delete();
-            
-            // Then delete the report
-            $this->report->delete();
-            
-            $this->dispatch('reportDeleted');
-            $this->dispatch('closeDeleteModal');
+        if (!$this->report) {
             $this->dispatch('notify', [
-                'message' => 'Report deleted successfully!',
-                'type' => 'success',
+                'message' => 'Report not found.',
+                'type' => 'error',
             ]);
+            return;
         }
+
+        // Check if user has permission to delete this report
+        if (Auth::id() !== $this->report->user_id && !Auth::user()->hasRole(['director', 'supervisor'])) {
+            $this->dispatch('notify', [
+                'message' => 'You are not authorized to delete this report.',
+                'type' => 'error',
+            ]);
+            return;
+        }
+
+        $this->report->delete();
+        
+        $this->dispatch('reportDeleted');
+        $this->dispatch('closeDeleteModal');
+        $this->dispatch('notify', [
+            'message' => 'Report deleted successfully!',
+            'type' => 'success',
+        ]);
     }
 
     public function close()
