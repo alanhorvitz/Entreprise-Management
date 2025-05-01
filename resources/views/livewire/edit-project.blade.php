@@ -135,15 +135,15 @@
                         <label class="label">
                             <span class="label-text required-field">Team Manager</span>
                         </label>
-                        <select wire:model="team_manager_id" class="select select-bordered w-full" required>
+                        <select wire:model="team_leader_id" class="select select-bordered w-full" required>
                             <option value="">Select team manager</option>
                             @foreach($teamMembers as $member)
-                                <option value="{{ $member->id }}" {{ $member->id == $team_manager_id ? 'selected' : '' }}>
+                                <option value="{{ $member->id }}" {{ $member->id == $team_leader_id ? 'selected' : '' }}>
                                     {{ $member->first_name }} {{ $member->last_name }}
                                 </option>
                             @endforeach
                         </select>
-                        @error('team_manager_id') <span class="text-error text-sm">{{ $message }}</span> @enderror
+                        @error('team_leader_id') <span class="text-error text-sm">{{ $message }}</span> @enderror
                     </div>
                 </div>
                 <div class="form-control w-full">
@@ -183,7 +183,7 @@
                                                 <span>{{ $member->first_name }} {{ $member->last_name }}</span>
                                                 @if($member->id === $supervised_by)
                                                     <span class="badge badge-sm">Supervisor</span>
-                                                @elseif($member->id === $team_manager_id)
+                                                @elseif($member->id === $team_leader_id)
                                                     <span class="badge badge-sm">Team Manager</span>
                                                 @endif
                                             </div>

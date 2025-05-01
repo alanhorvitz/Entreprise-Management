@@ -8,6 +8,7 @@ use App\Models\Department;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class ReportList extends Component
 {
@@ -46,27 +47,38 @@ class ReportList extends Component
         $this->setDateRange('today');
     }
 
+    protected function canModifyReport($report)
+    {
+        return Auth::id() === $report->user_id || 
+               Auth::user()->hasRole(['director', 'supervisor']);
+    }
+
     public function deleteReport($reportId)
     {
-        $report = DailyReport::with('reportTasks')->find($reportId);
+        $report = DailyReport::find($reportId);
         
-        if ($report) {
-            // Delete all related report tasks first
-            $report->reportTasks()->delete();
-            
-            // Then delete the report
-            $report->delete();
-            
-            $this->dispatch('notify', [
-                'message' => 'Report deleted successfully!',
-                'type' => 'success',
-            ]);
-        } else {
+        if (!$report) {
             $this->dispatch('notify', [
                 'message' => 'Report not found.',
                 'type' => 'error',
             ]);
+            return;
         }
+
+        if (!$this->canModifyReport($report)) {
+            $this->dispatch('notify', [
+                'message' => 'You are not authorized to delete this report.',
+                'type' => 'error',
+            ]);
+            return;
+        }
+        
+        $report->delete();
+        
+        $this->dispatch('notify', [
+            'message' => 'Report deleted successfully!',
+            'type' => 'success',
+        ]);
     }
 
     public function setDateRange($range)
@@ -110,6 +122,24 @@ class ReportList extends Component
 
     public function showEditReport($reportId)
     {
+        $report = DailyReport::find($reportId);
+        
+        if (!$report) {
+            $this->dispatch('notify', [
+                'message' => 'Report not found.',
+                'type' => 'error',
+            ]);
+            return;
+        }
+
+        if (!$this->canModifyReport($report)) {
+            $this->dispatch('notify', [
+                'message' => 'You are not authorized to edit this report.',
+                'type' => 'error',
+            ]);
+            return;
+        }
+
         $this->selectedReportId = $reportId;
         $this->showEditModal = true;
     }
@@ -122,6 +152,24 @@ class ReportList extends Component
 
     public function showDeleteReport($reportId)
     {
+        $report = DailyReport::find($reportId);
+        
+        if (!$report) {
+            $this->dispatch('notify', [
+                'message' => 'Report not found.',
+                'type' => 'error',
+            ]);
+            return;
+        }
+
+        if (!$this->canModifyReport($report)) {
+            $this->dispatch('notify', [
+                'message' => 'You are not authorized to delete this report.',
+                'type' => 'error',
+            ]);
+            return;
+        }
+
         $this->reportToDeleteId = $reportId;
         $this->showDeleteModal = true;
     }
@@ -149,14 +197,19 @@ class ReportList extends Component
 
     public function render()
     {
-        $reportsQuery = DailyReport::with(['user', 'user.departments', 'reportTasks.task.project'])
-            ->when($this->startDate && $this->endDate, function($query) {
+        $reportsQuery = DailyReport::with(['user', 'user.departments', 'project']);
+
+        // Filter reports based on user's role and project membership
+        if (!auth()->user()->hasPermissionTo('view reports')) {
+            $userProjectIds = auth()->user()->projectMembers()->pluck('project_id')->toArray();
+            $reportsQuery->whereIn('project_id', $userProjectIds);
+        }
+
+        $reportsQuery->when($this->startDate && $this->endDate, function($query) {
                 $query->whereBetween('date', [$this->startDate, $this->endDate]);
             })
             ->when($this->projectFilter, function($query) {
-                $query->whereHas('reportTasks.task', function($q) {
-                    $q->where('project_id', $this->projectFilter);
-                });
+                $query->where('project_id', $this->projectFilter);
             })
             ->when($this->departmentFilter, function($query) {
                 $query->whereHas('user.departments', function($q) {
@@ -173,11 +226,14 @@ class ReportList extends Component
             })
             ->orderBy('date', 'desc');
 
-        $reports = $reportsQuery->paginate(10);
+        // Filter project dropdown to only show projects user is a member of
+        $projects = auth()->user()->hasPermissionTo('view reports') 
+            ? Project::all()
+            : Project::whereIn('id', auth()->user()->projectMembers()->pluck('project_id'))->get();
 
         return view('livewire.reports.report-list', [
-            'reports' => $reports,
-            'projects' => Project::all(),
+            'reports' => $reportsQuery->paginate(10),
+            'projects' => $projects,
             'departments' => Department::all(),
             'dateRangeOptions' => [
                 'today' => 'Today (' . Carbon::today()->format('M d, Y') . ')',

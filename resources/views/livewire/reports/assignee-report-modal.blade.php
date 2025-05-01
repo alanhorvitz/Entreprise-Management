@@ -41,30 +41,17 @@
                                 Submitted {{ \Carbon\Carbon::parse($report['submitted_at'])->diffForHumans() }}
                             </p>
                         </div>
+                        <div>
+                            <span class="badge badge-primary">{{ $report['project']['name'] }}</span>
+                        </div>
                     </div>
 
                     @if($report['summary'])
-                        <div class="mb-4">
+                        <div>
                             <h4 class="font-medium mb-2">Daily Summary</h4>
                             <p class="text-base-content/80">{{ $report['summary'] }}</p>
                         </div>
                     @endif
-
-                    <div>
-                        <h4 class="font-medium mb-2">Tasks Worked On</h4>
-                        <div class="space-y-3">
-                            @foreach($report['tasks'] as $task)
-                                <div class="bg-base-100 p-3 rounded-lg">
-                                    <div class="flex justify-between items-start">
-                                        <h5 class="font-medium">{{ $task['title'] }}</h5>
-                                        <span class="badge badge-{{ $task['status'] === 'completed' ? 'success' : 'info' }}">
-                                            {{ ucfirst($task['status']) }}
-                                        </span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
                 </div>
             </div>
         @empty
@@ -80,7 +67,6 @@
 
     <!-- Modal Footer -->
     <div class="modal-action">
-        <button class="btn btn-ghost" wire:click="$parent.closeAssigneeModal">Cancel</button>
-        <button class="btn btn-primary">Approve</button>
+        <button class="btn btn-ghost" wire:click="$parent.closeAssigneeModal">Close</button>
     </div>
 </div> 

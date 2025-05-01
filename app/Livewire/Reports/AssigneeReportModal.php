@@ -4,8 +4,6 @@ namespace App\Livewire\Reports;
 
 use App\Models\User;
 use App\Models\DailyReport;
-use App\Models\ReportTask;
-use App\Models\Task;
 use Livewire\Component;
 use Carbon\Carbon;
 
@@ -57,7 +55,7 @@ class AssigneeReportModal extends Component
 
     public function loadReports()
     {
-        $this->reports = DailyReport::with(['reportTasks.task'])
+        $this->reports = DailyReport::with(['project'])
             ->where('user_id', $this->userId)
             ->when($this->startDate && $this->endDate, function($query) {
                 $query->whereBetween('date', [$this->startDate, $this->endDate]);
@@ -70,13 +68,10 @@ class AssigneeReportModal extends Component
                     'date' => $report->date,
                     'summary' => $report->summary,
                     'submitted_at' => $report->submitted_at,
-                    'tasks' => $report->reportTasks->map(function($reportTask) {
-                        return [
-                            'id' => $reportTask->task->id,
-                            'title' => $reportTask->task->title,
-                            'status' => $reportTask->task->current_status
-                        ];
-                    })
+                    'project' => [
+                        'id' => $report->project->id,
+                        'name' => $report->project->name
+                    ]
                 ];
             });
     }

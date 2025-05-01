@@ -17,10 +17,12 @@
     <!-- Header with Create Button -->
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">Daily Reports</h2>
+        @hasrole('team_leader')
         <a href="{{ route('reports.create') }}" class="btn btn-primary">
             <span class="iconify w-5 h-5 mr-1" data-icon="solar:add-square-bold-duotone"></span>
             Create Report
         </a>
+        @endhasrole
     </div>
 
     <!-- Report Controls -->
@@ -90,46 +92,32 @@
                         <div class="flex items-center gap-4">
                             <div class="avatar">
                                 <div class="w-12 rounded-full">
-                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($report->reportTasks->first()?->task?->project?->name ?? 'Project') }}" 
-                                         alt="{{ $report->reportTasks->first()?->task?->project?->name ?? 'Project' }}" />
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($report->project?->name ?? 'Project') }}" 
+                                         alt="{{ $report->project?->name ?? 'Project' }}" />
                                 </div>
                             </div>
                             <div>
-                                <h3 class="font-semibold">{{ $report->reportTasks->first()?->task?->project?->name ?? 'No Project' }}</h3>
+                                <h3 class="font-semibold">{{ $report->project?->name ?? 'No Project' }}</h3>
                                 <p class="text-sm text-base-content/70">{{ $report->date->format('F j, Y') }}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="flex items-center gap-1">
-                                <span class="badge badge-success">{{ $report->reportTasks->where('task.current_status', 'completed')->count() }}</span>
-                                <span class="text-sm">Completed</span>
-                            </div>
-                            <div class="flex items-center gap-1">
-                                <span class="badge badge-info">{{ $report->reportTasks->where('task.current_status', 'in_progress')->count() }}</span>
-                                <span class="text-sm">In Progress</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button class="btn btn-sm btn-ghost" wire:click="showAssigneeReport({{ $report->user_id }})">
-                                    <span class="iconify w-4 h-4" data-icon="solar:eye-bold-duotone"></span>
-                                </button>
+                            <button class="btn btn-sm btn-ghost" wire:click="showAssigneeReport({{ $report->user_id }})">
+                                <span class="iconify w-4 h-4" data-icon="solar:eye-bold-duotone"></span>
+                            </button>
+                            @if(auth()->id() === $report->user_id || auth()->user()->hasRole(['director', 'supervisor']))
                                 <button wire:click="showEditReport({{ $report->id }})" class="btn btn-sm btn-ghost">
                                     <span class="iconify w-4 h-4" data-icon="solar:pen-2-bold-duotone"></span>
                                 </button>
                                 <button wire:click="showDeleteReport({{ $report->id }})" class="btn btn-sm btn-ghost text-error">
                                     <span class="iconify w-4 h-4" data-icon="solar:trash-bin-trash-bold-duotone"></span>
                                 </button>
-                            </div>
+                            @endif
                         </div>
                     </div>
 
                     <div>
-                        <div class="space-y-2">
-                            @foreach($report->reportTasks as $reportTask)
-                                <div class="bg-base-200 p-2 rounded-lg">
-                                    <h5 class="font-medium">{{ $reportTask->task->title }}</h5>
-                                </div>
-                            @endforeach
-                        </div>
+                        <p class="text-base-content/80">{{ Str::limit($report->summary, 150) }}</p>
                     </div>
                 </div>
             </div>

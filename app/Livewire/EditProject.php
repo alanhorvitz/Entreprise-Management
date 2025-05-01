@@ -19,7 +19,7 @@ class EditProject extends Component
     public $end_date;
     public $status;
     public $supervised_by;
-    public $team_manager_id;
+    public $team_leader_id;
     public $budget;
     public $selectedTeamMembers = [];
     public $teamMembers = [];
@@ -40,7 +40,7 @@ class EditProject extends Component
         'end_date' => 'required|date|after:start_date',
         'status' => 'required|in:planning,in_progress,completed,on_hold',
         'supervised_by' => 'required|exists:users,id',
-        'team_manager_id' => 'required|exists:users,id',
+        'team_leader_id' => 'required|exists:users,id',
         'budget' => 'nullable|numeric|min:0',
         'selectedTeamMembers' => 'required|array|min:1',
         'selectedTeamMembers.*' => 'exists:users,id'
@@ -70,7 +70,7 @@ class EditProject extends Component
         $teamManager = $project->members()
             ->where('project_members.role', 'team_leader')
             ->first();
-        $this->team_manager_id = $teamManager?->id;
+        $this->team_leader_id = $teamManager?->id;
 
         // Load selected team members (both regular members and project manager)
         $this->selectedTeamMembers = $project->members()
@@ -96,7 +96,7 @@ class EditProject extends Component
         $this->selectedTeamMembers = [];
         // Reset all member-related fields
         $this->reset([
-            'team_manager_id',
+            'team_leader_id',
             'supervised_by'
         ]);
 
@@ -156,6 +156,11 @@ class EditProject extends Component
         $this->validate();
 
         try {
+            // Get the current team leader before update
+            $currentTeamLeader = $this->project->members()
+                ->where('project_members.role', 'team_leader')
+                ->first();
+
             // Update project basic information
             $this->project->update([
                 'name' => $this->name,
@@ -168,18 +173,25 @@ class EditProject extends Component
                 'supervised_by' => $this->supervised_by,
             ]);
 
-            // Assign team_leader role to the chosen team leader
-            $teamLeader = User::find($this->supervised_by);
-            if ($teamLeader) {
-                $teamLeader->assignRole('team_leader');
+            // Handle role changes if team leader has changed
+            if ($currentTeamLeader && $currentTeamLeader->id != $this->team_leader_id) {
+                // Remove team_leader role from previous team leader and assign employee role
+                $currentTeamLeader->removeRole('team_leader');
+                $currentTeamLeader->assignRole('employee');
+            }
+
+            // Assign team_leader role to the new team leader
+            $newTeamLeader = User::find($this->team_leader_id);
+            if ($newTeamLeader) {
+                $newTeamLeader->syncRoles(['team_leader']);
             }
 
             // Prepare member data with roles
             $memberData = [];
 
             // Add team manager as team_leader
-            if ($this->team_manager_id) {
-                $memberData[$this->team_manager_id] = [
+            if ($this->team_leader_id) {
+                $memberData[$this->team_leader_id] = [
                     'role' => 'team_leader',
                     'joined_at' => now()
                 ];
@@ -188,7 +200,7 @@ class EditProject extends Component
             // Add regular team members
             foreach ($this->selectedTeamMembers as $memberId) {
                 // Skip if this member is already set as team manager
-                if ($memberId != $this->team_manager_id) {
+                if ($memberId != $this->team_leader_id) {
                     $memberData[$memberId] = [
                         'role' => 'member',
                         'joined_at' => now()

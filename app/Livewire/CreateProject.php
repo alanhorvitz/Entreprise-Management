@@ -20,7 +20,6 @@ class CreateProject extends Component
     public $status;
     public $budget;
     public $team_leader_id;
-    public $team_manager_id;
     public $selectedTeamMembers = [];
     public $send_notifications = false;
     public $is_featured = false;
@@ -45,7 +44,7 @@ class CreateProject extends Component
             'status' => 'required|in:planning,in_progress,completed,on_hold',
             'budget' => 'required|numeric|min:0',
             'team_leader_id' => 'required|exists:users,id',
-            'team_manager_id' => 'required|exists:users,id',
+            'team_leader_id' => 'required|exists:users,id',
             'selectedTeamMembers' => 'required|array|min:1',
             'selectedTeamMembers.*' => 'exists:users,id'
         ];
@@ -65,7 +64,7 @@ class CreateProject extends Component
     {
         $this->loadDepartmentMembers();
         $this->loadSupervisors();
-        $this->reset(['team_leader_id', 'team_manager_id', 'selectedTeamMembers']);
+        $this->reset(['team_leader_id', 'team_leader_id', 'selectedTeamMembers']);
     }
 
     public function updatedSelectedTeamMembers($value)
@@ -92,12 +91,12 @@ class CreateProject extends Component
 
             // Reset team members and manager when department changes
             $this->selectedTeamMembers = [];
-            $this->team_manager_id = null;
+            $this->team_leader_id = null;
             $this->availableTeamManagers = collect();
         } else {
             $this->departmentMembers = [];
             $this->selectedTeamMembers = [];
-            $this->team_manager_id = null;
+            $this->team_leader_id = null;
             $this->availableTeamManagers = collect();
         }
     }
@@ -160,7 +159,7 @@ class CreateProject extends Component
             // Attach project manager
             ProjectMember::create([
                 'project_id' => $project->id,
-                'user_id' => $this->team_manager_id,
+                'user_id' => $this->team_leader_id,
                 'role' => 'team_leader',
                 'joined_at' => now(),
             ]);
@@ -169,7 +168,7 @@ class CreateProject extends Component
             if (!empty($this->selectedTeamMembers)) {
                 foreach ($this->selectedTeamMembers as $memberId) {
                     // Skip if member is project manager or team manager
-                    if ($memberId != $this->team_leader_id && $memberId != $this->team_manager_id) {
+                    if ($memberId != $this->team_leader_id && $memberId != $this->team_leader_id) {
                         ProjectMember::create([
                             'project_id' => $project->id,
                             'user_id' => $memberId,
@@ -207,15 +206,15 @@ class CreateProject extends Component
     public function updatedProjectManagerId()
     {
         // Reset team manager if they're the same person
-        if ($this->team_leader_id === $this->team_manager_id) {
-            $this->team_manager_id = null;
+        if ($this->team_leader_id === $this->team_leader_id) {
+            $this->team_leader_id = null;
         }
     }
 
     public function updatedTeamManagerId()
     {
         // Reset project manager if they're the same person
-        if ($this->team_manager_id === $this->team_leader_id) {
+        if ($this->team_leader_id === $this->team_leader_id) {
             $this->team_leader_id = null;
         }
     }

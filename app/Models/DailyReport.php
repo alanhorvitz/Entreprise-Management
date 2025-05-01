@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DailyReport extends Model
 {
@@ -42,8 +41,8 @@ class DailyReport extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function reportTasks(): HasMany
+    public function project(): BelongsTo
     {
-        return $this->hasMany(ReportTask::class, 'report_id');
+        return $this->belongsTo(Project::class);
     }
 }

@@ -135,7 +135,7 @@
                         <label class="label">
                             <span class="label-text required-field">Team Manager</span>
                         </label>
-                        <select wire:model.live="team_manager_id" class="select select-bordered w-full" required>
+                        <select wire:model.live="team_leader_id" class="select select-bordered w-full" required>
                             <option value="">Select team manager</option>
                             @if($availableTeamManagers && $availableTeamManagers->count() > 0)
                                 @foreach($availableTeamManagers as $manager)
@@ -145,7 +145,7 @@
                                 <option disabled>{{ empty($selectedTeamMembers) ? 'Select team members first' : 'Loading available managers...' }}</option>
                             @endif
                         </select>
-                        @error('team_manager_id') <span class="text-error text-sm">{{ $message }}</span> @enderror
+                        @error('team_leader_id') <span class="text-error text-sm">{{ $message }}</span> @enderror
                     </div>
                 </div>
                 <div class="form-control w-full">
