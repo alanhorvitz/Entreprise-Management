@@ -19,14 +19,18 @@ class ChatManager extends Component
     
     public function mount($projectId = null)
     {
-        // Get all projects the current user is a member of
+        // Get all projects for directors, or only member projects for other users
         $user = Auth::user();
-        $this->projects = $user->projectMembers()->with('supervisedBy')->get()->toArray();
+        if ($user->hasRole('director')) {
+            $this->projects = Project::with('supervisedBy')->get()->toArray();
+        } else {
+            $this->projects = $user->projectMembers()->with('supervisedBy')->get()->toArray();
+        }
         
         if ($projectId) {
             // If project ID is provided, try to find that project
             $project = Project::find($projectId);
-            if ($project && in_array($project->id, array_column($this->projects, 'id'))) {
+            if ($project && ($user->hasRole('director') || in_array($project->id, array_column($this->projects, 'id')))) {
                 // Make sure the user has access to this project
                 $this->currentProject = $project->toArray();
                 // Also get the supervisor
@@ -101,7 +105,7 @@ class ChatManager extends Component
         
         // If not found in our list, fetch it and check permission
         $project = Project::with('supervisedBy')->find($projectId);
-        if ($project && Auth::user()->projectMembers->contains('id', $project->id)) {
+        if ($project && (Auth::user()->hasRole('director') || Auth::user()->projectMembers->contains('id', $project->id))) {
             $this->currentProject = $project->toArray();
             if ($project->supervisedBy) {
                 $this->currentProject['supervisedBy'] = $project->supervisedBy->toArray();

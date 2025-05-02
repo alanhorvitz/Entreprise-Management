@@ -61,17 +61,17 @@ class AddMemberModal extends Component
             'selectedMembers' => 'required|array|min:1',
         ]);
 
-        foreach ($this->selectedMembers as $memberId) {
-            ProjectMember::create([
-                'project_id' => $this->project->id,
-                'user_id' => $memberId,
-                'role' => 'member',
-                'joined_at' => now(),
-            ]);
-        }
+            foreach ($this->selectedMembers as $memberId) {
+                ProjectMember::create([
+                    'project_id' => $this->project->id,
+                    'user_id' => $memberId,
+                    'role' => 'member',
+                    'joined_at' => now(),
+                ]);
+            }
 
-        $this->dispatch('memberAdded');
-        $this->close();
+            $this->dispatch('memberAdded');
+            $this->close();
     }
 
     public function render()
