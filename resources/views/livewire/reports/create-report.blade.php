@@ -35,7 +35,11 @@
                             <label class="label">
                                 <span class="label-text font-medium">Date</span>
                             </label>
-                            <input type="date" wire:model="date" class="input input-bordered w-full" required />
+                            <input type="date" 
+                                wire:model="date" 
+                                class="input input-bordered w-full cursor-not-allowed opacity-70" 
+                                disabled 
+                                required />
                             @error('date') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
                         </div>
 

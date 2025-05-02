@@ -7,6 +7,7 @@ use App\Models\Project;
 use Livewire\Component;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Auth;
 
 class CreateReport extends Component
 {
@@ -16,14 +17,14 @@ class CreateReport extends Component
     public $availableProjects = [];
 
     protected $rules = [
-        'date' => 'required|date',
+        'date' => 'required|date|date_equals:today',
         'summary' => 'required|string',
         'project_id' => 'required|exists:projects,id'
     ];
 
     public function mount()
     {
-        $this->date = Carbon::now()->format('Y-m-d H:i:s');
+        $this->date = now()->format('Y-m-d');
         $this->loadAvailableProjects();
     }
 
@@ -37,6 +38,12 @@ class CreateReport extends Component
     public function save()
     {
         $this->validate();
+
+        // Ensure the date is today
+        if (!Carbon::parse($this->date)->isToday()) {
+            $this->addError('date', 'Reports can only be submitted for today.');
+            return;
+        }
 
         // Check if a report already exists for this date (regardless of project)
         $existingReport = DailyReport::where('user_id', auth()->id())
