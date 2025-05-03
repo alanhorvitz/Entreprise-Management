@@ -24,7 +24,7 @@ class ChatManager extends Component
         if ($user->hasRole('director')) {
             $this->projects = Project::with('supervisedBy')->get()->toArray();
         } else {
-            $this->projects = $user->projectMembers()->with('supervisedBy')->get()->toArray();
+        $this->projects = $user->projectMembers()->with('supervisedBy')->get()->toArray();
         }
         
         if ($projectId) {

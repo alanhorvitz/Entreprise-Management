@@ -21,6 +21,7 @@ class TaskEdit extends Component
     public $start_date;
     public $status;
     public $assignees = [];
+    public $projectMembers = [];
     
     protected $rules = [
         'title' => 'required|string|max:100',
@@ -41,6 +42,29 @@ class TaskEdit extends Component
         $this->loadTask();
     }
     
+    public function loadProjectMembers()
+    {
+        if ($this->project_id) {
+            $project = Project::find($this->project_id);
+            
+            if ($project) {
+                $this->projectMembers = $project->members()
+                    ->select('users.*', 'project_members.role')
+                    ->orderBy('project_members.role', 'desc')
+                    ->get();
+            }
+        } else {
+            $this->projectMembers = collect();
+        }
+    }
+
+    public function updatedProjectId($value)
+    {
+        $this->loadProjectMembers();
+        // Clear assignees when project changes
+        $this->assignees = [];
+    }
+    
     public function loadTask()
     {
         $task = Task::findOrFail($this->taskId);
@@ -56,6 +80,9 @@ class TaskEdit extends Component
         
         // Load assigned users
         $this->assignees = $task->taskAssignments->pluck('user_id')->toArray();
+        
+        // Load project members
+        $this->loadProjectMembers();
     }
     
     public function update()

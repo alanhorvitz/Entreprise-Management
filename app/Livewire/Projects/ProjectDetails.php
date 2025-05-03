@@ -172,14 +172,28 @@ class ProjectDetails extends Component
 
     public function render()
     {
+        $user = auth()->user();
+        $isDirectorOrSupervisor = $user->hasPermissionTo('view all projects') || 
+                                 $this->project->supervised_by === $user->id;
+
+        // Get tasks query
+        $tasksQuery = $this->project->tasks();
+        
+        // If not director/supervisor, only show assigned tasks
+        if (!$isDirectorOrSupervisor) {
+            $tasksQuery->whereHas('taskAssignments', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
+        }
+
         return view('livewire.projects.project-details', [
             'project' => $this->project,
-            'tasks' => $this->project->tasks()->paginate(5),
+            'tasks' => $tasksQuery->paginate(5),
             'members' => $this->project->members,
-            'canEdit' => auth()->user()->hasPermissionTo('edit projects'),
-            'canDelete' => auth()->user()->hasPermissionTo('delete projects'),
-            'canCreateTasks' => auth()->user()->hasPermissionTo('create tasks'),
-            'canManageMembers' => auth()->user()->hasPermissionTo('edit projects'),
+            'canEdit' => $user->hasPermissionTo('edit projects'),
+            'canDelete' => $user->hasPermissionTo('delete projects'),
+            'canCreateTasks' => $user->hasPermissionTo('create tasks'),
+            'canManageMembers' => $user->hasPermissionTo('edit projects'),
         ]);
     }
 } 

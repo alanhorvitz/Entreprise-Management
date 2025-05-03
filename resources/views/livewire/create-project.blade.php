@@ -201,13 +201,6 @@
                         <span class="label-text">Send notifications to team members</span>
                     </label>
                 </div>
-                
-                <div class="form-control w-full">
-                    <label class="label cursor-pointer justify-start gap-2">
-                        <input type="checkbox" wire:model="is_featured" class="checkbox checkbox-primary" />
-                        <span class="label-text">Add to featured projects</span>
-                    </label>
-                </div>
             </div>
         </div>
         

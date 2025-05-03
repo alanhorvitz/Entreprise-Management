@@ -20,7 +20,7 @@
                     <label class="label" for="project_id">
                         <span class="label-text">Project</span>
                     </label>
-                    <select id="project_id" class="select select-bordered w-full" wire:model="project_id" required>
+                    <select id="project_id" class="select select-bordered w-full" wire:model.live="project_id" required>
                         <option value="">Select a project</option>
                         @foreach ($projects as $project)
                             <option value="{{ $project->id }}">{{ $project->name }}</option>
@@ -70,25 +70,49 @@
                 </div>
             </div>
             
-            <div class="form-control mt-4">
+            <div class="form-control mt-4 flex flex-col gap-2">
                 <label class="label" for="description">
                     <span class="label-text">Description</span>
                 </label>
-                <textarea id="description" class="textarea textarea-bordered h-24" wire:model="description"></textarea>
+                <textarea id="description" class="textarea textarea-bordered h-24 w-full" wire:model="description"></textarea>
                 @error('description') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
             </div>
             
             <div class="form-control mt-4">
-                <label class="label" for="assignees">
+                <label class="label">
                     <span class="label-text">Assign To</span>
                 </label>
-                <select id="assignees" class="select select-bordered w-full" wire:model="assignees" multiple>
-                    @foreach ($users as $user)
-                        <option value="{{ $user->id }}">{{ $user->name }}</option>
-                    @endforeach
-                </select>
-                <div class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple users</div>
-                @error('assignees') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                <div class="bg-base-200 p-4 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                        @if($projectMembers && count($projectMembers) > 0)
+                            @foreach($projectMembers as $member)
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-base-300 rounded-md">
+                                    <input type="checkbox" wire:model.live="assignees" value="{{ $member->id }}" class="checkbox checkbox-sm" />
+                                    <div class="flex items-center gap-2">
+                                        <div class="avatar placeholder">
+                                            <div class="bg-neutral text-neutral-content w-8 rounded-full">
+                                                <span>{{ substr($member->first_name ?? '', 0, 1) }}{{ substr($member->last_name ?? '', 0, 1) }}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span>{{ $member->first_name }} {{ $member->last_name }}</span>
+                                            <span class="text-sm text-gray-500 block">{{ $member->role }}</span>
+                                        </div>
+                                    </div>
+                                </label>
+                            @endforeach
+                        @elseif($project_id)
+                            <div class="col-span-full text-center py-4 text-gray-500">
+                                No team members found for this project
+                            </div>
+                        @else
+                            <div class="col-span-full text-center py-4 text-gray-500">
+                                Please select a project to see available team members
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                @error('assignees') <span class="text-error text-sm">{{ $message }}</span> @enderror
             </div>
             
             <div class="form-control mt-4">

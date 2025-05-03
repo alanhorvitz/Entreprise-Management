@@ -59,7 +59,7 @@ class EditProject extends Component
         
         // Load supervisor
         $this->supervised_by = $project->supervised_by;
-
+        
         // First load selected team members
         $this->selectedTeamMembers = $project->members()
             ->pluck('users.id')

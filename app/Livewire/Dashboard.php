@@ -18,13 +18,13 @@ class Dashboard extends Component
         // Stats based on role
         if ($user->hasRole('director')) {
             $activeProjects = Project::whereIn('status', ['planning', 'in_progress'])->count();
-            $completedTasks = Task::where('current_status', 'completed')->count();
-            $pendingTasks = Task::whereIn('current_status', ['todo', 'in_progress'])->count();
-            $teamMembers = User::count();
-            $recentProjects = Project::with(['members'])
-                ->latest()
-                ->take(5)
-                ->get();
+        $completedTasks = Task::where('current_status', 'completed')->count();
+        $pendingTasks = Task::whereIn('current_status', ['todo', 'in_progress'])->count();
+        $teamMembers = User::count();
+        $recentProjects = Project::with(['members'])
+            ->latest()
+            ->take(5)
+            ->get();
         } elseif ($user->hasRole('supervisor')) {
             $activeProjects = Project::where('supervised_by', $user->id)
                 ->whereIn('status', ['planning', 'in_progress'])
@@ -63,11 +63,11 @@ class Dashboard extends Component
         
         // Pending approvals - only for director and supervisor
         if ($user->hasRole('director')) {
-            $pendingApprovals = Task::with(['project', 'createdBy'])
-                ->where('status', 'pending_approval')
-                ->latest()
-                ->take(2)
-                ->get();
+        $pendingApprovals = Task::with(['project', 'createdBy'])
+            ->where('status', 'pending_approval')
+            ->latest()
+            ->take(2)
+            ->get();
         } elseif ($user->hasRole('supervisor')) {
             $pendingApprovals = Task::with(['project', 'createdBy'])
                 ->where('status', 'pending_approval')
@@ -83,14 +83,14 @@ class Dashboard extends Component
         
         // Tasks due soon - filtered by project access
         if ($user->hasRole('director')) {
-            $tasksDueSoon = Task::with(['project', 'assignedUsers'])
-                ->whereIn('current_status', ['todo', 'in_progress'])
-                ->whereNotNull('due_date')
-                ->where('due_date', '>=', Carbon::now())
-                ->where('due_date', '<=', Carbon::now()->addDays(7))
-                ->orderBy('due_date')
-                ->take(3)
-                ->get();
+        $tasksDueSoon = Task::with(['project', 'assignedUsers'])
+            ->whereIn('current_status', ['todo', 'in_progress'])
+            ->whereNotNull('due_date')
+            ->where('due_date', '>=', Carbon::now())
+            ->where('due_date', '<=', Carbon::now()->addDays(7))
+            ->orderBy('due_date')
+            ->take(3)
+            ->get();
         } else {
             $projectIds = $user->hasRole('supervisor') 
                 ? Project::where('supervised_by', $user->id)->pluck('id')

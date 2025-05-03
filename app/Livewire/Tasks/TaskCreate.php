@@ -22,14 +22,18 @@ class TaskCreate extends Component
     public $start_date = '';
     public $status = 'pending_approval';
     public $assignees = [];
+    public $projectMembers = [];
     
     // New repetitive task fields
     public $is_repetitive = false;
     public $repetition_rate = 'weekly';
-    public $recurrence_days = []; // Will hold day numbers (0-6 for Sunday-Saturday)
-    public $recurrence_month_day = 1; // Day of month for monthly repetition
-    public $recurrence_end_date = ''; // Optional end date for repetition
-    
+    public $recurrence_days = []; 
+    public $recurrence_month_day = 1; 
+    public $recurrence_end_date = ''; 
+
+    // Listen for project selection changes
+    protected $listeners = ['projectSelected' => 'loadProjectMembers'];
+
     protected $rules = [
         'title' => 'required|string|max:100',
         'description' => 'nullable|string',
@@ -47,32 +51,53 @@ class TaskCreate extends Component
         'recurrence_month_day' => 'required_if:repetition_rate,monthly|integer|min:1|max:31',
         'recurrence_end_date' => 'nullable|date|after_or_equal:due_date',
     ];
-    
-    public function mount($due_date = null)
+
+    public function loadProjectMembers()
     {
+        if ($this->project_id) {
+            $project = Project::find($this->project_id);
+            
+            if ($project) {
+                $this->projectMembers = $project->members()
+                    ->select('users.*', 'project_members.role')
+                    ->orderBy('project_members.role', 'desc')
+                    ->get();
+            }
+        } else {
+            $this->projectMembers = collect();
+        }
+        $this->assignees = [];
+    }
+
+    public function updatedProjectId($value)
+    {
+        logger()->info('Project ID Updated', ['new_value' => $value]);
+        $this->loadProjectMembers();
+    }
+
+    public function mount($project_id = null, $due_date = null)
+    {
+        if ($project_id) {
+            $this->project_id = $project_id;
+            $this->loadProjectMembers();
+        }
+
         if ($due_date) {
             $this->due_date = $due_date;
-            
-            // Also set start date to the same day by default
             $this->start_date = $due_date;
             
-            // If it's a specific day of the week, preselect that day for weekly recurrence
             $dayOfWeek = Carbon::parse($due_date)->dayOfWeek;
             $this->recurrence_days = [$dayOfWeek];
             
-            // Set recurrence_month_day to the day of month in the due date
             $this->recurrence_month_day = Carbon::parse($due_date)->day;
         } else {
-            // Default to today for both dates if none provided
             $today = Carbon::today()->format('Y-m-d');
             $this->start_date = $today;
             $this->due_date = $today;
             
-            // Default to current day of week for recurrence
             $dayOfWeek = Carbon::today()->dayOfWeek;
             $this->recurrence_days = [$dayOfWeek];
             
-            // Default to current day of month for monthly recurrence
             $this->recurrence_month_day = Carbon::today()->day;
         }
     }
@@ -205,24 +230,18 @@ class TaskCreate extends Component
     
     public function render()
     {
-        $projects = Project::all();
-        $users = User::all();
-        
-        // Create an array of weekdays for the template
-        $weekdays = [
-            0 => 'Sunday',
-            1 => 'Monday',
-            2 => 'Tuesday',
-            3 => 'Wednesday',
-            4 => 'Thursday',
-            5 => 'Friday',
-            6 => 'Saturday',
-        ];
-        
         return view('livewire.tasks.task-create', [
-            'projects' => $projects,
-            'users' => $users,
-            'weekdays' => $weekdays,
+            'projects' => Project::all(),
+            'projectMembers' => $this->projectMembers,
+            'weekdays' => [
+                0 => 'Sunday',
+                1 => 'Monday',
+                2 => 'Tuesday',
+                3 => 'Wednesday',
+                4 => 'Thursday',
+                5 => 'Friday',
+                6 => 'Saturday'
+            ]
         ]);
     }
 } 
