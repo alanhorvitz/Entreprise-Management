@@ -34,6 +34,31 @@ class TaskCreate extends Component
     // Listen for project selection changes
     protected $listeners = ['projectSelected' => 'loadProjectMembers'];
 
+    // Add property type casting
+    protected function casts()
+    {
+        return [
+            'is_repetitive' => 'boolean',
+        ];
+    }
+
+    public function updatedIsRepetitive($value)
+    {
+        $this->is_repetitive = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        if ($this->is_repetitive && empty($this->recurrence_days)) {
+            $this->recurrence_days = [now()->dayOfWeek];
+        }
+    }
+
+    public function updatedRepetitionRate($value)
+    {
+        if ($value === 'weekly' && empty($this->recurrence_days)) {
+            $this->recurrence_days = [now()->dayOfWeek];
+        } elseif ($value === 'monthly' && !$this->recurrence_month_day) {
+            $this->recurrence_month_day = now()->day;
+        }
+    }
+
     protected $rules = [
         'title' => 'required|string|max:100',
         'description' => 'nullable|string',

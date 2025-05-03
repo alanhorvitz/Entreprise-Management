@@ -23,6 +23,52 @@ class TaskEdit extends Component
     public $assignees = [];
     public $projectMembers = [];
     
+    // Repetitive task properties
+    public $is_repetitive = false;
+    public $repetition_rate = 'weekly';
+    public $recurrence_days = [];
+    public $recurrence_month_day = 1;
+    public $recurrence_end_date = '';
+
+    protected function getListeners()
+    {
+        return [
+            'taskUpdated' => '$refresh',
+            'echo:private-task.' . $this->taskId . ',TaskUpdated' => '$refresh',
+        ];
+    }
+
+    public function mount($taskId)
+    {
+        $this->taskId = $taskId;
+        $this->loadTask();
+    }
+
+    // Add property type casting
+    protected function casts()
+    {
+        return [
+            'is_repetitive' => 'boolean',
+        ];
+    }
+
+    public function updatedIsRepetitive($value)
+    {
+        $this->is_repetitive = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        if ($this->is_repetitive && empty($this->recurrence_days)) {
+            $this->recurrence_days = [now()->dayOfWeek];
+        }
+    }
+
+    public function updatedRepetitionRate($value)
+    {
+        if ($value === 'weekly' && empty($this->recurrence_days)) {
+            $this->recurrence_days = [now()->dayOfWeek];
+        } elseif ($value === 'monthly' && !$this->recurrence_month_day) {
+            $this->recurrence_month_day = now()->day;
+        }
+    }
+    
     protected $rules = [
         'title' => 'required|string|max:100',
         'description' => 'nullable|string',
@@ -34,13 +80,12 @@ class TaskEdit extends Component
         'status' => 'nullable|in:pending_approval,approved',
         'assignees' => 'nullable|array',
         'assignees.*' => 'exists:users,id',
+        'is_repetitive' => 'boolean',
+        'repetition_rate' => 'required_if:is_repetitive,true|in:daily,weekly,monthly,yearly',
+        'recurrence_days' => 'required_if:repetition_rate,weekly|array',
+        'recurrence_month_day' => 'required_if:repetition_rate,monthly|integer|min:1|max:31',
+        'recurrence_end_date' => 'nullable|date|after_or_equal:due_date',
     ];
-    
-    public function mount($taskId)
-    {
-        $this->taskId = $taskId;
-        $this->loadTask();
-    }
     
     public function loadProjectMembers()
     {
@@ -67,7 +112,7 @@ class TaskEdit extends Component
     
     public function loadTask()
     {
-        $task = Task::findOrFail($this->taskId);
+        $task = Task::with('repetitiveTask')->findOrFail($this->taskId);
         
         $this->title = $task->title;
         $this->description = $task->description;
@@ -77,6 +122,13 @@ class TaskEdit extends Component
         $this->current_status = $task->current_status;
         $this->start_date = $task->start_date ? $task->start_date->format('Y-m-d') : null;
         $this->status = $task->status;
+        $this->is_repetitive = (bool) $task->is_repetitive;
+        
+        // Load repetitive task data if exists
+        if ($task->repetitiveTask) {
+            $this->repetition_rate = $task->repetitiveTask->repetition_rate;
+            $this->recurrence_end_date = $task->repetitiveTask->end_date ? date('Y-m-d', $task->repetitiveTask->end_date) : '';
+        }
         
         // Load assigned users
         $this->assignees = $task->taskAssignments->pluck('user_id')->toArray();
@@ -100,7 +152,38 @@ class TaskEdit extends Component
             'current_status' => $this->current_status,
             'start_date' => $this->start_date,
             'status' => $this->status,
+            'is_repetitive' => $this->is_repetitive,
         ]);
+        
+        // Handle repetitive task data
+        if ($this->is_repetitive) {
+            // Calculate binary representation of days for weekly recurrence
+            $daysBinary = 0;
+            if ($this->repetition_rate === 'weekly' && !empty($this->recurrence_days)) {
+                foreach ($this->recurrence_days as $day) {
+                    $daysBinary |= (1 << $day);
+                }
+            }
+            
+            // Update or create repetitive task record
+            $task->repetitiveTask()->updateOrCreate(
+                ['task_id' => $this->taskId],
+                [
+                    'project_id' => $this->project_id,
+                    'created_by' => auth()->id(),
+                    'repetition_rate' => $this->repetition_rate,
+                    'recurrence_interval' => now(),
+                    'recurrence_days' => $daysBinary,
+                    'recurrence_month_day' => $this->recurrence_month_day,
+                    'start_date' => strtotime($this->start_date),
+                    'end_date' => $this->recurrence_end_date ? strtotime($this->recurrence_end_date) : 0,
+                    'next_occurrence' => strtotime($this->due_date),
+                ]
+            );
+        } else {
+            // Delete repetitive task record if exists
+            $task->repetitiveTask()->delete();
+        }
         
         // Update task assignments - remove existing and add new ones
         TaskAssignment::where('task_id', $this->taskId)->delete();
@@ -126,11 +209,23 @@ class TaskEdit extends Component
     public function render()
     {
         $projects = Project::all();
-        $users = User::all();
         
         return view('livewire.tasks.task-edit', [
             'projects' => $projects,
-            'users' => $users,
+            'weekdays' => [
+                0 => 'Sunday',
+                1 => 'Monday',
+                2 => 'Tuesday',
+                3 => 'Wednesday',
+                4 => 'Thursday',
+                5 => 'Friday',
+                6 => 'Saturday'
+            ]
         ]);
+    }
+
+    public function toggleRepetitive()
+    {
+        $this->is_repetitive = !$this->is_repetitive;
     }
 } 
