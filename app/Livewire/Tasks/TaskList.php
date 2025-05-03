@@ -37,6 +37,27 @@ class TaskList extends Component
 
     protected $listeners = ['taskUpdated' => '$refresh', 'taskCreated' => '$refresh', 'taskDeleted' => '$refresh'];
 
+    public function mount()
+    {
+        // Check if there's a task ID in the query string to open
+        $taskId = request()->query('open_task');
+        if ($taskId) {
+            // Check if the task exists
+            $task = Task::find($taskId);
+            if ($task) {
+                // Dispatch an event to open the modal after the component is rendered
+                $this->dispatch('defer-load-task', $taskId);
+            }
+        }
+    }
+
+    // This function will be called via JavaScript once the page is loaded
+    public function openTaskFromQuery($taskId)
+    {
+        // Directly call the view modal open method
+        $this->openViewModal($taskId);
+    }
+
     public function updatingSearch()
     {
         $this->resetPage();
