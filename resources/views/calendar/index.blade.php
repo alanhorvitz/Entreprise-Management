@@ -56,23 +56,20 @@
                     
                     <select id="status-filter" class="select select-sm select-bordered">
                         <option value="">All Statuses</option>
-                        <option value="todo">To Do</option>
+                        <option value="todo">Not Started</option>
                         <option value="in_progress">In Progress</option>
-                        <option value="completed">Completed</option>
+                        <option value="pending_approval">Pending Approval</option>
+                        <option value="approved">Approved</option>
                     </select>
                 </div>
                 
                 <div class="flex items-center gap-2">
-                    <div class="form-control">
+                    <div class="form-control ml-2">
                         <label class="cursor-pointer label p-0">
-                            <input type="checkbox" id="my-tasks-only" class="checkbox checkbox-sm checkbox-primary" checked />
-                            <span class="label-text ml-2">My tasks only</span>
+                            <input type="checkbox" id="show-holidays" class="checkbox checkbox-sm checkbox-secondary" checked />
+                            <span class="label-text ml-2">Show Moroccan Holidays</span>
                         </label>
                     </div>
-                    
-                    <button id="clear-filters" class="btn btn-sm btn-ghost">
-                        Clear filters
-                    </button>
                 </div>
             </div>
         </div>
@@ -114,6 +111,17 @@
         <div class="divider"></div>
         
         <div id="tasks-container">
+            <!-- Holiday Notice -->
+            <div id="holiday-notice" class="mb-4 p-3 bg-error/10 border-l-4 border-error rounded-lg hidden">
+                <div class="flex items-center gap-2 text-error">
+                    <iconify-icon icon="lucide:calendar-off" class="text-xl"></iconify-icon>
+                    <div>
+                        <h4 class="font-bold">NATIONAL HOLIDAY</h4>
+                        <p id="holiday-name" class="text-sm">This is a Moroccan holiday. No tasks can be created on this day.</p>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Tasks Tab -->
             <div id="modal-tasks" class="tab-content">
                 <div class="flex justify-between items-center mb-5">
@@ -140,7 +148,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const tasks = @json($tasks);
+    // Make tasks accessible in global scope for debugging
+    window.tasks = @json($tasks);
     const projects = @json($projects);
     const assignedTaskIds = @json($assignedTaskIds);
     
@@ -149,6 +158,66 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentYear = currentDate.getFullYear();
     let currentDay = currentDate.getDate();
     let currentView = 'month'; // month, week, day
+    let showHolidays = true; // Default to showing holidays
+    
+    // Moroccan holidays
+    const moroccanHolidays = {
+        // Fixed holidays (month-day format)
+        fixed: {
+            '01-01': 'New Year\'s Day',
+            '01-11': 'Proclamation of Independence',
+            '05-01': 'Labor Day',
+            '07-30': 'Throne Day',
+            '08-14': 'Oued Ed-Dahab Day',
+            '08-20': 'Revolution Day',
+            '08-21': 'Youth Day',
+            '11-06': 'Green March Day',
+            '11-18': 'Independence Day'
+        },
+        // Islamic holidays (specific dates for 2023-2024)
+        islamic: {
+            // 2023 Islamic holidays
+            '2023-07-19': 'Islamic New Year',
+            '2023-07-28': 'Ashura',
+            '2023-09-27': 'Prophet\'s Birthday (Mawlid)',
+            '2023-04-22': 'Eid al-Fitr (1st day)',
+            '2023-04-23': 'Eid al-Fitr (2nd day)',
+            '2023-06-29': 'Eid al-Adha (1st day)',
+            '2023-06-30': 'Eid al-Adha (2nd day)',
+            
+            // 2024 Islamic holidays
+            '2024-07-08': 'Islamic New Year',
+            '2024-07-17': 'Ashura',
+            '2024-09-16': 'Prophet\'s Birthday (Mawlid)',
+            '2024-04-10': 'Eid al-Fitr (1st day)',
+            '2024-04-11': 'Eid al-Fitr (2nd day)',
+            '2024-06-17': 'Eid al-Adha (1st day)',
+            '2024-06-18': 'Eid al-Adha (2nd day)'
+        }
+    };
+    
+    // Check if a date is a Moroccan holiday
+    function isHoliday(date) {
+        if (!showHolidays) return false;
+        
+        // Format for fixed date check (MM-DD)
+        const monthDay = `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        
+        // Check fixed holidays
+        if (moroccanHolidays.fixed[monthDay]) {
+            return moroccanHolidays.fixed[monthDay];
+        }
+        
+        // Format for Islamic date check (YYYY-MM-DD)
+        const fullDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        
+        // Check Islamic holidays
+        if (moroccanHolidays.islamic[fullDate]) {
+            return moroccanHolidays.islamic[fullDate];
+        }
+        
+        return false;
+    }
     
     // Listen for Livewire events to refresh calendar
     document.addEventListener('livewire:initialized', () => {
@@ -248,12 +317,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextMonthBtn = document.getElementById('next-month');
     const todayBtn = document.getElementById('today-btn');
     const currentMonthElement = document.getElementById('current-month');
-    const calendarDaysElement = document.getElementById('calendar-days');
-    const calendarHeaderElement = document.getElementById('calendar-header');
-    const taskModal = document.getElementById('task-modal');
-    const modalDate = document.getElementById('modal-date');
-    const modalTasks = document.getElementById('modal-tasks');
-    const tasksListElement = document.getElementById('tasks-list');
+    const showHolidaysCheckbox = document.getElementById('show-holidays');
+    
+    // Holiday toggle handler
+    showHolidaysCheckbox.addEventListener('change', function() {
+        showHolidays = this.checked;
+        renderCalendar();
+    });
     
     // View Buttons
     const viewMonthBtn = document.getElementById('view-month');
@@ -264,8 +334,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const projectFilter = document.getElementById('project-filter');
     const priorityFilter = document.getElementById('priority-filter');
     const statusFilter = document.getElementById('status-filter');
-    const myTasksOnlyCheckbox = document.getElementById('my-tasks-only');
-    const clearFiltersBtn = document.getElementById('clear-filters');
     const taskSearch = document.getElementById('task-search');
     
     // Modal Tabs
@@ -383,28 +451,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     statusFilter.addEventListener('change', () => {
         filters.status = statusFilter.value;
-        renderCalendar();
-    });
-    
-    myTasksOnlyCheckbox.addEventListener('change', () => {
-        filters.myTasksOnly = myTasksOnlyCheckbox.checked;
-        renderCalendar();
-    });
-    
-    clearFiltersBtn.addEventListener('click', () => {
-        projectFilter.value = '';
-        priorityFilter.value = '';
-        statusFilter.value = '';
-        myTasksOnlyCheckbox.checked = true;
-        taskSearch.value = '';
+        console.log("Status filter set to:", filters.status);
         
-        filters = {
-            project: '',
-            priority: '',
-            status: '',
-            myTasksOnly: true,
-            search: ''
-        };
+        // Log which tasks match this filter
+        if (filters.status) {
+            const matchingTasks = window.tasks.filter(task => {
+                if (task.status) {
+                    const normalizedTaskStatus = normalizeStatus(task.status);
+                    const normalizedFilterStatus = normalizeStatus(filters.status);
+                    return normalizedTaskStatus === normalizedFilterStatus;
+                }
+                return false;
+            });
+            
+            console.log(`Found ${matchingTasks.length} tasks with status matching '${filters.status}'`);
+            if (matchingTasks.length > 0) {
+                console.log("Sample matching task:", matchingTasks[0]);
+            }
+        }
         
         renderCalendar();
     });
@@ -444,940 +508,723 @@ document.addEventListener('DOMContentLoaded', function() {
         currentMonthElement.textContent = `${monthNames[currentMonth]} ${currentYear}`;
         
         // Clear previous calendar
+        const calendarDaysElement = document.getElementById('calendar-days');
         calendarDaysElement.innerHTML = '';
         
-        // Filter tasks
-        const filteredTasks = filterTasks(tasks);
+        // Debug task statuses
+        if (window.tasks.length > 0) {
+            console.log("Sample task data:", window.tasks[0]);
+            // Log unique status values
+            const uniqueStatuses = [...new Set(window.tasks.map(task => task.status))];
+            console.log("Unique status values in data:", uniqueStatuses);
+        }
         
+        // Use all tasks without filtering by user_id
+        const filteredTasks = window.tasks.filter(task => {
+            // Apply project filter
+            if (filters.project && task.project_id != filters.project) {
+                return false;
+            }
+            
+            // Apply priority filter
+            if (filters.priority && task.priority && task.priority.toLowerCase() !== filters.priority.toLowerCase()) {
+                return false;
+            }
+            
+            // Apply status filter - fix by standardizing comparison
+            if (filters.status && task.status) {
+                const normalizedTaskStatus = normalizeStatus(task.status);
+                const normalizedFilterStatus = normalizeStatus(filters.status);
+                
+                if (normalizedTaskStatus !== normalizedFilterStatus) {
+                    return false;
+                }
+            }
+            
+            // Apply search filter
+            if (filters.search && !task.title.toLowerCase().includes(filters.search.toLowerCase())) {
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Reset grid classes
+        calendarDaysElement.className = 'grid gap-px bg-base-300';
+        
+        // Render the appropriate view based on the currentView setting
         if (currentView === 'month') {
-            // Show calendar header for month view
-            calendarHeaderElement.style.display = 'grid';
-            renderMonthView(filteredTasks);
+            calendarDaysElement.classList.add('grid-cols-7');
+            renderMonthView(calendarDaysElement, filteredTasks);
         } else if (currentView === 'week') {
-            // Show calendar header for week view
-            calendarHeaderElement.style.display = 'grid';
-            renderWeekView(filteredTasks);
+            calendarDaysElement.classList.add('grid-cols-1');
+            renderWeekView(calendarDaysElement, filteredTasks);
         } else if (currentView === 'day') {
-            // Hide calendar header for day view
-            calendarHeaderElement.style.display = 'none';
-            renderDayView(filteredTasks);
+            calendarDaysElement.classList.add('grid-cols-1');
+            renderDayView(calendarDaysElement, filteredTasks);
         }
         
         // Apply colors to tasks after rendering
         setTimeout(applyTaskColors, 10);
     }
     
-    function renderMonthView(filteredTasks) {
-        // Get first day of month and number of days
-        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    // Render month view
+    function renderMonthView(calendarDaysElement, filteredTasks) {
+        let date = new Date(currentYear, currentMonth, 1);
         
-        // Calculate previous month's days needed
-        const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate();
+        // Start from the first day of the week that contains the first day of the month
+        date.setDate(1 - date.getDay());
         
-        // Today's date for comparison
-        const today = new Date();
-        const currentToday = today.getDate();
-        const currentTodayMonth = today.getMonth();
-        const currentTodayYear = today.getFullYear();
-        
-        // Add empty cells for previous month
-        for (let i = 0; i < firstDay; i++) {
-            const prevDate = prevMonthDays - firstDay + i + 1;
-            const dayElement = createDayElement(prevDate, 'prev-month');
-            calendarDaysElement.appendChild(dayElement);
+        // Create 6 weeks of calendar
+        for (let week = 0; week < 6; week++) {
+            for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+                const isToday = date.getDate() === currentDay && date.getMonth() === currentDate.getMonth() && date.getFullYear() === currentDate.getFullYear();
+                const isCurrentMonth = date.getMonth() === currentMonth;
+                
+                // Check if this day is a holiday
+                const holidayName = isHoliday(date);
+                const isHolidayDay = holidayName !== false;
+                
+                // Format date as string for data attribute
+                const dateStr = date.toISOString().split('T')[0];
+                
+                // Create day element
+                const dayElement = document.createElement('div');
+                dayElement.className = `day p-2 bg-base-100 ${isCurrentMonth ? '' : 'opacity-40'} ${isToday ? 'ring-2 ring-primary ring-inset' : ''}`;
+                if (isHolidayDay) {
+                    dayElement.classList.add('bg-error/10');
+                    dayElement.classList.add('holiday-cell');
+                }
+                dayElement.dataset.date = dateStr;
+                
+                // Create date number element
+                const dateElement = document.createElement('div');
+                dateElement.className = 'flex justify-between items-center mb-2';
+                
+                // Date number
+                const dateNumber = document.createElement('span');
+                dateNumber.className = `text-sm font-medium ${isToday ? 'bg-primary text-primary-content rounded-full w-6 h-6 flex items-center justify-center' : ''}`;
+                dateNumber.textContent = date.getDate();
+                dateElement.appendChild(dateNumber);
+                
+                // Add button (only for non-holidays and current/future dates)
+                if (!isHolidayDay && isCurrentMonth) {
+                    const addButton = document.createElement('button');
+                    addButton.className = 'btn btn-xs btn-ghost btn-circle';
+                    addButton.innerHTML = '<iconify-icon icon="lucide:plus"></iconify-icon>';
+                    addButton.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openTaskCreationPage(dateStr);
+                    });
+                    dateElement.appendChild(addButton);
+                }
+                
+                dayElement.appendChild(dateElement);
+                
+                // Add holiday indicator if it's a holiday
+                if (isHolidayDay) {
+                    const holidayIndicator = document.createElement('div');
+                    holidayIndicator.className = 'mb-1 p-2 rounded border-l-4 border-error bg-gradient-to-r from-error/20 to-error/5 shadow-sm';
+                    
+                    const holidayHeader = document.createElement('div');
+                    holidayHeader.className = 'text-xs font-bold text-error flex items-center gap-1 mb-1';
+                    holidayHeader.innerHTML = '<iconify-icon icon="lucide:calendar-off"></iconify-icon><span>NATIONAL HOLIDAY</span>';
+                    
+                    const holidayNameElement = document.createElement('div');
+                    holidayNameElement.className = 'text-sm text-error/90 font-medium truncate';
+                    holidayNameElement.textContent = holidayName;
+                    
+                    holidayIndicator.appendChild(holidayHeader);
+                    holidayIndicator.appendChild(holidayNameElement);
+                    dayElement.appendChild(holidayIndicator);
+                }
+                
+                // Add tasks for this day (using filtered tasks instead of window.tasks)
+                const dayTasks = filterTasksForDate(filteredTasks, date);
+                
+                dayTasks.forEach(task => {
+                    const taskElement = createTaskElement(task, isHolidayDay);
+                    dayElement.appendChild(taskElement);
+                });
+                
+                // Add click handler to open the modal with debugging output
+                dayElement.addEventListener('click', function(e) {
+                    // Ignore clicks on task items (they have their own handlers)
+                    if (e.target.closest('.task-item')) {
+                        return;
+                    }
+                    
+                    console.log('Day clicked:', dateStr);
+                    console.log('Tasks found:', dayTasks.length);
+                    
+                    // Store the tasks specifically for this day in a data attribute
+                    // to ensure we're using the correct tasks when the modal opens
+                    const dayTasksJSON = JSON.stringify(dayTasks);
+                    dayElement.dataset.tasks = dayTasksJSON;
+                    
+                    // Open modal with the exact tasks for this specific day
+                    openDayTasksModal(new Date(dateStr + 'T00:00:00'), holidayName, dayTasks);
+                });
+                
+                calendarDaysElement.appendChild(dayElement);
+                
+                // Move to next day
+                date = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+            }
         }
+    }
+    
+    // Render week view
+    function renderWeekView(calendarDaysElement, filteredTasks) {
+        // Start from the beginning of the week containing the current day
+        let date = new Date(currentYear, currentMonth, currentDay);
+        date.setDate(date.getDate() - date.getDay()); // Go to Sunday
         
-        // Add current month days
-        for (let day = 1; day <= daysInMonth; day++) {
-            const isToday = day === currentToday && 
-                          currentMonth === currentTodayMonth && 
-                          currentYear === currentTodayYear;
+        // Create a week container
+        const weekContainer = document.createElement('div');
+        weekContainer.className = 'grid grid-cols-7 gap-px bg-base-300 w-full';
+        
+        // Create 7 days for the week
+        for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+            const isToday = date.getDate() === currentDate.getDate() && 
+                          date.getMonth() === currentDate.getMonth() && 
+                          date.getFullYear() === currentDate.getFullYear();
             
-            const dayElement = createDayElement(day, isToday ? 'current-month is-today' : 'current-month');
+            // Check if this day is a holiday
+            const holidayName = isHoliday(date);
+            const isHolidayDay = holidayName !== false;
+            
+            // Format date as string for data attribute
+            const dateStr = date.toISOString().split('T')[0];
+            
+            // Create day element
+            const dayElement = document.createElement('div');
+            dayElement.className = `week-day p-3 bg-base-100 min-h-[300px] ${isToday ? 'is-today' : ''}`;
+            if (isHolidayDay) {
+                dayElement.classList.add('bg-error/10');
+                dayElement.classList.add('holiday-cell');
+            }
+            dayElement.dataset.date = dateStr;
+            
+            // Create day header
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'week-header mb-3 pb-2 border-b';
+            
+            const dayName = document.createElement('div');
+            dayName.className = 'text-center font-bold';
+            dayName.textContent = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek];
+            
+            const dayDate = document.createElement('div');
+            dayDate.className = `text-center font-medium ${isToday ? 'text-primary' : ''}`;
+            dayDate.textContent = date.getDate();
+            
+            dayHeader.appendChild(dayName);
+            dayHeader.appendChild(dayDate);
+            dayElement.appendChild(dayHeader);
+            
+            // Holiday indicator
+            if (isHolidayDay) {
+                const holidayIndicator = document.createElement('div');
+                holidayIndicator.className = 'mb-3 p-2 rounded border-l-4 border-error bg-gradient-to-r from-error/20 to-error/5 shadow-sm';
+                
+                const holidayNameElement = document.createElement('div');
+                holidayNameElement.className = 'text-sm text-error/90 font-medium text-center';
+                holidayNameElement.textContent = holidayName;
+                
+                holidayIndicator.appendChild(holidayNameElement);
+                dayElement.appendChild(holidayIndicator);
+            }
+            
+            // Task container
+            const taskContainer = document.createElement('div');
+            taskContainer.className = 'space-y-2';
             
             // Add tasks for this day
-            const dayTasks = getTasksForDay(day, filteredTasks);
-            
-            // Add tasks to this day's content
-            if (dayTasks.length > 0) {
-                const dayContent = dayElement.querySelector('.day-content');
-                
-                // Show up to 5 tasks
-                const tasksToShow = dayTasks.slice(0, 5);
-                tasksToShow.forEach(task => {
-                    const taskItem = document.createElement('div');
-                    const taskStatus = task.status || task.current_status || 'unknown';
-                    const priorityClass = `priority-${task.priority ? task.priority.toLowerCase() : 'medium'}`;
-                    
-                    // Set task ID for color management
-                    taskItem.setAttribute('data-task-id', task.id);
-                    taskItem.className = `task-item ${priorityClass}`;
-                    
-                    // Apply priority-based background color
-                    taskItem.style.backgroundColor = getTaskColor(task);
-                    
-                    // Task title with repetitive indicator if applicable
-                    const taskTitle = document.createElement('span');
-                    taskTitle.textContent = task.title;
-                    
-                    taskItem.appendChild(taskTitle);
-                    
-                    // Add repetitive task indicator if this is a repetitive task
-                    if (task.is_repetitive) {
-                        const repetitiveBadge = document.createElement('span');
-                        repetitiveBadge.className = 'badge badge-secondary badge-sm';
-                        repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
-                        taskTitle.appendChild(repetitiveBadge);
-                    }
-                    
-                    // Project tag if available
-                    if (task.project && task.project.name) {
-                        const projectTag = document.createElement('div');
-                        projectTag.className = 'project-tag mt-1';
-                        projectTag.textContent = task.project.name;
-                        taskItem.appendChild(projectTag);
-                    }
-                    
-                    // Add click event to task item to show task details in modal
-                    taskItem.style.cursor = 'pointer';
-                    taskItem.addEventListener('click', function(e) {
-                        e.stopPropagation(); // Prevent triggering day click event
-                        
-                        // Format date for display in modal
-                        let displayDate;
-                        if (task.due_date) {
-                            displayDate = new Date(task.due_date);
-                        } else {
-                            // If no due date, use current displayed date
-                            displayDate = new Date(currentYear, currentMonth, day);
-                        }
-                        
-                        // Show task details in modal
-                        taskModal.showModal();
-                        
-                        // Update modal title with task date
-                        modalDate.innerHTML = `
-                            <div class="flex flex-col">
-                                <div class="flex items-center">
-                                    <span class="text-3xl font-bold mr-2">${displayDate.getDate()}</span>
-                                    <div class="flex flex-col">
-                                        <span class="font-medium">${displayDate.toLocaleDateString(undefined, { month: 'long' })}</span>
-                                        <span class="text-sm opacity-70">${displayDate.toLocaleDateString(undefined, { weekday: 'long' })}, ${displayDate.getFullYear()}</span>
-                                    </div>
-                                </div>
-                                <div class="flex mt-2 text-sm space-x-2">
-                                    <button class="link link-hover text-primary" id="view-this-day">Day View</button>
-                                    <button class="link link-hover text-primary" id="view-this-week">Week View</button>
-                                </div>
-                            </div>
-                        `;
-                        
-                        // Render just this task in the modal
-                        renderTasksList([task]);
-                        
-                        // Setup event listeners for the modal buttons
-                        setupModalEventListeners(displayDate, formatDateForInput(displayDate));
-                    });
-                    
-                    dayContent.appendChild(taskItem);
+            const dayTasks = filterTasksForDate(filteredTasks, date);
+            if (dayTasks.length === 0) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'text-center text-base-content/50 text-sm p-4';
+                emptyState.textContent = 'No tasks';
+                taskContainer.appendChild(emptyState);
+            } else {
+                dayTasks.forEach(task => {
+                    const taskElement = createTaskElement(task, isHolidayDay);
+                    taskElement.classList.add('p-2'); // Make tasks bigger in week view
+                    taskContainer.appendChild(taskElement);
                 });
-                
-                // Add "more" indicator if needed
-                if (dayTasks.length > 5) {
-                    const moreTasks = document.createElement('div');
-                    moreTasks.className = 'text-xs text-right mt-1';
-                    moreTasks.textContent = `+${dayTasks.length - 5} more`;
-                    dayContent.appendChild(moreTasks);
-                }
-                
-                // Store data attributes for the task information
-                dayElement.classList.add('cursor-pointer');
-                dayElement.setAttribute('data-calendar-day', day);
-                dayElement.setAttribute('data-has-tasks', 'true');
             }
             
-            calendarDaysElement.appendChild(dayElement);
-        }
-        
-        // Fill remaining cells with next month
-        const totalDays = 42; // 6 rows × 7 days
-        const remainingDays = totalDays - (firstDay + daysInMonth);
-        for (let i = 1; i <= remainingDays; i++) {
-            const dayElement = createDayElement(i, 'next-month');
-            calendarDaysElement.appendChild(dayElement);
-        }
-    }
-    
-    function renderWeekView(filteredTasks) {
-        // Reset calendar grid (in case of previous day view)
-        calendarDaysElement.className = 'grid grid-cols-7 gap-px bg-base-300';
-        
-        // Get the current date and find the current week
-        const currentDate = new Date(currentYear, currentMonth, currentDay);
-        
-        // Get the start of the week (Sunday)
-        const weekStart = new Date(currentDate);
-        const dayOfWeek = currentDate.getDay();
-        weekStart.setDate(currentDate.getDate() - dayOfWeek);
-        
-        // Today's date for comparison
-        const today = new Date();
-        
-        // Add days for the week
-        for (let i = 0; i < 7; i++) {
-            const dayDate = new Date(weekStart);
-            dayDate.setDate(weekStart.getDate() + i);
+            dayElement.appendChild(taskContainer);
             
-            const dayOfMonth = dayDate.getDate();
-            const monthOfDay = dayDate.getMonth();
-            const yearOfDay = dayDate.getFullYear();
-            
-            const isCurrentMonth = monthOfDay === currentMonth;
-            const isToday = 
-                dayOfMonth === today.getDate() && 
-                monthOfDay === today.getMonth() && 
-                yearOfDay === today.getFullYear();
-            
-            // Create day container
-            const dayElement = document.createElement('div');
-            dayElement.className = `day week-day ${isCurrentMonth ? 'current-month' : 'other-month'} ${isToday ? 'is-today' : ''} bg-base-100`;
-        
-            // Day header
-            const dayHeader = document.createElement('div');
-            dayHeader.className = 'week-header';
-            
-            const dayOfWeekLabel = document.createElement('div');
-            dayOfWeekLabel.textContent = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayDate.getDay()];
-            
-            const dateLabel = document.createElement('div');
-            dateLabel.className = 'week-date';
-            dateLabel.textContent = dayOfMonth;
-            
-            dayHeader.appendChild(dayOfWeekLabel);
-            dayHeader.appendChild(dateLabel);
-            
-            // Day content
-            const dayContent = document.createElement('div');
-            dayContent.className = 'day-content';
-        
-            // Get tasks for this day
-            const dayTasks = filteredTasks.filter(task => {
-                const dueDate = task.due_date ? new Date(task.due_date) : null;
-                if (!dueDate) return false;
-                
-                return dueDate.getDate() === dayOfMonth && 
-                       dueDate.getMonth() === monthOfDay && 
-                       dueDate.getFullYear() === yearOfDay;
-            });
-        
-            // Add tasks to day content
-            dayTasks.forEach(task => {
-                const taskItem = document.createElement('div');
-                const taskStatus = task.status || task.current_status || 'unknown';
-                const priorityClass = `priority-${task.priority ? task.priority.toLowerCase() : 'medium'}`;
-                
-                // Set task ID for color management
-                taskItem.setAttribute('data-task-id', task.id);
-                taskItem.className = `task-item ${priorityClass}`;
-                
-                // Apply priority-based background color
-                taskItem.style.backgroundColor = getTaskColor(task);
-                
-                // Task title with repetitive indicator if applicable
-                const taskTitle = document.createElement('span');
-                taskTitle.textContent = task.title;
-                
-                taskItem.appendChild(taskTitle);
-                
-                // Add repetitive task indicator if this is a repetitive task
-                if (task.is_repetitive) {
-                    const repetitiveBadge = document.createElement('span');
-                    repetitiveBadge.className = 'badge badge-secondary badge-sm';
-                    repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
-                    taskTitle.appendChild(repetitiveBadge);
+            // Add click handler for empty space
+            dayElement.addEventListener('click', function(e) {
+                if (e.target.closest('.task-item')) {
+                    return;
                 }
                 
-                // Project tag if available
-                if (task.project && task.project.name) {
-                    const projectTag = document.createElement('div');
-                    projectTag.className = 'project-tag mt-1';
-                    projectTag.textContent = task.project.name;
-                    taskItem.appendChild(projectTag);
-                }
-                
-                // Add click event to task item to show task details in modal
-                taskItem.style.cursor = 'pointer';
-                taskItem.addEventListener('click', function(e) {
-                    e.stopPropagation(); // Prevent triggering day click event
-                    
-                    // Format date for display in modal
-                    let displayDate;
-                    if (task.due_date) {
-                        displayDate = new Date(task.due_date);
-                    } else {
-                        // If no due date, use current displayed date
-                        displayDate = new Date(currentYear, currentMonth, currentDay);
-                    }
-                    
-                    // Show task details in modal
-                    taskModal.showModal();
-                    
-                    // Update modal title with task date
-                    modalDate.innerHTML = `
-                        <div class="flex flex-col">
-                            <div class="flex items-center">
-                                <span class="text-3xl font-bold mr-2">${displayDate.getDate()}</span>
-                                <div class="flex flex-col">
-                                    <span class="font-medium">${displayDate.toLocaleDateString(undefined, { month: 'long' })}</span>
-                                    <span class="text-sm opacity-70">${displayDate.toLocaleDateString(undefined, { weekday: 'long' })}, ${displayDate.getFullYear()}</span>
-                                </div>
-                            </div>
-                            <div class="flex mt-2 text-sm space-x-2">
-                                <button class="link link-hover text-primary" id="view-this-day">Day View</button>
-                                <button class="link link-hover text-primary" id="view-this-week">Week View</button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Render just this task in the modal
-                    renderTasksList([task]);
-                    
-                    // Setup event listeners for the modal buttons
-                    setupModalEventListeners(displayDate, formatDateForInput(displayDate));
-                });
-                
-                dayContent.appendChild(taskItem);
+                openDayTasksModal(new Date(dateStr + 'T00:00:00'), holidayName, dayTasks);
             });
-                
-            if (dayTasks.length > 0) {
-                dayElement.classList.add('cursor-pointer');
-                // Store data attributes for the task information
-                dayElement.setAttribute('data-calendar-day', dayOfMonth);
-                dayElement.setAttribute('data-calendar-month', monthOfDay);
-                dayElement.setAttribute('data-calendar-year', yearOfDay);
-                dayElement.setAttribute('data-has-tasks', 'true');
-            }
             
-            dayElement.appendChild(dayHeader);
-            dayElement.appendChild(dayContent);
-            calendarDaysElement.appendChild(dayElement);
+            weekContainer.appendChild(dayElement);
+            
+            // Move to next day
+            date = new Date(date.getTime() + 24 * 60 * 60 * 1000);
         }
+        
+        calendarDaysElement.appendChild(weekContainer);
     }
     
-    function renderDayView(filteredTasks) {
-        // Change grid layout for day view
-        calendarDaysElement.className = 'grid grid-cols-1 gap-px bg-base-300';
+    // Render day view
+    function renderDayView(calendarDaysElement, filteredTasks) {
+        // Use the current selected day
+        const date = new Date(currentYear, currentMonth, currentDay);
         
-        // Current date to display
-        const currentDate = new Date(currentYear, currentMonth, currentDay);
+        // Check if this day is a holiday
+        const holidayName = isHoliday(date);
+        const isHolidayDay = holidayName !== false;
         
-        // Check if this is today's date
-        const today = new Date();
-        const isToday = 
-            currentDate.getDate() === today.getDate() && 
-            currentDate.getMonth() === today.getMonth() && 
-            currentDate.getFullYear() === today.getFullYear();
+        // Format date as string for data attribute
+        const dateStr = date.toISOString().split('T')[0];
+        const isToday = date.getDate() === currentDate.getDate() && 
+                       date.getMonth() === currentDate.getMonth() && 
+                       date.getFullYear() === currentDate.getFullYear();
         
-        // Create day container
-        const dayElement = document.createElement('div');
-        dayElement.className = `day-view-container bg-base-100 ${isToday ? 'is-today' : ''}`;
+        // Create day view container
+        const dayViewContainer = document.createElement('div');
+        dayViewContainer.className = `day-view-container bg-base-100 rounded-lg overflow-hidden shadow-md ${isToday ? 'is-today' : ''}`;
+        dayViewContainer.dataset.date = dateStr;
         
-        // Day header
-        const dayHeader = document.createElement('div');
-        dayHeader.className = `day-view-header ${isToday ? 'bg-primary/10' : ''}`;
+        // Create day header
+        const header = document.createElement('div');
+        header.className = `day-view-header p-6 ${isToday ? 'bg-primary/10' : 'bg-base-200'}`;
         
-        const dayTitle = document.createElement('div');
-        dayTitle.className = 'day-view-title';
-        dayTitle.textContent = currentDate.toLocaleDateString(undefined, {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric'
-        });
-        dayHeader.appendChild(dayTitle);
+        const dateElement = document.createElement('h2');
+        dateElement.className = 'day-view-title mb-2';
         
-        // Day content
-        const dayContent = document.createElement('div');
-        dayContent.className = 'day-view-content';
+        // Format the date
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        dateElement.textContent = date.toLocaleDateString('en-US', options);
+        
+        header.appendChild(dateElement);
+        
+        // Add holiday notice if it's a holiday
+        if (isHolidayDay) {
+            const holidayNotice = document.createElement('div');
+            holidayNotice.className = 'mt-2 p-3 bg-error/10 border-l-4 border-error rounded-md';
+            
+            const holidayContent = document.createElement('div');
+            holidayContent.className = 'flex items-center gap-2 text-error';
+            holidayContent.innerHTML = `<iconify-icon icon="lucide:calendar-off" class="text-xl"></iconify-icon>
+                                     <div>
+                                         <h4 class="font-bold">NATIONAL HOLIDAY</h4>
+                                         <p class="text-sm">${holidayName}</p>
+                                     </div>`;
+            
+            holidayNotice.appendChild(holidayContent);
+            header.appendChild(holidayNotice);
+        }
+        
+        dayViewContainer.appendChild(header);
+        
+        // Create day content
+        const content = document.createElement('div');
+        content.className = 'day-view-content p-6';
+        
+        // Add today's tasks
+        const taskSection = document.createElement('div');
+        taskSection.className = 'mb-6';
+        
+        const taskHeader = document.createElement('div');
+        taskHeader.className = 'flex justify-between items-center mb-4';
+        
+        const taskTitle = document.createElement('h3');
+        taskTitle.className = 'text-lg font-bold';
+        taskTitle.textContent = 'Tasks';
+        
+        const addButton = document.createElement('a');
+        addButton.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
+        addButton.className = 'btn btn-primary btn-sm';
+        addButton.innerHTML = '<iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon> Add Task';
+        
+        taskHeader.appendChild(taskTitle);
+        
+        // Only add the button if it's not a holiday
+        if (!isHolidayDay) {
+            taskHeader.appendChild(addButton);
+        }
+        
+        taskSection.appendChild(taskHeader);
+        
+        // Task list
+        const taskList = document.createElement('div');
+        taskList.className = 'space-y-3';
         
         // Get tasks for this day
-        const dayTasks = filteredTasks.filter(task => {
-            const dueDate = task.due_date ? new Date(task.due_date) : null;
-            if (!dueDate) return false;
-            
-            return dueDate.getDate() === currentDate.getDate() && 
-                   dueDate.getMonth() === currentDate.getMonth() && 
-                   dueDate.getFullYear() === currentDate.getFullYear();
-        });
+        const dayTasks = filterTasksForDate(filteredTasks, date);
         
         if (dayTasks.length === 0) {
-            // No tasks
             const emptyState = document.createElement('div');
-            emptyState.className = 'flex flex-col items-center justify-center py-10 text-base-content/70';
-            emptyState.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <p class="text-lg font-medium">No tasks for this day</p>
-            `;
-            dayContent.appendChild(emptyState);
-        } else {
-            // Display tasks for the day
-            const taskContainer = document.createElement('div');
-            taskContainer.className = 'space-y-4';
+            emptyState.className = 'flex flex-col items-center justify-center py-10 text-base-content/60';
             
+            const iconContainer = document.createElement('div');
+            iconContainer.className = 'w-16 h-16 rounded-full bg-base-200 flex items-center justify-center mb-4';
+            iconContainer.innerHTML = '<iconify-icon icon="lucide:calendar-x" style="font-size: 1.75rem"></iconify-icon>';
+            
+            const emptyMessage = document.createElement('h4');
+            emptyMessage.className = 'font-medium text-lg mb-1';
+            emptyMessage.textContent = 'No tasks scheduled for today';
+            
+            emptyState.appendChild(iconContainer);
+            emptyState.appendChild(emptyMessage);
+            
+            if (!isHolidayDay) {
+                const helperText = document.createElement('p');
+                helperText.className = 'text-sm';
+                helperText.textContent = 'Click the "Add Task" button to create a new task.';
+                emptyState.appendChild(helperText);
+            }
+            
+            taskList.appendChild(emptyState);
+        } else {
+            // Create detailed task cards for day view
             dayTasks.forEach(task => {
                 const taskCard = document.createElement('div');
-                taskCard.className = 'card bg-base-100 shadow-sm border border-base-200';
-                
-                // Priority color
-                const priorityColor = getPriorityColor(task.priority);
-                if (priorityColor) {
-                    const colorStrip = document.createElement('div');
-                    colorStrip.className = `absolute left-0 top-0 h-full w-1 ${priorityColor}`;
-                    taskCard.appendChild(colorStrip);
-                }
+                taskCard.className = 'card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-shadow';
                 
                 const cardBody = document.createElement('div');
-                cardBody.className = 'card-body p-4 pl-6';
+                cardBody.className = 'card-body p-4';
                 
-                // Task header
-                const header = document.createElement('div');
-                header.className = 'flex justify-between items-start mb-3';
+                const cardTitle = document.createElement('h4');
+                cardTitle.className = 'card-title text-base font-bold mb-2';
+                cardTitle.textContent = task.title;
                 
-                // Title container that will hold title and assigned badge
-                const titleContainer = document.createElement('div');
-                titleContainer.className = 'flex flex-col';
-                
-                // Title
-                const title = document.createElement('h3');
-                title.className = 'card-title text-lg';
-                title.textContent = task.title;
-                titleContainer.appendChild(title);
-                
-                // Assigned to me badge
-                if (task.assigned_to_user) {
-                    const assignedBadge = document.createElement('div');
-                    assignedBadge.className = 'badge badge-sm badge-primary mt-1';
-                    assignedBadge.textContent = 'Assigned to me';
-                    titleContainer.appendChild(assignedBadge);
-                }
-                
-                header.appendChild(titleContainer);
-                
-                // Badges container
-                const badgesContainer = document.createElement('div');
-                badgesContainer.className = 'flex flex-wrap gap-2';
-                
-                // Status badge
-                const taskStatus = task.status || task.current_status || 'unknown';
-                const statusBadge = document.createElement('span');
-                statusBadge.className = `badge ${getStatusBadgeClass(taskStatus)} badge-sm`;
-                statusBadge.textContent = formatStatus(taskStatus);
-                badgesContainer.appendChild(statusBadge);
+                cardBody.appendChild(cardTitle);
                 
                 // Priority badge
-                const priorityBadge = document.createElement('span');
-                let priorityClass = '';
-                switch((task.priority || '').toLowerCase()) {
-                    case 'high':
-                        priorityClass = 'badge-error';
-                        break;
-                    case 'medium':
-                        priorityClass = 'badge-warning';
-                        break;
-                    case 'low':
-                        priorityClass = 'badge-info';
-                        break;
-                    default:
-                        priorityClass = 'badge-ghost';
-                }
-                priorityBadge.className = `badge ${priorityClass} badge-sm`;
-                priorityBadge.textContent = task.priority || 'Normal';
-                badgesContainer.appendChild(priorityBadge);
-                
-                // Repetitive task badge
-                if (task.is_repetitive) {
-                    const repetitiveBadge = document.createElement('span');
-                    repetitiveBadge.className = 'badge badge-secondary badge-sm';
-                    repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
-                    badgesContainer.appendChild(repetitiveBadge);
+                if (task.priority) {
+                    const priorityBadge = document.createElement('div');
+                    priorityBadge.className = `badge ${getPriorityBadgeClass(task.priority)} text-xs mb-2`;
+                    priorityBadge.textContent = task.priority.toUpperCase();
+                    cardBody.appendChild(priorityBadge);
                 }
                 
-                header.appendChild(badgesContainer);
-                cardBody.appendChild(header);
-                
-                // Description
+                // Description if available
                 if (task.description) {
                     const description = document.createElement('p');
-                    description.className = 'text-sm mb-3';
+                    description.className = 'text-sm mb-3 line-clamp-2';
                     description.textContent = task.description;
                     cardBody.appendChild(description);
                 }
                 
-                // Meta info
-                const metaInfo = document.createElement('div');
-                metaInfo.className = 'flex justify-between text-sm text-base-content/70';
-                
-                // Project info
-                const projectInfo = document.createElement('div');
-                if (task.project && task.project.name) {
-                    projectInfo.textContent = `Project: ${task.project.name}`;
-                } else {
-                    projectInfo.textContent = 'No project';
+                // Status information
+                if (task.status) {
+                    const statusInfo = document.createElement('div');
+                    statusInfo.className = 'flex items-center justify-between bg-base-200/50 p-3 rounded mb-2';
+                    
+                    const statusLabel = document.createElement('span');
+                    statusLabel.className = 'font-medium';
+                    statusLabel.textContent = 'Status';
+                    
+                    const statusValue = document.createElement('span');
+                    statusValue.className = `badge ${getStatusBadgeClass(task.status)}`;
+                    statusValue.textContent = formatStatus(task.status);
+                    
+                    statusInfo.appendChild(statusLabel);
+                    statusInfo.appendChild(statusValue);
+                    cardBody.appendChild(statusInfo);
                 }
                 
-                // Priority info
-                const priorityInfo = document.createElement('div');
-                priorityInfo.textContent = `Priority: ${task.priority || 'Normal'}`;
-                
-                metaInfo.appendChild(projectInfo);
-                metaInfo.appendChild(priorityInfo);
-                cardBody.appendChild(metaInfo);
-                
-                // View button
+                // Action buttons
                 const actions = document.createElement('div');
-                actions.className = 'card-actions justify-end mt-3';
+                actions.className = 'card-actions justify-end';
                 
-                const viewBtn = document.createElement('a');
-                viewBtn.href = `/tasks/${task.id}`;
-                viewBtn.className = 'btn btn-sm btn-outline btn-primary';
-                viewBtn.target = '_blank';
-                viewBtn.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    View Details
-                `;
-                actions.appendChild(viewBtn);
+                const viewButton = document.createElement('a');
+                viewButton.href = `{{ url('/tasks') }}/${task.id}`;
+                viewButton.className = 'btn btn-sm btn-primary';
+                viewButton.textContent = 'View';
                 
+                actions.appendChild(viewButton);
                 cardBody.appendChild(actions);
+                
                 taskCard.appendChild(cardBody);
+                taskList.appendChild(taskCard);
                 
-                // Add click event listener to make the entire task card clickable
-                taskCard.style.cursor = 'pointer';
-                taskCard.addEventListener('click', function(e) {
-                    // Prevent event triggering when clicking specific buttons/links
-                    if (e.target.tagName === 'A' || e.target.closest('a') || 
-                        e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-                        return;
+                // Add click handler
+                taskCard.addEventListener('click', (e) => {
+                    if (!e.target.closest('a') && !e.target.closest('button')) {
+                        window.location.href = `{{ url('/tasks') }}/${task.id}`;
                     }
-                    // Show task details in modal
-                    let displayDate;
-                    if (task.due_date) {
-                        displayDate = new Date(task.due_date);
-                    } else {
-                        // If no due date, use current displayed date
-                        displayDate = new Date(currentYear, currentMonth, currentDay);
-                    }
-                    
-                    // Show task details in modal
-                    taskModal.showModal();
-                    
-                    // Update modal title with task date
-                    modalDate.innerHTML = `
-                        <div class="flex flex-col">
-                            <div class="flex items-center">
-                                <span class="text-3xl font-bold mr-2">${displayDate.getDate()}</span>
-                                <div class="flex flex-col">
-                                    <span class="font-medium">${displayDate.toLocaleDateString(undefined, { month: 'long' })}</span>
-                                    <span class="text-sm opacity-70">${displayDate.toLocaleDateString(undefined, { weekday: 'long' })}, ${displayDate.getFullYear()}</span>
-                                </div>
-                            </div>
-                            <div class="flex mt-2 text-sm space-x-2">
-                                <button class="link link-hover text-primary" id="view-this-day">Day View</button>
-                                <button class="link link-hover text-primary" id="view-this-week">Week View</button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Render just this task in the modal
-                    renderTasksList([task]);
-                    
-                    // Setup event listeners for the modal buttons
-                    setupModalEventListeners(displayDate, formatDateForInput(displayDate));
                 });
-                
-                taskContainer.appendChild(taskCard);
             });
-            
-            dayContent.appendChild(taskContainer);
         }
         
-        dayElement.appendChild(dayHeader);
-        dayElement.appendChild(dayContent);
-        calendarDaysElement.appendChild(dayElement);
+        taskSection.appendChild(taskList);
+        content.appendChild(taskSection);
+        dayViewContainer.appendChild(content);
+        
+        calendarDaysElement.appendChild(dayViewContainer);
     }
     
-    function createDayElement(day, className) {
-        const dayElement = document.createElement('div');
-        dayElement.className = `day ${className} bg-base-100`;
-        
-        // Create day header
-        const dayHeader = document.createElement('div');
-        dayHeader.className = 'day-header';
-        
-        // Day number
-        const dayNumber = document.createElement('div');
-        dayNumber.className = 'day-number';
-        dayNumber.textContent = day;
-        dayHeader.appendChild(dayNumber);
-        
-        // Day content area
-        const dayContent = document.createElement('div');
-        dayContent.className = 'day-content';
-        
-        dayElement.appendChild(dayHeader);
-        dayElement.appendChild(dayContent);
-        
-        return dayElement;
+    function openTaskCreationPage(dateStr) {
+        window.location.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
     }
     
-    function getTasksForDay(day, filteredTasks) {
-        // Create date in local timezone
-        const date = new Date(currentYear, currentMonth, day);
+    function createTaskElement(task, isHolidayDay) {
+        const taskElement = document.createElement('div');
+        taskElement.className = `task-item cursor-pointer mb-1 p-1 text-xs rounded ${isHolidayDay ? 'opacity-50' : ''} hover:brightness-90 hover:shadow-md transition-all duration-200 border border-transparent hover:border-base-content/20`;
+        taskElement.dataset.taskId = task.id;
+        taskElement.dataset.status = task.status || 'unknown'; // Add status for debugging
         
-        // Get tasks for this day from filtered tasks
-        return filteredTasks.filter(task => {
-            if (!task.due_date) return false;
-            
-            // Create task date in local timezone
-            const dueDate = new Date(task.due_date);
-            
-            // Compare dates in local timezone
-            return dueDate.getFullYear() === date.getFullYear() &&
-                   dueDate.getMonth() === date.getMonth() &&
-                   dueDate.getDate() === date.getDate();
+        // Create a flex container to position content and icons
+        const taskContainer = document.createElement('div');
+        taskContainer.className = 'flex justify-between items-center w-full';
+        
+        // Create task title element
+        const taskContent = document.createElement('div');
+        taskContent.className = 'truncate flex-1';
+        taskContent.textContent = task.title;
+        
+        // Add repetitive task indicator if applicable
+        const taskIcons = document.createElement('div');
+        taskIcons.className = 'flex-shrink-0 flex items-center ml-1';
+        
+        if (task.is_repetitive || task.repetitive_task) {
+            const repeatIcon = document.createElement('span');
+            repeatIcon.className = 'ml-1 opacity-70';
+            repeatIcon.setAttribute('title', 'Repetitive Task');
+            repeatIcon.innerHTML = '🔄'; // Repeat emoji
+            taskIcons.appendChild(repeatIcon);
+        }
+        
+        // Add elements to container
+        taskContainer.appendChild(taskContent);
+        taskContainer.appendChild(taskIcons);
+        taskElement.appendChild(taskContainer);
+        
+        // Set background color
+        taskElement.style.backgroundColor = getTaskColor(task);
+        
+        // Add click handler that stops propagation
+        taskElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log('Task clicked:', task.title, task.id, 'Status:', task.status);
+            openTaskDetailsModal(task);
         });
+        
+        return taskElement;
     }
     
-    function filterTasks(allTasks) {
-        return allTasks.filter(task => {
-            // Filter by project
-            if (filters.project && task.project_id != filters.project) {
-                return false;
+    function openTaskDetailsModal(task) {
+        console.log('Opening task details modal for:', task);
+        
+        // Show task details in a modal instead of redirecting
+        const modal = document.getElementById('task-modal');
+        const modalDate = document.getElementById('modal-date');
+        const tasksList = document.getElementById('tasks-list');
+        const newTaskBtn = document.getElementById('new-task-modal-btn');
+        const holidayNotice = document.getElementById('holiday-notice');
+        
+        // Format the date for display
+        let dateToShow = new Date();
+        if (task.due_date) {
+            dateToShow = new Date(task.due_date);
+        }
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        modalDate.textContent = dateToShow.toLocaleDateString('en-US', options);
+        
+        // Clear existing tasks
+        tasksList.innerHTML = '';
+        
+        // Hide holiday notice
+        holidayNotice.classList.add('hidden');
+        
+        // Show new task button
+        newTaskBtn.classList.remove('hidden');
+        
+        // Set the date for the new task button
+        const dateStr = dateToShow.toISOString().split('T')[0];
+        newTaskBtn.setAttribute('data-date', dateStr);
+        newTaskBtn.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
+        
+        // Create and add the task card
+        const taskCard = createTaskCard(task);
+        tasksList.appendChild(taskCard);
+        
+        // Open the modal
+        modal.showModal();
+    }
+    
+    function createTaskCard(task) {
+        // Create task card for the modal view
+        const taskCard = document.createElement('div');
+        taskCard.className = 'card bg-base-100 shadow-md rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-all border border-transparent hover:border-primary/20';
+        taskCard.dataset.taskId = task.id;
+        
+        // Make the entire card clickable to navigate to task details
+        taskCard.addEventListener('click', (e) => {
+            // Only trigger if not clicking on a button element to avoid conflict with edit/close buttons
+            if (!e.target.closest('button') && !e.target.closest('a')) {
+                window.location.href = `{{ url('/tasks') }}/${task.id}`;
             }
-            
-            // Filter by priority
-            if (filters.priority && 
-                task.priority && 
-                task.priority.toLowerCase() !== filters.priority.toLowerCase()) {
-                return false;
-            }
-            
-            // Filter by status (check both status and current_status)
-            if (filters.status) {
-                const taskStatus = (task.status || task.current_status || '').toLowerCase();
-                if (!taskStatus.includes(filters.status.toLowerCase())) {
-                    return false;
-                }
-            }
-            
-            // Filter by my tasks only
-            if (filters.myTasksOnly && !task.assigned_to_user) {
-                return false;
-            }
-            
-            // Filter by search
-            if (filters.search) {
-                const searchableText = (task.title + ' ' + (task.description || '')).toLowerCase();
-                if (!searchableText.includes(filters.search)) {
-                    return false;
-                }
-            }
-            
-            return true;
         });
-    }
-    
-    function showTasksModal(day, dayTasks, dateOverride = null) {
-        const date = dateOverride || new Date(currentYear, currentMonth, day);
-        const options = { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        };
         
-        // Create a more elegant date display
-        modalDate.innerHTML = `
-            <div class="flex flex-col">
-                <div class="flex items-center">
-                    <span class="text-3xl font-bold mr-2">${date.getDate()}</span>
-                    <div class="flex flex-col">
-                        <span class="font-medium">${date.toLocaleDateString(undefined, { month: 'long' })}</span>
-                        <span class="text-sm opacity-70">${date.toLocaleDateString(undefined, { weekday: 'long' })}, ${date.getFullYear()}</span>
-                    </div>
-                </div>
-                <div class="flex mt-2 text-sm space-x-2">
-                    <button class="link link-hover text-primary" id="view-this-day">Day View</button>
-                    <button class="link link-hover text-primary" id="view-this-week">Week View</button>
-                </div>
-            </div>
-        `;
+        // Get priority class based on the task priority
+        const priorityClass = getPriorityClass(task.priority);
         
-        // Format date for potential task creation
-        const formattedDate = formatDateForInput(date);
+        // Create a clean modern header
+        const header = document.createElement('div');
+        header.className = 'p-4 border-l-4 ' + borderClassFromPriority(task.priority);
         
-        renderTasksList(dayTasks);
+        // Create title container to add title and repetitive indicator
+        const titleContainer = document.createElement('div');
+        titleContainer.className = 'flex items-center justify-between';
         
-        // Show the modal
-        taskModal.showModal();
+        // Clear, prominent task title with visual indication it's clickable
+        const title = document.createElement('h3');
+        title.className = 'text-xl font-bold text-base-content hover:text-primary transition-colors';
+        title.textContent = task.title;
         
-        // Setup event listeners for the modal buttons
-        setupModalEventListeners(date, formattedDate);
-    }
-    
-    function setupModalEventListeners(date, formattedDate) {
-        // Remove any existing event listeners first (to prevent duplicates)
-        document.querySelectorAll('#view-this-day, #view-this-week, #new-task-modal-btn')
-            .forEach(el => {
-                const newEl = el.cloneNode(true);
-                el.parentNode.replaceChild(newEl, el);
-            });
-        
-        // Add new event listeners
-        const viewDayLink = document.getElementById('view-this-day');
-        const viewWeekLink = document.getElementById('view-this-week');
-        const newTaskModalBtn = document.getElementById('new-task-modal-btn');
-        
-        if (viewDayLink) {
-            viewDayLink.addEventListener('click', () => {
-                currentDay = date.getDate();
-                currentMonth = date.getMonth();
-                currentYear = date.getFullYear();
-                taskModal.close();
-                setActiveView('day');
-            });
+        // Add repetitive indicator if needed
+        if (task.is_repetitive || task.repetitive_task) {
+            const repeatBadge = document.createElement('div');
+            repeatBadge.className = 'badge badge-accent ml-2 flex items-center gap-1';
+            repeatBadge.innerHTML = '<span class="text-base">🔄</span> Repeats';
+            repeatBadge.title = 'This is a repetitive task';
+            titleContainer.appendChild(title);
+            titleContainer.appendChild(repeatBadge);
+        } else {
+            titleContainer.appendChild(title);
         }
         
-        if (viewWeekLink) {
-            viewWeekLink.addEventListener('click', () => {
-                currentDay = date.getDate();
-                currentMonth = date.getMonth();
-                currentYear = date.getFullYear();
-                taskModal.close();
-                setActiveView('week');
-            });
+        header.appendChild(titleContainer);
+        
+        // Priority indicator as a simple badge
+        if (task.priority) {
+            const priorityContainer = document.createElement('div');
+            priorityContainer.className = 'flex items-center gap-2 mt-2';
+            
+            const priorityLabel = document.createElement('span');
+            priorityLabel.className = 'text-xs text-base-content/60';
+            priorityLabel.textContent = 'Priority:';
+            
+            const priorityBadge = document.createElement('div');
+            priorityBadge.className = `badge ${priorityClass} text-${priorityClass}-content font-medium`;
+            priorityBadge.textContent = task.priority.toUpperCase();
+            
+            priorityContainer.appendChild(priorityLabel);
+            priorityContainer.appendChild(priorityBadge);
+            header.appendChild(priorityContainer);
         }
         
-        if (newTaskModalBtn) {
-            // Set the href attribute with the date parameter
-            newTaskModalBtn.setAttribute('href', "{{ route('tasks.create') }}?date=" + formattedDate + "&from=calendar");
+        taskCard.appendChild(header);
+        
+        // Card body - clean and minimal
+        const cardBody = document.createElement('div');
+        cardBody.className = 'p-4 space-y-4 border-t border-base-200';
+        
+        // Status information
+        if (task.status) {
+            const statusInfo = document.createElement('div');
+            statusInfo.className = 'flex items-center justify-between bg-base-200/50 p-3 rounded mb-2';
             
-            // Add event listener to close the modal when clicking the link
-            newTaskModalBtn.addEventListener('click', () => {
-                taskModal.close();
-            });
-        }
-    }
-    
-    function renderTasksList(specificTasks = null) {
-        // Clear task list
-        tasksListElement.innerHTML = '';
-        
-        // Use either the specific tasks or filter all tasks
-        const tasksToShow = specificTasks || filterTasks(tasks);
-        
-        if (tasksToShow.length === 0) {
-            tasksListElement.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-8 text-base-content/70">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <p class="text-center text-lg font-medium">No tasks for this day</p>
-                </div>
-            `;
-            return;
+            const statusLabel = document.createElement('span');
+            statusLabel.className = 'font-medium';
+            statusLabel.textContent = 'Status';
+            
+            const statusValue = document.createElement('span');
+            statusValue.className = `badge ${getStatusBadgeClass(task.status)}`;
+            statusValue.textContent = formatStatus(task.status);
+            
+            statusInfo.appendChild(statusLabel);
+            statusInfo.appendChild(statusValue);
+            cardBody.appendChild(statusInfo);
         }
         
-        tasksToShow.forEach(task => {
-            // Create task card
-            const taskCard = document.createElement('div');
-            taskCard.className = 'card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-300 border border-base-200 overflow-hidden';
+        // Due date with clear labeling
+        if (task.due_date) {
+            const dueInfo = document.createElement('div');
+            dueInfo.className = 'flex items-center justify-between bg-base-200/50 p-3 rounded';
             
-            // Set task ID for color consistency
-            taskCard.setAttribute('data-task-id', task.id);
+            const dueLabel = document.createElement('span');
+            dueLabel.className = 'font-medium';
+            dueLabel.textContent = 'Due Date';
             
-            // Apply priority-based background color
-            taskCard.style.backgroundColor = getTaskColor(task);
+            const dueDate = document.createElement('span');
+            dueDate.className = 'text-base-content font-bold';
+            const date = new Date(task.due_date);
+            dueDate.textContent = date.toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'});
             
-            // Priority color strip
-            const priorityColor = getPriorityColor(task.priority);
-            if (priorityColor) {
-                const colorStrip = document.createElement('div');
-                colorStrip.className = `absolute top-0 left-0 w-full h-1 ${priorityColor}`;
-                taskCard.appendChild(colorStrip);
-                taskCard.style.paddingTop = '4px';
-            }
-            
-            // Create card body
-            const cardBody = document.createElement('div');
-            cardBody.className = 'card-body p-5';
-            
-            // Header with status and priority badges
-            const header = document.createElement('div');
-            header.className = 'flex flex-wrap justify-between items-start gap-2 mb-3';
-            
-            // Task title
-            const title = document.createElement('h3');
-            title.className = 'card-title text-lg flex-1';
-            title.textContent = task.title;
-            
-            // Add assigned to me badge if applicable
-            if (task.assigned_to_user) {
-                const assignedBadge = document.createElement('span');
-                assignedBadge.className = 'badge badge-sm badge-primary mr-1';
-                assignedBadge.textContent = 'Assigned to me';
-                title.appendChild(assignedBadge);
-            }
-            
-            header.appendChild(title);
-            
-            // Badges container
-            const badgesContainer = document.createElement('div');
-            badgesContainer.className = 'flex flex-wrap gap-2';
-            
-            // Status badge
-            const taskStatus = task.status || task.current_status || 'unknown';
-            const statusBadge = document.createElement('span');
-            statusBadge.className = `badge ${getStatusBadgeClass(taskStatus)} badge-sm`;
-            statusBadge.textContent = formatStatus(taskStatus);
-            badgesContainer.appendChild(statusBadge);
-            
-            // Priority badge
-            const priorityBadge = document.createElement('span');
-            let priorityClass = '';
-            switch((task.priority || '').toLowerCase()) {
-                case 'high':
-                    priorityClass = 'badge-error';
-                    break;
-                case 'medium':
-                    priorityClass = 'badge-warning';
-                    break;
-                case 'low':
-                    priorityClass = 'badge-info';
-                    break;
-                default:
-                    priorityClass = 'badge-ghost';
-            }
-            priorityBadge.className = `badge ${priorityClass} badge-sm`;
-            priorityBadge.textContent = task.priority || 'Normal';
-            badgesContainer.appendChild(priorityBadge);
-            
-            // Repetitive task badge
-            if (task.is_repetitive) {
-                const repetitiveBadge = document.createElement('span');
-                repetitiveBadge.className = 'badge badge-secondary badge-sm';
-                repetitiveBadge.textContent = `Repeats ${task.repetition_rate}`;
-                badgesContainer.appendChild(repetitiveBadge);
-            }
-            
-            header.appendChild(badgesContainer);
-            cardBody.appendChild(header);
-            
-            // Task description
-            if (task.description) {
-                const description = document.createElement('p');
-                description.className = 'text-sm text-base-content/80 mb-4 line-clamp-2';
-                description.textContent = task.description;
-                cardBody.appendChild(description);
-            }
-            
-            // Footer with project and date info
-            const footer = document.createElement('div');
-            footer.className = 'flex justify-between items-center mt-auto pt-3 border-t border-base-200 text-sm';
-            
-            // Project info with icon
+            dueInfo.appendChild(dueLabel);
+            dueInfo.appendChild(dueDate);
+            cardBody.appendChild(dueInfo);
+        }
+        
+        // Project name with clear labeling
+        if (task.project) {
             const projectInfo = document.createElement('div');
-            projectInfo.className = 'flex items-center gap-1 text-base-content/70';
+            projectInfo.className = 'flex items-center justify-between p-3';
             
-            // Project icon
-            const projectIcon = document.createElement('span');
-            projectIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-            </svg>`;
-            projectInfo.appendChild(projectIcon);
+            const projectLabel = document.createElement('span');
+            projectLabel.className = 'font-medium';
+            projectLabel.textContent = 'Project';
             
-            // Project name
             const projectName = document.createElement('span');
-            if (task.project && task.project.name) {
-                projectName.textContent = task.project.name;
-            } else {
-                projectName.textContent = 'No project';
-            }
+            projectName.className = 'text-base-content';
+            projectName.textContent = task.project.name;
+            
+            projectInfo.appendChild(projectLabel);
             projectInfo.appendChild(projectName);
-            
-            // Due date with icon
-            const dueDateContainer = document.createElement('div');
-            dueDateContainer.className = 'flex items-center gap-1 text-base-content/70';
-            
-            // Calendar icon
-            const calendarIcon = document.createElement('span');
-            calendarIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>`;
-            dueDateContainer.appendChild(calendarIcon);
-            
-            // Due date text
-            const dueDateText = document.createElement('span');
-            if (task.due_date) {
-                const date = new Date(task.due_date);
-                dueDateText.textContent = date.toLocaleDateString(undefined, {
-                    month: 'short', 
-                    day: 'numeric',
-                    year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-                });
-            } else {
-                dueDateText.textContent = 'No due date';
-            }
-            dueDateContainer.appendChild(dueDateText);
-            
-            footer.appendChild(projectInfo);
-            footer.appendChild(dueDateContainer);
-            cardBody.appendChild(footer);
-            
-            // Action buttons
-            const actions = document.createElement('div');
-            actions.className = 'card-actions justify-end mt-4';
-            
-            const viewBtn = document.createElement('a');
-            viewBtn.href = `/tasks/${task.id}`;
-            viewBtn.className = 'btn btn-sm btn-outline btn-primary';
-            viewBtn.target = '_blank';
-            viewBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                View Details
-            `;
-            actions.appendChild(viewBtn);
-            
-            cardBody.appendChild(actions);
-            taskCard.appendChild(cardBody);
-            
-            tasksListElement.appendChild(taskCard);
+            cardBody.appendChild(projectInfo);
+        }
+        
+        // Actions
+        const actions = document.createElement('div');
+        actions.className = 'flex justify-end gap-2 mt-4 pt-3 border-t border-base-200';
+        
+        // Close button
+        const closeButton = document.createElement('button');
+        closeButton.className = 'btn btn-sm';
+        closeButton.textContent = 'Close';
+        closeButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent triggering the card click
+            document.getElementById('task-modal').close();
         });
+        
+        // Edit button
+        const editButton = document.createElement('a');
+        editButton.href = `{{ url('/tasks') }}/${task.id}/edit`;
+        editButton.className = 'btn btn-sm btn-primary';
+        editButton.textContent = 'Edit';
+        editButton.target = '_blank';
+        editButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent triggering the card click
+        });
+        
+        actions.appendChild(closeButton);
+        actions.appendChild(editButton);
+        cardBody.appendChild(actions);
+        
+        taskCard.appendChild(cardBody);
+        
+        return taskCard;
     }
     
-    function formatStatus(status) {
-        if (!status) return 'Unknown';
-        
-        // Convert snake_case or kebab-case to Title Case
-        return status
-            .toLowerCase()
-            .replace(/_/g, ' ')
-            .replace(/-/g, ' ')
-            .replace(/\b\w/g, char => char.toUpperCase());
+    function borderClassFromPriority(priority) {
+        switch((priority || '').toLowerCase()) {
+            case 'high':
+                return 'border-error';
+            case 'medium':
+                return 'border-warning';
+            case 'low':
+                return 'border-info';
+            default:
+                return 'border-primary';
+        }
     }
     
-    function getPriorityColor(priority) {
-        if (!priority) return '';
-        
-        switch(priority.toLowerCase()) {
+    function getPriorityClass(priority) {
+        // Return DaisyUI classes for different priorities
+        switch((priority || '').toLowerCase()) {
             case 'high':
                 return 'bg-error';
             case 'medium':
@@ -1385,8 +1232,208 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'low':
                 return 'bg-info';
             default:
-                return '';
+                return 'bg-primary';
         }
+    }
+    
+    function formatStatus(status) {
+        return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+    
+    function normalizeStatus(status) {
+        if (!status) return '';
+        
+        // Convert to lowercase and trim
+        let normalized = status.toLowerCase().trim();
+        
+        // Replace spaces with underscores
+        normalized = normalized.replace(/\s+/g, '_');
+        
+        // Handle common variations
+        switch(normalized) {
+            // Current status values
+            case 'to_do':
+            case 'todo':
+            case 'not_started':
+                return 'todo';
+                
+            case 'in_progress':
+            case 'inprogress':
+            case 'in-progress':
+                return 'in_progress';
+                
+            // Map completed to pending_approval since they represent the same state in your workflow
+            case 'complete':
+            case 'completed':
+            case 'done':
+            case 'pending_approval':
+            case 'needs_approval':
+            case 'need_approval':
+            case 'need_to_approve':
+            case 'needs_to_be_approved':
+                return 'pending_approval';
+                
+            case 'approved':
+                return 'approved';
+                
+            default:
+                return normalized;
+        }
+    }
+    
+    function getStatusBadgeClass(status) {
+        if (!status) return 'badge-ghost';
+        
+        const normalizedStatus = normalizeStatus(status);
+        
+        switch(normalizedStatus) {
+            case 'in_progress':
+                return 'badge-warning';
+            case 'todo':
+                return 'badge-info';
+            case 'pending_approval':
+                return 'badge-secondary';
+            case 'approved':
+                return 'badge-accent';
+            default:
+                return 'badge-ghost';
+        }
+    }
+    
+    function getPriorityBadgeClass(priority) {
+        switch(priority.toLowerCase()) {
+            case 'high':
+                return 'badge-error';
+            case 'medium':
+                return 'badge-warning';
+            case 'low':
+                return 'badge-info';
+            default:
+                return 'badge-ghost';
+        }
+    }
+    
+    function getPriorityBorderColor(priority) {
+        switch((priority || '').toLowerCase()) {
+                case 'high':
+                return 'hsl(var(--er))';
+                case 'medium':
+                return 'hsl(var(--wa))';
+                case 'low':
+                return 'hsl(var(--in))';
+                default:
+                return 'hsl(var(--p))';
+        }
+    }
+    
+    function filterTasksForDate(tasks, date) {
+        console.log('Filtering tasks for date:', date.toISOString().split('T')[0]);
+        console.log('Available tasks:', tasks);
+        
+        // Ensure tasks is an array before filtering
+        if (!Array.isArray(tasks)) {
+            console.error('Tasks is not an array:', tasks);
+            return [];
+        }
+        
+        const filteredTasks = tasks.filter(task => {
+            if (!task.due_date) return false;
+            
+            const dueDate = new Date(task.due_date);
+            const isMatch = dueDate.getFullYear() === date.getFullYear() &&
+                   dueDate.getMonth() === date.getMonth() &&
+                   dueDate.getDate() === date.getDate();
+                   
+            if (isMatch) {
+                console.log('Matched task:', task.title, 'for date:', date.toISOString().split('T')[0]);
+            }
+            
+            return isMatch;
+        });
+        
+        console.log('Filtered tasks:', filteredTasks);
+        return filteredTasks;
+    }
+    
+    function openDayTasksModal(date, holidayName, dayTasks) {
+        console.log('Opening day tasks modal for date:', date.toISOString().split('T')[0]);
+        console.log('Day tasks provided:', dayTasks);
+        
+        const modal = document.getElementById('task-modal');
+        const modalDate = document.getElementById('modal-date');
+        const tasksList = document.getElementById('tasks-list');
+        const newTaskBtn = document.getElementById('new-task-modal-btn');
+        const holidayNotice = document.getElementById('holiday-notice');
+        const holidayNameElement = document.getElementById('holiday-name');
+        
+        // Format the date for display
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        modalDate.textContent = date.toLocaleDateString('en-US', options);
+        
+        // Clear existing tasks
+        tasksList.innerHTML = '';
+        
+        // Show or hide holiday notice
+        if (holidayName) {
+            holidayNotice.classList.remove('hidden');
+            holidayNameElement.textContent = holidayName;
+            newTaskBtn.classList.add('hidden'); // Hide the new task button on holidays
+        } else {
+            holidayNotice.classList.add('hidden');
+            newTaskBtn.classList.remove('hidden');
+        }
+        
+        // Add tasks to the list
+        if (!dayTasks || dayTasks.length === 0) {
+            // Create an empty state that matches the theme
+            const emptyState = document.createElement('div');
+            emptyState.className = 'flex flex-col items-center justify-center py-8 text-base-content/70';
+            
+            // Icon container with theme-aware styling
+            const iconContainer = document.createElement('div');
+            iconContainer.className = 'w-16 h-16 rounded-full bg-base-200 flex items-center justify-center mb-4';
+            iconContainer.innerHTML = '<iconify-icon icon="lucide:calendar-x" style="font-size: 1.75rem"></iconify-icon>';
+            
+            // Empty message
+            const emptyText = document.createElement('h4');
+            emptyText.className = 'font-medium text-lg mb-2';
+            emptyText.textContent = 'No tasks for this day';
+            
+            // Helper text
+            const helperText = document.createElement('p');
+            helperText.className = 'text-sm text-center max-w-xs';
+            helperText.textContent = 'Click the "New Task" button to create a task for this date.';
+            
+            emptyState.appendChild(iconContainer);
+            emptyState.appendChild(emptyText);
+            emptyState.appendChild(helperText);
+            
+            tasksList.appendChild(emptyState);
+        } else {
+            console.log('Creating task cards for', dayTasks.length, 'tasks');
+            // First add a helpful header if multiple tasks
+            if (dayTasks.length > 1) {
+                const taskCountHeader = document.createElement('h4');
+                taskCountHeader.className = 'text-sm font-medium text-base-content/60 mb-3';
+                taskCountHeader.textContent = `${dayTasks.length} tasks scheduled for this day`;
+                tasksList.appendChild(taskCountHeader);
+            }
+            
+            // Then add each task card
+            dayTasks.forEach(task => {
+                console.log('Creating card for task:', task.title);
+                const taskCard = createTaskCard(task);
+                tasksList.appendChild(taskCard);
+            });
+        }
+        
+        // Set the date for the new task button
+        const dateStr = date.toISOString().split('T')[0];
+        newTaskBtn.setAttribute('data-date', dateStr);
+        newTaskBtn.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
+        
+        // Open the modal
+        modal.showModal();
     }
     
     function setActiveView(view) {
@@ -1415,197 +1462,13 @@ document.addEventListener('DOMContentLoaded', function() {
         renderCalendar();
     }
     
-    function getStatusBadgeClass(status) {
-        // First check if status is directly provided
-        if (status) {
-            switch(status.toLowerCase()) {
-                case 'completed':
-                    return 'badge-success';
-                case 'in_progress':
-                    return 'badge-warning';
-                case 'pending':
-                case 'todo':
-                case 'not started':
-                    return 'badge-info';
-                default:
-                    return 'badge-ghost';
-            }
-        }
-        return 'badge-ghost';
-    }
-    
-    // Function to fetch updated task data via AJAX
-    function fetchUpdatedTasks() {
-        fetch(window.location.href)
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newTasksScript = doc.querySelector('script:not([src])');
-                
-                if (newTasksScript) {
-                    const scriptContent = newTasksScript.textContent;
-                    const tasksMatch = scriptContent.match(/const tasks = (.*?);/);
-                    const assignedTaskIdsMatch = scriptContent.match(/const assignedTaskIds = (.*?);/);
-                    
-                    if (tasksMatch && tasksMatch[1]) {
-                        // Update tasks with new data
-                        tasks.length = 0; // Clear the array
-                        const newTasks = JSON.parse(tasksMatch[1]);
-                        newTasks.forEach(task => tasks.push(task));
-                        
-                        // Update assigned task IDs if available
-                        if (assignedTaskIdsMatch && assignedTaskIdsMatch[1]) {
-                            const newAssignedTaskIds = JSON.parse(assignedTaskIdsMatch[1]);
-                            assignedTaskIds.length = 0;
-                            newAssignedTaskIds.forEach(id => assignedTaskIds.push(id));
-                        }
-                        
-                        // Refresh the calendar view with new data
-                        renderCalendar();
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching updated tasks:', error);
-                // Fallback to page reload if the AJAX approach fails
-                window.location.reload();
-            });
-    }
-    
-    // Use event delegation for dropdown menu sorting
-    document.addEventListener('click', function(e) {
-        const sortLink = e.target.closest('[data-sort]');
-        if (sortLink) {
-            const sortBy = sortLink.getAttribute('data-sort');
-            // Implement sorting logic here
-            console.log('Sorting by:', sortBy);
-            
-            // Example sorting implementation (if needed)
-            if (sortBy === 'priority') {
-                // Sort tasks by priority
-            } else if (sortBy === 'duedate') {
-                // Sort tasks by due date
-            } else if (sortBy === 'status') {
-                // Sort tasks by status
-            }
-            
-            // Re-render the tasks list with sorted tasks
-            renderTasksList();
-        }
-    });
-    
-    // Add event listener to the task modal to ensure it's initialized properly
-    taskModal.addEventListener('close', () => {
-        // Clean up any event listeners if needed
-    });
-    
-    // Use event delegation for calendar day interactions
-    calendarDaysElement.addEventListener('click', function(e) {
-        // Find the closest day element
-        const dayElement = e.target.closest('.day');
-        if (!dayElement) return;
-        
-        // Check if it has tasks
-        if (dayElement.getAttribute('data-has-tasks') === 'true') {
-            const day = parseInt(dayElement.getAttribute('data-calendar-day'));
-            if (!isNaN(day)) {
-                // Handle which month/year - check if we have explicit month/year attributes (week view)
-                let targetMonth, targetYear;
-                
-                // Check if we have explicit month and year attributes (from week view)
-                const storedMonth = dayElement.getAttribute('data-calendar-month');
-                const storedYear = dayElement.getAttribute('data-calendar-year');
-                
-                if (storedMonth !== null && storedYear !== null) {
-                    // Use the explicitly stored month and year from week view
-                    targetMonth = parseInt(storedMonth);
-                    targetYear = parseInt(storedYear);
-                } else {
-                    // Handle based on month view classes
-                    targetMonth = currentMonth;
-                    targetYear = currentYear;
-                    
-                    if (dayElement.classList.contains('prev-month')) {
-                        targetMonth = currentMonth - 1;
-                        if (targetMonth < 0) {
-                            targetMonth = 11;
-                            targetYear = currentYear - 1;
-                        }
-                    } else if (dayElement.classList.contains('next-month')) {
-                        targetMonth = currentMonth + 1;
-                        if (targetMonth > 11) {
-                            targetMonth = 0;
-                            targetYear = currentYear + 1;
-                        }
-                    }
-                }
-                
-                // Create the date object
-                const date = new Date(targetYear, targetMonth, day);
-                
-                // Get tasks for this date
-                const dayTasks = filterTasks(tasks).filter(task => {
-                    if (!task.due_date) return false;
-                    const dueDate = new Date(task.due_date);
-                    return dueDate.getDate() === day && 
-                           dueDate.getMonth() === targetMonth && 
-                           dueDate.getFullYear() === targetYear;
-                });
-                
-                // Show modal with tasks
-                showTasksModal(day, dayTasks, date);
-            }
-        }
-    });
-    
-    // Handle double-click to day view
-    calendarDaysElement.addEventListener('dblclick', function(e) {
-        const dayElement = e.target.closest('.day');
-        if (!dayElement) return;
-        
-        const day = parseInt(dayElement.getAttribute('data-calendar-day'));
-        if (!isNaN(day)) {
-            // Check if we have explicit month and year attributes (from week view)
-            const storedMonth = dayElement.getAttribute('data-calendar-month');
-            const storedYear = dayElement.getAttribute('data-calendar-year');
-            
-            if (storedMonth !== null && storedYear !== null) {
-                // Use the explicitly stored month and year from week view
-                currentMonth = parseInt(storedMonth);
-                currentYear = parseInt(storedYear);
-                currentDay = day;
-            } else {
-                // Set current day based on which month section was clicked
-                currentDay = day;
-                
-                if (dayElement.classList.contains('prev-month')) {
-                    currentMonth--;
-                    if (currentMonth < 0) {
-                        currentMonth = 11;
-                        currentYear--;
-                    }
-                } else if (dayElement.classList.contains('next-month')) {
-                    currentMonth++;
-                    if (currentMonth > 11) {
-                        currentMonth = 0;
-                        currentYear++;
-                    }
-                }
-            }
-            
-            setActiveView('day');
-        }
-    });
-    
-    // Function to apply colors to all task elements
     function applyTaskColors() {
         // Find all elements with task-id attributes
         document.querySelectorAll('[data-task-id]').forEach(taskItem => {
             const taskId = taskItem.getAttribute('data-task-id');
             if (taskId) {
                 // Find matching task
-                const task = tasks.find(t => t.id == taskId);
+                const task = window.tasks.find(t => t.id == taskId);
                 if (task) {
                     // Get priority-based color
                     let color;
@@ -1636,6 +1499,39 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(applyTaskColors, 100);
     });
+    
+    // Updated function to fetch tasks
+    function fetchUpdatedTasks() {
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Try to extract the JSON from the script tag
+                try {
+                    const scriptContent = Array.from(doc.querySelectorAll('script'))
+                        .find(script => script.textContent.includes('const tasks ='))?.textContent;
+                    
+                    if (scriptContent) {
+                        const tasksMatch = scriptContent.match(/const tasks = (.*?);/);
+                        if (tasksMatch && tasksMatch[1]) {
+                            // Update global tasks array
+                            window.tasks = JSON.parse(tasksMatch[1]);
+                            console.log('Updated tasks:', window.tasks);
+                            renderCalendar();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error parsing tasks:', error);
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching tasks:', error);
+                window.location.reload();
+            });
+    }
 });
 </script>
 
@@ -1704,12 +1600,26 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: all 0.2s ease;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     color: hsl(var(--bc));
+    position: relative;
 }
 
 .task-item:hover {
     filter: brightness(0.95);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+    z-index: 5; /* Ensure the hover effect is visible above other items */
+}
+
+/* Add a subtle pulsing animation for task items to draw attention */
+@keyframes pulse-border {
+    0% { border-color: transparent; }
+    50% { border-color: hsl(var(--p) / 0.5); }
+    100% { border-color: transparent; }
+}
+
+.task-item:active {
+    transform: translateY(0);
+    animation: pulse-border 0.3s ease;
 }
 
 .task-item.priority-high {
@@ -1826,7 +1736,6 @@ document.addEventListener('DOMContentLoaded', function() {
     background: linear-gradient(45deg, hsl(var(--a) / 0.75), hsl(var(--af) / 0.8)) !important;
     box-shadow: 0 4px 3px rgba(0, 0, 0, 0.2);
 }
-}
 
 .is-today .day-header {
     background-color: hsl(var(--p) / 0.7);
@@ -1863,5 +1772,21 @@ document.addEventListener('DOMContentLoaded', function() {
         min-width: 0;
     }
 }
+
+.holiday-cell {
+    position: relative;
+    overflow: hidden;
+}
+
+.holiday-cell::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(to right, theme('colors.error'), transparent);
+    z-index: 1;
+}
 </style>
-@endsection 
+@endsection

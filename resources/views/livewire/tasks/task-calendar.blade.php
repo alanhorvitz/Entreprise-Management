@@ -16,7 +16,7 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Project</span>
@@ -33,6 +33,13 @@
                     <label class="label cursor-pointer justify-start">
                         <input type="checkbox" class="checkbox checkbox-primary mr-2" wire:model.live="repetitiveOnly" />
                         <span class="label-text">Show Repetitive Tasks Only</span>
+                    </label>
+                </div>
+                
+                <div class="form-control flex items-end">
+                    <label class="label cursor-pointer justify-start">
+                        <input type="checkbox" class="checkbox checkbox-primary mr-2" wire:model.live="showHolidays" />
+                        <span class="label-text">Show Moroccan Holidays</span>
                     </label>
                 </div>
             </div>
@@ -59,7 +66,8 @@
                     @foreach ($week as $day)
                         <div class="bg-base-100 min-h-[120px] p-2 relative 
                             {{ !$day['isCurrentMonth'] ? 'opacity-40' : '' }}
-                            {{ $day['isToday'] ? 'ring-2 ring-primary ring-inset' : '' }}">
+                            {{ $day['isToday'] ? 'ring-2 ring-primary ring-inset' : '' }}
+                            {{ $day['isHoliday'] ? 'bg-error/10 holiday-cell' : '' }}">
                             
                             <!-- Date Number -->
                             <div class="flex justify-between items-center mb-1">
@@ -67,11 +75,26 @@
                                     {{ $day['date']->format('j') }}
                                 </span>
                                 
-                                <button wire:click="openCreateModal('{{ $day['date']->format('Y-m-d') }}')" 
-                                    class="btn btn-xs btn-ghost btn-circle">
-                                    <iconify-icon icon="lucide:plus"></iconify-icon>
-                                </button>
+                                @if(!$day['isHoliday'])
+                                    <button wire:click="openCreateModal('{{ $day['date']->format('Y-m-d') }}')" 
+                                        class="btn btn-xs btn-ghost btn-circle">
+                                        <iconify-icon icon="lucide:plus"></iconify-icon>
+                                    </button>
+                                @endif
                             </div>
+                            
+                            <!-- Holiday Indicator -->
+                            @if($day['isHoliday'])
+                                <div class="mb-1 p-2 rounded border-l-4 border-error bg-gradient-to-r from-error/20 to-error/5 shadow-sm">
+                                    <div class="text-xs font-bold text-error flex items-center gap-1 mb-1">
+                                    <iconify-icon icon="lucide:calendar-off"></iconify-icon>
+                                        <span>NATIONAL HOLIDAY</span>
+                                    </div>
+                                    <div class="text-sm text-error/90 font-medium truncate">
+                                        {{ $day['holidayName'] }}
+                                    </div>
+                                </div>
+                            @endif
                             
                             <!-- Regular Tasks -->
                             @foreach ($day['tasks'] as $task)
@@ -79,7 +102,8 @@
                                     class="cursor-pointer mb-1 p-1 text-xs rounded truncate
                                     {{ $task->priority === 'high' ? 'bg-error/20 text-error' : '' }}
                                     {{ $task->priority === 'medium' ? 'bg-warning/20 text-warning-content' : '' }}
-                                    {{ $task->priority === 'low' ? 'bg-info/20 text-info-content' : '' }}">
+                                    {{ $task->priority === 'low' ? 'bg-info/20 text-info-content' : '' }}
+                                    {{ $day['isHoliday'] ? 'opacity-50' : '' }}">
                                     {{ $task->title }}
                                 </div>
                             @endforeach
@@ -90,7 +114,8 @@
                                     class="cursor-pointer mb-1 p-1 text-xs rounded truncate border-l-4 border-accent
                                     {{ $task->priority === 'high' ? 'bg-error/20 text-error' : '' }}
                                     {{ $task->priority === 'medium' ? 'bg-warning/20 text-warning-content' : '' }}
-                                    {{ $task->priority === 'low' ? 'bg-info/20 text-info-content' : '' }}">
+                                    {{ $task->priority === 'low' ? 'bg-info/20 text-info-content' : '' }}
+                                    {{ $day['isHoliday'] ? 'opacity-50' : '' }}">
                                     <div class="flex items-center justify-between gap-1">
                                         <div class="flex items-center gap-1 truncate">
                                             <iconify-icon icon="lucide:repeat"></iconify-icon>
@@ -106,6 +131,41 @@
                     @endforeach
                 @endforeach
             </div>
+            
+            <!-- Holiday Legend -->
+            @if($showHolidays)
+            <div class="mt-4 p-3 bg-base-200 rounded-lg">
+                <h4 class="font-bold text-sm mb-2">Moroccan Holidays Legend:</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-error/10 border-l-4 border-error rounded"></div>
+                        <span class="text-xs">National Holiday</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-error">
+                        <iconify-icon icon="lucide:calendar-off"></iconify-icon>
+                        <span>No tasks can be registered on holidays</span>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
+
+    <style>
+        .holiday-cell {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .holiday-cell::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, theme('colors.error'), transparent);
+            z-index: 1;
+        }
+    </style>
 </div> 

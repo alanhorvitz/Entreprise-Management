@@ -163,4 +163,14 @@ return [
         App\Providers\RouteServiceProvider::class,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Vite Manifest
+    |--------------------------------------------------------------------------
+    |
+    | Temporarily disabling Vite requirement for development
+    |
+    */
+    'use_vite_dev' => env('USE_VITE_DEV', false),
+
 ];

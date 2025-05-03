@@ -17,6 +17,7 @@ class TaskCalendar extends Component
     public $monthName;
     public $projectFilter = '';
     public $repetitiveOnly = false;
+    public $showHolidays = true;
 
     public function mount()
     {
@@ -59,6 +60,11 @@ class TaskCalendar extends Component
     {
         $this->generateCalendarData();
     }
+    
+    public function updatedShowHolidays()
+    {
+        $this->generateCalendarData();
+    }
 
     public function openTaskModal($taskId)
     {
@@ -73,6 +79,11 @@ class TaskCalendar extends Component
 
     public function openCreateModal($date = null)
     {
+        // Don't allow task creation on holidays
+        if ($date && $this->isHoliday(Carbon::parse($date))) {
+            return;
+        }
+        
         $params = [
             'component' => 'tasks.task-create',
             'arguments' => [
@@ -112,12 +123,17 @@ class TaskCalendar extends Component
                 // Add repetitive tasks that occur on this date
                 $dayRepetitiveTasks = $this->getRepetitiveTasksForDate($repetitiveTasks, $currentDate);
                 
+                // Check if this day is a Moroccan holiday
+                $holidayInfo = $this->isHoliday($currentDate);
+                
                 $week[] = [
                     'date' => $currentDate->copy(),
                     'isCurrentMonth' => $currentDate->month === $this->currentMonth,
                     'isToday' => $currentDate->isToday(),
                     'tasks' => $dayTasks,
                     'repetitiveTasks' => $dayRepetitiveTasks,
+                    'isHoliday' => $holidayInfo !== false,
+                    'holidayName' => $holidayInfo ? $holidayInfo : null,
                 ];
                 $currentDate->addDay();
             }
@@ -210,6 +226,72 @@ class TaskCalendar extends Component
             default:
                 return false;
         }
+    }
+
+    /**
+     * Check if a given date is a Moroccan holiday
+     * 
+     * @param Carbon\Carbon $date The date to check
+     * @return string|false The holiday name or false if not a holiday
+     */
+    private function isHoliday($date)
+    {
+        if (!$this->showHolidays) {
+            return false;
+        }
+
+        // Fixed date holidays (Gregorian calendar)
+        $fixedHolidays = [
+            '01-01' => 'New Year\'s Day',
+            '01-11' => 'Proclamation of Independence',
+            '05-01' => 'Labor Day',
+            '07-30' => 'Throne Day',
+            '08-14' => 'Oued Ed-Dahab Day',
+            '08-20' => 'Revolution Day',
+            '08-21' => 'Youth Day',
+            '11-06' => 'Green March Day',
+            '11-18' => 'Independence Day',
+        ];
+
+        // Format date as MM-DD
+        $dateKey = $date->format('m-d');
+        
+        // Check fixed Gregorian holidays
+        if (isset($fixedHolidays[$dateKey])) {
+            return $fixedHolidays[$dateKey];
+        }
+
+        // Islamic holidays for upcoming years
+        // Note: These dates vary by year as they follow the Islamic calendar
+        // The following are approximate dates for 2023-2024
+        // In a real app, you would use a proper Islamic calendar calculation library
+        $islamicHolidays = [
+            // 2023 Islamic holidays
+            '2023-07-19' => 'Islamic New Year',
+            '2023-07-28' => 'Ashura',
+            '2023-09-27' => 'Prophet\'s Birthday (Mawlid)',
+            '2023-04-22' => 'Eid al-Fitr (1st day)',
+            '2023-04-23' => 'Eid al-Fitr (2nd day)',
+            '2023-06-29' => 'Eid al-Adha (1st day)',
+            '2023-06-30' => 'Eid al-Adha (2nd day)',
+            
+            // 2024 Islamic holidays
+            '2024-07-08' => 'Islamic New Year',
+            '2024-07-17' => 'Ashura',
+            '2024-09-16' => 'Prophet\'s Birthday (Mawlid)',
+            '2024-04-10' => 'Eid al-Fitr (1st day)',
+            '2024-04-11' => 'Eid al-Fitr (2nd day)',
+            '2024-06-17' => 'Eid al-Adha (1st day)',
+            '2024-06-18' => 'Eid al-Adha (2nd day)',
+        ];
+
+        // Check Islamic holidays
+        $fullDateKey = $date->format('Y-m-d');
+        if (isset($islamicHolidays[$fullDateKey])) {
+            return $islamicHolidays[$fullDateKey];
+        }
+
+        return false;
     }
 
     public function render()

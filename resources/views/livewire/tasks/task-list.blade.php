@@ -103,7 +103,7 @@
     </div>
 
     <!-- Tasks Table -->
-    <div class="overflow-x-auto bg-base-100 rounded-lg shadow-md">
+    <div class="overflow-x-auto bg-base-100 rounded-lg shadow-md h-[500px] overflow-y-auto">
         <table class="table table-zebra w-full">
             <thead>
                 <tr>

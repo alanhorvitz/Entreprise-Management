@@ -8,4 +8,25 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    server: {
+        hmr: {
+            overlay: false,
+        },
+        watch: {
+            usePolling: true,
+        },
+    },
+    optimizeDeps: {
+        include: ['alpinejs'],
+    },
+    build: {
+        chunkSizeWarningLimit: 1000,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['alpinejs'],
+                },
+            },
+        },
+    },
 });

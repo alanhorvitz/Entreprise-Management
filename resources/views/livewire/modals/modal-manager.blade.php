@@ -29,7 +29,8 @@
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 transform scale-100"
                 x-transition:leave-end="opacity-0 transform scale-95"
-                class="relative mx-auto max-w-4xl my-10 bg-base-100 rounded-lg shadow-xl overflow-hidden p-6">
+                class="relative mx-auto max-w-4xl my-10 bg-base-100 rounded-lg shadow-xl overflow-hidden p-6"
+                style="max-height: calc(100vh - 120px); margin-top: 60px; margin-bottom: 60px;">
                 
                 <!-- Close button -->
                 <button 
@@ -41,7 +42,7 @@
                 </button>
                 
                 <!-- Dynamic component -->
-                <div>
+                <div class="max-h-[80vh] overflow-y-auto">
                     @if ($component)
                         @livewire($component, $arguments, key($component . '-' . rand()))
                     @endif

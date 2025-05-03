@@ -1,5 +1,5 @@
 <div>
-    <div class="modal-header">
+    <div class="modal-header mb-4">
         <h2 class="card-title text-xl flex items-center gap-2">
             <span class="iconify w-6 h-6 text-primary" data-icon="solar:pen-new-square-bold-duotone"></span> Edit Task
         </h2>
