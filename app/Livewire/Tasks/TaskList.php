@@ -153,6 +153,8 @@ class TaskList extends Component
 
     public function render()
     {
+        $user = auth()->user();
+        
         $tasks = Task::with(['project', 'createdBy', 'repetitiveTask'])
             ->when($this->search, function (Builder $query) {
                 return $query->where(function (Builder $query) {
@@ -180,12 +182,48 @@ class TaskList extends Component
                 } else {
                     return $query->whereDoesntHave('repetitiveTask');
                 }
-            })
-            ->orderBy($this->sortField, $this->sortDirection)
+            });
+
+        // Apply role-based visibility rules
+        if ($user->hasRole('director')) {
+            // Directors can see all tasks - no additional filtering needed
+        } elseif ($user->hasRole('supervisor')) {
+            // Supervisors can see all tasks in projects they supervise
+            $tasks->whereIn('project_id', function($query) use ($user) {
+                $query->select('id')
+                    ->from('projects')
+                    ->where('supervised_by', $user->id);
+            });
+        } else {
+            // Regular users (team_leaders and employees) can only see tasks assigned to them
+            $tasks->whereHas('taskAssignments', function (Builder $query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
+        }
+
+        $tasks = $tasks->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
+        // Get projects and users based on role
+        if ($user->hasRole('director')) {
         $projects = Project::all();
         $users = User::all();
+        } elseif ($user->hasRole('supervisor')) {
+            $projects = Project::where('supervised_by', $user->id)->get();
+            $users = User::whereIn('id', function($query) use ($projects) {
+                $query->select('user_id')
+                    ->from('project_members')
+                    ->whereIn('project_id', $projects->pluck('id'));
+            })->get();
+        } else {
+            $projectIds = $user->projectMembers()->pluck('project_id');
+            $projects = Project::whereIn('id', $projectIds)->get();
+            $users = User::whereIn('id', function($query) use ($projectIds) {
+                $query->select('user_id')
+                    ->from('project_members')
+                    ->whereIn('project_id', $projectIds);
+            })->get();
+        }
 
         return view('livewire.tasks.task-list', [
             'tasks' => $tasks,

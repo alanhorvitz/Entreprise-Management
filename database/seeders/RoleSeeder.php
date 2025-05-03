@@ -54,8 +54,7 @@ class RoleSeeder extends Seeder
         $employee->givePermissionTo([
             'view dashboard',
             'view projects',
-            'view tasks',
-            'manage tasks'
+            'view tasks'
         ]);
     }
 } 

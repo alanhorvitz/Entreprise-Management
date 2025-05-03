@@ -127,8 +127,18 @@ class TaskCreate extends Component
         }
     }
     
-    public function save()
+    public function create()
     {
+        // Check if user has permission to create tasks
+        if (!auth()->user()->hasPermissionTo('create tasks')) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'You do not have permission to create tasks.'
+            ]);
+            $this->dispatch('closeModal');
+            return;
+        }
+
         $this->validate();
         
         // Create the task

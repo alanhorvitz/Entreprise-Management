@@ -65,6 +65,12 @@ class CreateTaskPage extends Component
     
     public function create()
     {
+        // Check if user has permission to create tasks
+        if (!auth()->user()->hasPermissionTo('create tasks')) {
+            session()->flash('error', 'You do not have permission to create tasks.');
+            return redirect()->route('tasks.index');
+        }
+
         $this->validate();
         
         $task = Task::create([

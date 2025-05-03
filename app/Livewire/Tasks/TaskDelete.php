@@ -12,6 +12,16 @@ class TaskDelete extends Component
     
     public function mount($taskId = null)
     {
+        // Check if user has permission to delete tasks
+        if (!auth()->user()->hasRole(['director', 'supervisor'])) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'You do not have permission to delete tasks.'
+            ]);
+            $this->dispatch('closeModal');
+            return;
+        }
+
         if ($taskId) {
             $this->setTask($taskId);
         }
@@ -26,6 +36,16 @@ class TaskDelete extends Component
     
     public function delete()
     {
+        // Check if user has permission to delete tasks
+        if (!auth()->user()->hasRole(['director', 'supervisor'])) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'You do not have permission to delete tasks.'
+            ]);
+            $this->dispatch('closeModal');
+            return;
+        }
+
         $task = Task::findOrFail($this->taskId);
         
         // Delete related records

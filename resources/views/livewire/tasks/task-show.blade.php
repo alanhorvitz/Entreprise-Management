@@ -189,11 +189,7 @@
     
     <!-- Modal Footer -->
     <div class="modal-footer mt-6 pt-4 border-t border-base-200 flex justify-between">
-        <div>
-            <button wire:click="openEditModal()" class="btn btn-outline">
-                <span class="iconify w-5 h-5 mr-2" data-icon="solar:pen-bold-duotone"></span> Edit Task
-            </button>
-        </div>
+
         <button type="button" class="btn" wire:click="$dispatch('closeModal')">Close</button>
     </div>
 </div> 

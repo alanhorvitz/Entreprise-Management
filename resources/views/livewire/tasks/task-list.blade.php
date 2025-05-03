@@ -5,9 +5,11 @@
             <div class="flex justify-between items-center mb-5">
                 <h2 class="card-title">Tasks</h2>
                 
+                @if(auth()->user()->hasPermissionTo('create tasks'))
                 <button wire:click="openCreateModal()" class="btn btn-primary">
                     <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> New Task
                 </button>
+                @endif
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div class="form-control">
@@ -206,12 +208,14 @@
                                     <li><a wire:click="openViewModal({{ $task->id }})" @click="document.activeElement.blur()">
                                         <span class="iconify w-5 h-5 mr-2" data-icon="solar:eye-bold-duotone"></span> View Details
                                     </a></li>
+                                    @if(auth()->user()->hasRole(['director', 'supervisor']))
                                     <li><a wire:click="openEditModal({{ $task->id }})" @click="document.activeElement.blur()">
                                         <span class="iconify w-5 h-5 mr-2" data-icon="solar:pen-bold-duotone"></span> Edit Task
                                     </a></li>
                                     <li><a wire:click="deleteTask({{ $task->id }})" @click="document.activeElement.blur()" class="text-error">
                                         <span class="iconify w-5 h-5 mr-2" data-icon="solar:trash-bin-trash-bold-duotone"></span> Delete Task
                                     </a></li>
+                                    @endif
                                 </ul>
                             </div>
                         </td>
@@ -224,9 +228,11 @@
                                     <span class="iconify w-8 h-8" data-icon="solar:clipboard-list-bold-duotone"></span>
                                 </div>
                                 <p class="text-gray-500">No tasks found</p>
+                                @if(auth()->user()->hasPermissionTo('create tasks'))
                                 <button wire:click="openCreateModal()" class="btn btn-sm btn-primary">
                                     <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> Create a task
                                 </button>
+                                @endif
                             </div>
                         </td>
                     </tr>

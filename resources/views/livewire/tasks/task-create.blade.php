@@ -6,7 +6,7 @@
             </h2>
         </div>
         
-        <form wire:submit.prevent="save" class="space-y-6">
+        <form wire:submit="create" class="space-y-6">
             <!-- Basic Task Info -->
                 <div class="form-control mb-4">
                     <label class="label" for="title">

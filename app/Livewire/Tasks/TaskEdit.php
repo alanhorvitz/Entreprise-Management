@@ -40,6 +40,16 @@ class TaskEdit extends Component
 
     public function mount($taskId)
     {
+        // Check if user has permission to edit tasks
+        if (!auth()->user()->hasRole(['director', 'supervisor'])) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'You do not have permission to edit tasks.'
+            ]);
+            $this->dispatch('closeModal');
+            return;
+        }
+
         $this->taskId = $taskId;
         $this->loadTask();
     }
@@ -139,6 +149,16 @@ class TaskEdit extends Component
     
     public function update()
     {
+        // Check if user has permission to edit tasks
+        if (!auth()->user()->hasRole(['director', 'supervisor'])) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'You do not have permission to edit tasks.'
+            ]);
+            $this->dispatch('closeModal');
+            return;
+        }
+
         $this->validate();
         
         $task = Task::findOrFail($this->taskId);

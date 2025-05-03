@@ -18,29 +18,31 @@ class CalendarController extends Controller
      */
     public function index()
     {
-        $userId = auth()->id();
+        $user = auth()->user();
         
-        // Get projects where the user is a member
-        $userProjectIds = ProjectMember::where('user_id', $userId)
-            ->pluck('project_id')
-            ->toArray();
-            
-        // Also include projects created or supervised by the user
-        $createdProjectIds = Project::where('created_by', $userId)
-            ->orWhere('supervised_by', $userId)
-            ->pluck('id')
-            ->toArray();
-            
-        // Combine all project IDs the user is associated with
-        $allUserProjectIds = array_unique(array_merge($userProjectIds, $createdProjectIds));
+        // Initialize tasks query
+        $tasksQuery = Task::with(['project', 'repetitiveTask']);
         
-        // Get all tasks from these projects with their repetitive task info
-        $allTasks = Task::with(['project', 'repetitiveTask'])
-            ->whereIn('project_id', $allUserProjectIds)
-            ->get();
-            
+        // Apply role-based visibility rules
+        if ($user->hasRole('director')) {
+            // Directors can see all tasks
+            $allTasks = $tasksQuery->get();
+        } elseif ($user->hasRole('supervisor')) {
+            // Supervisors can see all tasks in projects they supervise
+            $allTasks = $tasksQuery->whereIn('project_id', function($query) use ($user) {
+                $query->select('id')
+                    ->from('projects')
+                    ->where('supervised_by', $user->id);
+            })->get();
+        } else {
+            // Regular users can only see tasks assigned to them
+            $allTasks = $tasksQuery->whereHas('taskAssignments', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->get();
+        }
+        
         // Get task assignments for the authenticated user
-        $taskAssignments = TaskAssignment::where('user_id', $userId)->get();
+        $taskAssignments = TaskAssignment::where('user_id', $user->id)->get();
         
         // Get IDs of repetitive tasks
         $repetitiveTaskIds = RepetitiveTask::pluck('task_id')->toArray();
@@ -60,8 +62,16 @@ class CalendarController extends Controller
             }
         }
         
-        // Get all projects for the filter dropdown
-        $projects = Project::whereIn('id', $allUserProjectIds)->get();
+        // Get projects for the filter dropdown based on role
+        if ($user->hasRole('director')) {
+            $projects = Project::all();
+        } elseif ($user->hasRole('supervisor')) {
+            $projects = Project::where('supervised_by', $user->id)->get();
+        } else {
+            $projects = Project::whereHas('members', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->get();
+        }
         
         return view('calendar.index', [
             'tasks' => $allTasks,
