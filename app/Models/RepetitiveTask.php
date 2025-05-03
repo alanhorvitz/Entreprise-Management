@@ -41,9 +41,9 @@ class RepetitiveTask extends Model
             'recurrence_interval' => 'datetime',
             'recurrence_days' => 'integer',
             'recurrence_month_day' => 'integer',
-            'start_date' => 'integer',
-            'end_date' => 'integer',
-            'next_occurrence' => 'integer',
+            'start_date' => 'datetime',
+            'end_date' => 'datetime',
+            'next_occurrence' => 'datetime',
         ];
     }
 }

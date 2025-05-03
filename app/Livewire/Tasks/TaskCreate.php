@@ -174,12 +174,12 @@ class TaskCreate extends Component
                 'project_id' => $this->project_id,
                 'created_by' => Auth::id(),
                 'repetition_rate' => $this->repetition_rate,
-                'recurrence_interval' => Carbon::now(), // Store current time as base interval
-                'recurrence_days' => $daysBinary, // Store days as binary for weekly recurrence
+                'recurrence_interval' => Carbon::now(),
+                'recurrence_days' => $daysBinary,
                 'recurrence_month_day' => $this->recurrence_month_day,
-                'start_date' => strtotime($this->start_date),
-                'end_date' => $this->recurrence_end_date ? strtotime($this->recurrence_end_date) : 0,
-                'next_occurrence' => $nextOccurrence,
+                'start_date' => Carbon::parse($this->start_date),
+                'end_date' => $this->recurrence_end_date ? Carbon::parse($this->recurrence_end_date) : null,
+                'next_occurrence' => Carbon::parse($this->due_date),
             ]);
         }
         

@@ -8,6 +8,7 @@ use App\Models\TaskAssignment;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Carbon\Carbon;
 
 class TaskEdit extends Component
 {
@@ -195,9 +196,9 @@ class TaskEdit extends Component
                     'recurrence_interval' => now(),
                     'recurrence_days' => $daysBinary,
                     'recurrence_month_day' => $this->recurrence_month_day,
-                    'start_date' => strtotime($this->start_date),
-                    'end_date' => $this->recurrence_end_date ? strtotime($this->recurrence_end_date) : 0,
-                    'next_occurrence' => strtotime($this->due_date),
+                    'start_date' => Carbon::parse($this->start_date),
+                    'end_date' => $this->recurrence_end_date ? Carbon::parse($this->recurrence_end_date) : null,
+                    'next_occurrence' => Carbon::parse($this->due_date),
                 ]
             );
         } else {

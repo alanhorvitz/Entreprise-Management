@@ -22,9 +22,9 @@ return new class extends Migration
             $table->dateTime('recurrence_interval');
             $table->bigInteger('recurrence_days');
             $table->bigInteger('recurrence_month_day');
-            $table->bigInteger('start_date');
-            $table->bigInteger('end_date');
-            $table->bigInteger('next_occurrence');
+            $table->dateTime('start_date');
+            $table->dateTime('end_date')->nullable();
+            $table->dateTime('next_occurrence');
             $table->timestamps();
         });
 
