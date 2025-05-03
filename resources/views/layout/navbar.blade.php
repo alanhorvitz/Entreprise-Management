@@ -6,7 +6,7 @@
                 <!-- Sidebar Toggle -->
                 <button class="btn btn-ghost btn-sm rounded-lg" aria-label="Toggle sidebar">
                     <span class="iconify w-5 h-5" data-icon="solar:hamburger-menu-broken"></span>
-                            </button>
+                </button>
                 
                 <!-- Search -->
                 <div class="hidden sm:block">
@@ -15,9 +15,9 @@
                             <span class="iconify w-4 h-4 text-base-content/60" data-icon="solar:magnifer-bold-duotone"></span>
                         </span>
                         <input type="text" class="input input-bordered w-72 pl-10 pr-4 py-2 text-sm" placeholder="Search...">
-                                            </div>
-                                        </div>
-                                    </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Right side -->
             <div class="flex items-center space-x-4">
@@ -28,11 +28,11 @@
                 </button>
 
                 <!-- Notifications -->
-                <div class="dropdown dropdown-end">
-                    <button class="btn btn-ghost btn-sm rounded-lg" aria-label="Notifications">
+                <details class="dropdown dropdown-end">
+                    <summary class="btn btn-ghost btn-sm rounded-lg" aria-label="Notifications">
                         <span class="iconify w-5 h-5" data-icon="solar:bell-bold-duotone"></span>
                         <span class="badge badge-sm badge-primary badge-pill absolute -top-1 -right-1">{{ \App\Models\Notification::where('user_id', auth()->id())->where('is_read', false)->count() }}</span>
-                    </button>
+                    </summary>
                     <div class="dropdown-content bg-base-100 rounded-box shadow-lg mt-2 w-80 z-[50]">
                         <div class="p-4">
                             <div class="flex items-center justify-between mb-4">
@@ -80,45 +80,45 @@
                             @endif
                         </div>
                     </div>
-                </div>
+                </details>
 
                 <!-- User Menu -->
-                <div class="dropdown dropdown-end">
-                    <button class="flex items-center space-x-3 focus:outline-none">
+                <details class="dropdown dropdown-end">
+                    <summary class="flex items-center space-x-3 focus:outline-none cursor-pointer">
                         <img class="h-8 w-8 rounded-full border border-base-200" src="{{ asset('images/image.png') }}" alt="User avatar">
                         <div class="hidden md:block text-left">
                             <h6 class="text-sm font-medium">{{ auth()->user()->name }}</h6>
                             <p class="text-xs text-base-content/60">{{ auth()->user()->role }}</p>
                         </div>
                         <span class="iconify w-4 h-4 text-base-content/60" data-icon="solar:alt-arrow-down-bold-duotone"></span>
-                    </button>
+                    </summary>
                     <div class="dropdown-content bg-base-100 rounded-box shadow-lg mt-2 w-48 z-[50]">
                         <ul class="menu menu-sm w-full">
-                                        <li>
+                            <li>
                                 <a href="{{ route('profile.index') }}" class="flex items-center px-4 py-2">
                                     <span class="iconify w-4 h-4 mr-2" data-icon="solar:user-bold-duotone"></span>
                                     <span>Profile</span>
                                 </a>
-                                        </li>
-                                        <li>
+                            </li>
+                            <li>
                                 <a href="/pages/settings" class="flex items-center px-4 py-2">
                                     <span class="iconify w-4 h-4 mr-2" data-icon="solar:settings-bold-duotone"></span>
                                     <span>Settings</span>
                                 </a>
-                                        </li>
-                                        <li>
+                            </li>
+                            <li>
                                 <form method="POST" action="{{ route('logout') }}" class="w-full flex p-0">
-                                                @csrf
+                                    @csrf
                                     <button type="submit" class="flex items-center px-4 py-2 w-full text-error hover:bg-error/10 gap-2">
                                         <span class="iconify w-4 h-4 mr-2" data-icon="solar:logout-3-bold-duotone"></span>
                                         <span>Logout</span>
-                                                </button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
                     </div>
+                </details>
+            </div>
+        </div>
     </div>
 </nav>
