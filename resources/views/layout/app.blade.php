@@ -14,17 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Scripts -->
-    {{-- Use real built assets if they exist, otherwise fall back to placeholder --}}
-    @if(file_exists(public_path('build/assets/app-CaOkf6Ei.css')))
-        <link rel="stylesheet" href="{{ asset('build/assets/app-CaOkf6Ei.css') }}">
-        <script src="{{ asset('build/assets/app-CuxJ58LR.js') }}" defer></script>
-    @else
-        @php
-            $viteAssets = vite_assets(['resources/css/app.css', 'resources/js/app.js']);
-        @endphp
-        <link rel="stylesheet" href="{{ $viteAssets['css'] }}">
-        <script src="{{ $viteAssets['js'] }}" defer></script>
-    @endif
+    {{-- Load assets using Laravel Vite --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
 </head>
 
