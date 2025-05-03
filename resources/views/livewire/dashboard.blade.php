@@ -29,6 +29,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-base-content/60 text-sm">Tasks Completed</p>
+                        
                         <div class="mt-1">
                             <p class="text-2xl font-semibold">{{ $completedTasks }}</p>
                         </div>
