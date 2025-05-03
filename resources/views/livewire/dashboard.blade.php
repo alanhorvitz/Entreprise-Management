@@ -4,6 +4,7 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Active Projects Card -->
+        @if(auth()->user()->hasPermissionTo('view all projects') || auth()->user()->hasPermissionTo('view assigned projects'))
         <div class="card bg-base-100 shadow-md">
             <div class="card-body">
                 <div class="flex items-center justify-between">
@@ -19,13 +20,16 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- Tasks Completed Card -->
+        @if(auth()->user()->hasPermissionTo('view all tasks') || auth()->user()->hasPermissionTo('view assigned tasks'))
         <div class="card bg-base-100 shadow-md">
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-base-content/60 text-sm">Tasks Completed</p>
+                        
                         <div class="mt-1">
                             <p class="text-2xl font-semibold">{{ $completedTasks }}</p>
                         </div>
@@ -36,8 +40,10 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- Pending Tasks Card -->
+        @if(auth()->user()->hasPermissionTo('view all tasks') || auth()->user()->hasPermissionTo('view assigned tasks'))
         <div class="card bg-base-100 shadow-md">
             <div class="card-body">
                 <div class="flex items-center justify-between">
@@ -53,19 +59,32 @@
                 </div>
             </div>
         </div>
+        @endif
 
-        <!-- Team Members Card -->
+        <!-- Team Members / Projects Card -->
         <div class="card bg-base-100 shadow-md">
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-base-content/60 text-sm">Team Members</p>
+                        <p class="text-base-content/60 text-sm">
+                            @if(auth()->user()->hasRole('director'))
+                                Team Members
+                            @elseif(auth()->user()->hasRole('supervisor'))
+                                Total Supervised Projects
+                            @else
+                                Total Joined Projects
+                            @endif
+                        </p>
                         <div class="mt-1">
                             <p class="text-2xl font-semibold">{{ $teamMembers }}</p>
                         </div>
                     </div>
                     <div class="bg-secondary/10 p-3 rounded-full">
-                        <span class="iconify w-6 h-6 text-secondary" data-icon="solar:users-group-rounded-bold-duotone"></span>
+                        @if(auth()->user()->hasRole('director'))
+                            <span class="iconify w-6 h-6 text-secondary" data-icon="solar:users-group-rounded-bold-duotone"></span>
+                        @else
+                            <span class="iconify w-6 h-6 text-secondary" data-icon="solar:folder-with-files-bold-duotone"></span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -73,6 +92,7 @@
     </div>
 
     <!-- Projects Overview -->
+    @if(auth()->user()->hasPermissionTo('view all projects') || auth()->user()->hasPermissionTo('view assigned projects'))
     <div class="card bg-base-100 shadow-md">
         <div class="card-body">
             <div class="flex items-center justify-between mb-4">
@@ -128,10 +148,12 @@
             </div>
         </div>
     </div>
+    @endif
 
     <!-- Pending Approvals and Tasks -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Pending Approvals -->
+        @if($canApproveTask)
         <div class="card bg-base-100 shadow-md">
             <div class="card-body">
                 <h2 class="card-title flex justify-between">
@@ -177,9 +199,11 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- Tasks Due Soon -->
-        <div class="card bg-base-100 shadow-md">
+        @if(auth()->user()->hasPermissionTo('view all tasks') || auth()->user()->hasPermissionTo('view assigned tasks'))
+        <div class="card bg-base-100 shadow-md {{ !$canApproveTask ? 'lg:col-span-2' : '' }}">
             <div class="card-body">
                 <h2 class="card-title flex justify-between">
                     <span>Tasks Due Soon</span>
@@ -189,7 +213,9 @@
                         </div>
                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                             <li><a href="{{ route('tasks.index') }}">View All Tasks</a></li>
+                            @if(auth()->user()->hasPermissionTo('create tasks'))
                             <li><a href="{{ route('tasks.create') }}">Add New Task</a></li>
+                            @endif
                         </ul>
                     </div>
                 </h2>
@@ -227,5 +253,6 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 </div>

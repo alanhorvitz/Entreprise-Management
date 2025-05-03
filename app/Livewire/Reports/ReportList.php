@@ -200,7 +200,7 @@ class ReportList extends Component
         $reportsQuery = DailyReport::with(['user', 'user.departments', 'project']);
 
         // Filter reports based on user's role and project membership
-        if (!auth()->user()->hasPermissionTo('view reports')) {
+        if (!auth()->user()->hasRole('director') && !auth()->user()->hasPermissionTo('view daily reports')) {
             $userProjectIds = auth()->user()->projectMembers()->pluck('project_id')->toArray();
             $reportsQuery->whereIn('project_id', $userProjectIds);
         }

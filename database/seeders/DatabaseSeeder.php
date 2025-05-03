@@ -87,7 +87,7 @@ class DatabaseSeeder extends Seeder
                 'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-            ],
+                ],
             [
                 'first_name' => 'Team',
                 'last_name' => 'Member1',
@@ -97,7 +97,7 @@ class DatabaseSeeder extends Seeder
                 'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-            ],
+                ],
             [
                 'first_name' => 'Team',
                 'last_name' => 'Member2',
@@ -107,7 +107,7 @@ class DatabaseSeeder extends Seeder
                 'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-            ],
+                ],
             [
                 'first_name' => 'Sarah',
                 'last_name' => 'Johnson',
@@ -117,7 +117,7 @@ class DatabaseSeeder extends Seeder
                 'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-            ],
+                ],
             [
                 'first_name' => 'Michael',
                 'last_name' => 'Williams',
@@ -127,7 +127,7 @@ class DatabaseSeeder extends Seeder
                 'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-            ],
+                ],
             [
                 'first_name' => 'Emily',
                 'last_name' => 'Clark',
@@ -137,7 +137,7 @@ class DatabaseSeeder extends Seeder
                 'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-            ],
+                ],
             [
                 'first_name' => 'James',
                 'last_name' => 'Brown',
@@ -147,7 +147,7 @@ class DatabaseSeeder extends Seeder
                 'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-            ],
+                ],
             [
                 'first_name' => 'Jessica',
                 'last_name' => 'Miller',
@@ -157,7 +157,7 @@ class DatabaseSeeder extends Seeder
                 'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-            ],
+                ],
             [
                 'first_name' => 'David',
                 'last_name' => 'Wilson',
@@ -167,7 +167,7 @@ class DatabaseSeeder extends Seeder
                 'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-            ]
+                    ]
         ];
 
         $createdUsers = [];
@@ -556,7 +556,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-
+        
         // Create repetitive tasks
         foreach ($createdProjects as $project) {
             $repetitiveCount = rand(1, 3);

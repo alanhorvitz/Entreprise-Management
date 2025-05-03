@@ -59,23 +59,22 @@ class EditProject extends Component
         
         // Load supervisor
         $this->supervised_by = $project->supervised_by;
-        
-        // Load all team members for the team manager dropdown
-        $this->teamMembers = $project->members()
-            ->whereIn('users.id', $this->selectedTeamMembers)
-            ->select('users.*')
-            ->get();
 
-        // Load team manager (team_leader from project_members)
-        $teamManager = $project->members()
-            ->where('project_members.role', 'team_leader')
-            ->first();
-        $this->team_leader_id = $teamManager?->id;
-
-        // Load selected team members (both regular members and project manager)
+        // First load selected team members
         $this->selectedTeamMembers = $project->members()
             ->pluck('users.id')
             ->toArray();
+        
+        // Then load team members for dropdown
+        $this->teamMembers = User::whereIn('id', $this->selectedTeamMembers)
+            ->select('users.*')
+            ->get();
+
+        // Load team leader
+        $teamLeader = $project->members()
+            ->where('project_members.role', 'team_leader')
+            ->first();
+        $this->team_leader_id = $teamLeader?->id;
 
         // Load department members and supervisors for selection
         if ($this->department_id) {

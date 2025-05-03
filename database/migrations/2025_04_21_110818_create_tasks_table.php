@@ -26,7 +26,7 @@ return new class extends Migration
             $table->enum('priority', ["low","medium","high"])->nullable()->default('medium');
             $table->enum('current_status', ["todo","in_progress","completed"])->nullable()->default('todo');
             $table->date('start_date')->nullable();
-            $table->enum('status', ["pending_approval","approved"])->default('pending_approval');
+            $table->enum('status', ["rejected","pending_approval","approved"])->default('pending_approval');
             $table->timestamps();
         });
 
