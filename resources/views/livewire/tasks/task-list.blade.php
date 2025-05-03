@@ -203,13 +203,13 @@
                                     <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
                                 </div>
                                 <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                    <li><a wire:click="openViewModal({{ $task->id }})">
+                                    <li><a wire:click="openViewModal({{ $task->id }})" @click="document.activeElement.blur()">
                                         <span class="iconify w-5 h-5 mr-2" data-icon="solar:eye-bold-duotone"></span> View Details
                                     </a></li>
-                                    <li><a wire:click="openEditModal({{ $task->id }})">
+                                    <li><a wire:click="openEditModal({{ $task->id }})" @click="document.activeElement.blur()">
                                         <span class="iconify w-5 h-5 mr-2" data-icon="solar:pen-bold-duotone"></span> Edit Task
                                     </a></li>
-                                    <li><a wire:click="deleteTask({{ $task->id }})" class="text-error">
+                                    <li><a wire:click="deleteTask({{ $task->id }})" @click="document.activeElement.blur()" class="text-error">
                                         <span class="iconify w-5 h-5 mr-2" data-icon="solar:trash-bin-trash-bold-duotone"></span> Delete Task
                                     </a></li>
                                 </ul>
@@ -240,4 +240,47 @@
             {{ $tasks->links() }}
         </div>
     @endif
+    
+    <script>
+        // Direct DOM initialization - runs immediately
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const taskIdFromUrl = urlParams.get('open_task');
+            
+            if (taskIdFromUrl) {
+                console.log('Task ID found in URL:', taskIdFromUrl);
+                // We need to wait for Livewire to be ready
+                if (window.Livewire) {
+                    console.log('Livewire already available, opening task...');
+                    setTimeout(() => window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).openViewModal(taskIdFromUrl), 500);
+                }
+            }
+        });
+        
+        // Livewire initialization - may run after DOM is ready
+        document.addEventListener('livewire:initialized', () => {
+            console.log('Livewire initialized');
+            
+            // Check again for URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const taskIdFromUrl = urlParams.get('open_task');
+            
+            if (taskIdFromUrl) {
+                console.log('Task ID found in URL after Livewire init:', taskIdFromUrl);
+                setTimeout(() => {
+                    console.log('Opening task modal for ID:', taskIdFromUrl);
+                    @this.openViewModal(taskIdFromUrl);
+                }, 500);
+            }
+            
+            // Also listen for the event dispatched from the PHP component
+            Livewire.on('defer-load-task', (taskId) => {
+                console.log('Received defer-load-task event with ID:', taskId);
+                setTimeout(() => {
+                    @this.openViewModal(taskId);
+                }, 500);
+            });
+        });
+    </script>
 </div> 

@@ -1064,7 +1064,11 @@ document.addEventListener('DOMContentLoaded', function() {
         taskCard.addEventListener('click', (e) => {
             // Only trigger if not clicking on a button element to avoid conflict with edit/close buttons
             if (!e.target.closest('button') && !e.target.closest('a')) {
-                window.location.href = `{{ url('/tasks') }}/${task.id}`;
+                // Close the current modal
+                document.getElementById('task-modal').close();
+                
+                // Use both query parameter and hash to maximize the chance of success
+                window.location.href = `{{ url('/tasks') }}?open_task=${task.id}#task-${task.id}`;
             }
         });
         
