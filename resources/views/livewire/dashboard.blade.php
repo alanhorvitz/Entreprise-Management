@@ -28,7 +28,13 @@
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-base-content/60 text-sm">Tasks Completed</p>
+                        <p class="text-base-content/60 text-sm">
+                            @if(auth()->user()->hasRole(['director', 'supervisor']))
+                                Tasks Completed
+                            @else
+                                My Completed Tasks
+                            @endif
+                        </p>
                         
                         <div class="mt-1">
                             <p class="text-2xl font-semibold">{{ $completedTasks }}</p>
@@ -48,7 +54,13 @@
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-base-content/60 text-sm">Pending Tasks</p>
+                        <p class="text-base-content/60 text-sm">
+                            @if(auth()->user()->hasRole(['director', 'supervisor']))
+                                Pending Tasks
+                            @else
+                                My Pending Tasks
+                            @endif
+                        </p>
                         <div class="mt-1">
                             <p class="text-2xl font-semibold">{{ $pendingTasks }}</p>
                         </div>

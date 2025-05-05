@@ -18,13 +18,13 @@ class Dashboard extends Component
         // Stats based on role
         if ($user->hasRole('director')) {
             $activeProjects = Project::whereIn('status', ['planning', 'in_progress'])->count();
-        $completedTasks = Task::where('current_status', 'completed')->count();
-        $pendingTasks = Task::whereIn('current_status', ['todo', 'in_progress'])->count();
-        $teamMembers = User::count();
-        $recentProjects = Project::with(['members'])
-            ->latest()
-            ->take(5)
-            ->get();
+            $completedTasks = Task::where('current_status', 'completed')->count();
+            $pendingTasks = Task::whereIn('current_status', ['todo', 'in_progress'])->count();
+            $teamMembers = User::count();
+            $recentProjects = Project::with(['members'])
+                ->latest()
+                ->take(5)
+                ->get();
         } elseif ($user->hasRole('supervisor')) {
             $activeProjects = Project::where('supervised_by', $user->id)
                 ->whereIn('status', ['planning', 'in_progress'])
@@ -48,9 +48,15 @@ class Dashboard extends Component
                 ->whereIn('status', ['planning', 'in_progress'])
                 ->count();
             $completedTasks = Task::whereIn('project_id', $projectIds)
+                ->whereHas('taskAssignments', function($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })
                 ->where('current_status', 'completed')
                 ->count();
             $pendingTasks = Task::whereIn('project_id', $projectIds)
+                ->whereHas('taskAssignments', function($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })
                 ->whereIn('current_status', ['todo', 'in_progress'])
                 ->count();
             $teamMembers = $user->projectMembers()->count();
