@@ -124,6 +124,9 @@ class CalendarController extends Controller
             $startDate = $startDate->max($oldestDate);
             $endDate = $endDate->min($furthestDate);
             
+            // Add the original task's date to processed dates to prevent duplication
+            $processedDates[] = $task->start_date->format('Y-m-d');
+            
             $currentDate = $startDate->copy();
             
             while ($currentDate <= $endDate) {
@@ -139,7 +142,10 @@ class CalendarController extends Controller
                 
                 switch ($repetitiveTask->repetition_rate) {
                     case 'daily':
-                        $shouldCreateInstance = true;
+                        // For daily tasks, skip the start date as it's the original task
+                        if ($currentDate->format('Y-m-d') !== $task->start_date->format('Y-m-d')) {
+                            $shouldCreateInstance = true;
+                        }
                         $nextDate = $currentDate->copy()->addDay();
                         break;
                         
@@ -147,6 +153,10 @@ class CalendarController extends Controller
                         // Check if the day is in recurrence_days using bitwise operation
                         $dayBit = 1 << $currentDate->dayOfWeek;
                         $shouldCreateInstance = ($repetitiveTask->recurrence_days & $dayBit) !== 0;
+                        // Skip if it's the original task's date
+                        if ($currentDate->format('Y-m-d') === $task->start_date->format('Y-m-d')) {
+                            $shouldCreateInstance = false;
+                        }
                         $nextDate = $currentDate->copy()->addDay();
                         break;
                         
@@ -155,7 +165,10 @@ class CalendarController extends Controller
                         $shouldCreateInstance = $currentDate->day === $repetitiveTask->recurrence_month_day 
                             || ($currentDate->day === $currentDate->daysInMonth 
                                 && $repetitiveTask->recurrence_month_day > $currentDate->daysInMonth);
-                        
+                        // Skip if it's the original task's date
+                        if ($currentDate->format('Y-m-d') === $task->start_date->format('Y-m-d')) {
+                            $shouldCreateInstance = false;
+                        }
                         // Move to the next month's recurrence day
                         $nextDate = $currentDate->copy()->addMonth()->setDay(1);
                         try {
@@ -172,6 +185,11 @@ class CalendarController extends Controller
                         // Check if we're on the anniversary date
                         $shouldCreateInstance = $currentDate->month === $originalStartDate->month 
                             && $currentDate->day === $originalStartDate->day;
+                        
+                        // Skip if it's the original task's date
+                        if ($currentDate->format('Y-m-d') === $task->start_date->format('Y-m-d')) {
+                            $shouldCreateInstance = false;
+                        }
                         
                         // Move to the next year's anniversary
                         if ($shouldCreateInstance) {
