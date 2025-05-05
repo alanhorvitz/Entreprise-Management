@@ -20,6 +20,7 @@ class CreateProject extends Component
     public $status;
     public $budget;
     public $team_leader_id;
+    public $supervisor_id;
     public $selectedTeamMembers = [];
     public $send_notifications = false;
     public $is_featured = false;
@@ -145,7 +146,7 @@ class CreateProject extends Component
                 'end_date' => $this->end_date,
                 'status' => $this->status,
                 'budget' => $this->budget,
-                'supervised_by' => $this->team_leader_id,
+                'supervised_by' => $this->supervisor_id,
                 'created_by' => Auth::id(),
                 'is_featured' => $this->is_featured
             ]);
@@ -168,7 +169,7 @@ class CreateProject extends Component
             if (!empty($this->selectedTeamMembers)) {
                 foreach ($this->selectedTeamMembers as $memberId) {
                     // Skip if member is project manager or team manager
-                    if ($memberId != $this->team_leader_id && $memberId != $this->team_leader_id) {
+                    if ($memberId != $this->supervisor_id && $memberId != $this->team_leader_id) {
                         ProjectMember::create([
                             'project_id' => $project->id,
                             'user_id' => $memberId,
@@ -203,18 +204,18 @@ class CreateProject extends Component
         ]);
     }
 
-    public function updatedProjectManagerId()
+    public function updatedSupervisorId()
     {
         // Reset team manager if they're the same person
-        if ($this->team_leader_id === $this->team_leader_id) {
-            $this->team_leader_id = null;
+        if ($this->supervisor_id === $this->team_leader_id) {
+            $this->supervisor_id = null;
         }
     }
 
-    public function updatedTeamManagerId()
+    public function updatedTeamLeaderId()
     {
         // Reset project manager if they're the same person
-        if ($this->team_leader_id === $this->team_leader_id) {
+        if ($this->team_leader_id === $this->supervisor_id) {
             $this->team_leader_id = null;
         }
     }
