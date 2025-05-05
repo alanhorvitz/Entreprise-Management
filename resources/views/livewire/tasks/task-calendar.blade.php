@@ -76,10 +76,10 @@
                                 </span>
                                 
                                 @if(!$day['isHoliday'])
-                                    <button wire:click="openCreateModal('{{ $day['date']->format('Y-m-d') }}')" 
+                                    <a href="{{ url('/tasks') }}?new_task=true&due_date={{ $day['date']->format('Y-m-d') }}" 
                                         class="btn btn-xs btn-ghost btn-circle">
                                         <iconify-icon icon="lucide:plus"></iconify-icon>
-                                    </button>
+                                    </a>
                                 @endif
                             </div>
                             

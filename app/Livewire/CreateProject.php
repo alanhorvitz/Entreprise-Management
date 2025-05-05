@@ -55,6 +55,10 @@ class CreateProject extends Component
 
     public function mount()
     {
+        if (!auth()->user()->hasPermissionTo('create projects')) {
+            abort(403, 'You do not have permission to create projects.');
+        }
+        
         $this->status = 'planning';
         $this->selectedTeamMembers = [];
         $this->availableTeamManagers = collect();
@@ -135,6 +139,11 @@ class CreateProject extends Component
 
     public function create()
     {
+        if (!auth()->user()->hasPermissionTo('create projects')) {
+            $this->showMessage('You do not have permission to create projects.', 'error');
+            return;
+        }
+
         $this->validate();
 
         try {

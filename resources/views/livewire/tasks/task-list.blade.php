@@ -254,10 +254,16 @@
             const urlParams = new URLSearchParams(window.location.search);
             const taskIdFromUrl = urlParams.get('open_task');
             const editTaskIdFromUrl = urlParams.get('edit_task');
+            const newTask = urlParams.get('new_task');
             
-            if (editTaskIdFromUrl) {
+            if (newTask === 'true') {
+                console.log('New task parameter found in URL');
+                if (window.Livewire) {
+                    console.log('Livewire available, opening create modal...');
+                    setTimeout(() => window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).openCreateModal(), 500);
+                }
+            } else if (editTaskIdFromUrl) {
                 console.log('Edit Task ID found in URL:', editTaskIdFromUrl);
-                // We need to wait for Livewire to be ready
                 if (window.Livewire) {
                     console.log('Livewire already available, opening edit modal...');
                     setTimeout(() => window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).openEditModal(editTaskIdFromUrl), 500);
@@ -279,8 +285,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             const taskIdFromUrl = urlParams.get('open_task');
             const editTaskIdFromUrl = urlParams.get('edit_task');
+            const newTask = urlParams.get('new_task');
             
-            if (editTaskIdFromUrl) {
+            if (newTask === 'true') {
+                console.log('New task parameter found in URL after Livewire init');
+                setTimeout(() => {
+                    console.log('Opening create modal');
+                    @this.openCreateModal();
+                }, 500);
+            } else if (editTaskIdFromUrl) {
                 console.log('Edit Task ID found in URL after Livewire init:', editTaskIdFromUrl);
                 setTimeout(() => {
                     console.log('Opening edit modal for ID:', editTaskIdFromUrl);
@@ -307,6 +320,14 @@
                 console.log('Received defer-load-task-edit event with ID:', taskId);
                 setTimeout(() => {
                     @this.openEditModal(taskId);
+                }, 500);
+            });
+
+            // Listen for create modal event
+            Livewire.on('defer-load-task-create', (data) => {
+                console.log('Received defer-load-task-create event');
+                setTimeout(() => {
+                    @this.openCreateModal();
                 }, 500);
             });
         });

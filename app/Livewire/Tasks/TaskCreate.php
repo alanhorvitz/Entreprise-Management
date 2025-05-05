@@ -118,30 +118,26 @@ class TaskCreate extends Component
         $this->loadProjectMembers();
     }
 
-    public function mount($project_id = null, $due_date = null)
+    public function mount($due_date = null)
     {
-        if ($project_id) {
-            $this->project_id = $project_id;
-            $this->loadProjectMembers();
+        // If no due_date was passed as a parameter, check the URL query string
+        if (!$due_date) {
+            $due_date = request()->query('due_date');
         }
-
+        
+        // Set default dates
+        $defaultDate = $due_date ?? now()->format('Y-m-d');
+        $this->start_date = $defaultDate;
+        $this->due_date = $defaultDate;
+        
+        // If it's a monthly task, set the recurrence day to match the due date
         if ($due_date) {
-            $this->due_date = $due_date;
-            $this->start_date = $due_date;
-            
-            $dayOfWeek = Carbon::parse($due_date)->dayOfWeek;
-            $this->recurrence_days = [$dayOfWeek];
-            
             $this->recurrence_month_day = Carbon::parse($due_date)->day;
-        } else {
-            $today = Carbon::today()->format('Y-m-d');
-            $this->start_date = $today;
-            $this->due_date = $today;
-            
-            $dayOfWeek = Carbon::today()->dayOfWeek;
-            $this->recurrence_days = [$dayOfWeek];
-            
-            $this->recurrence_month_day = Carbon::today()->day;
+        }
+        
+        // Load project members if a project is already selected
+        if ($this->project_id) {
+            $this->loadProjectMembers();
         }
     }
     

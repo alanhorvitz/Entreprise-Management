@@ -26,7 +26,7 @@
 
                 <div class="flex items-center space-x-2">
                     @if(auth()->user()->hasAnyRole(['supervisor', 'director']))
-                    <a href="{{ route('tasks.create') }}?from=calendar" class="btn btn-sm btn-primary mr-2">
+                    <a href="{{ url('/tasks') }}?new_task=true" class="btn btn-sm btn-primary mr-2">
                     <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="solar:add-circle-bold-duotone" class="iconify w-5 h-5 mr-2 iconify--solar"><path fill="currentColor" d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2s10 4.477 10 10" opacity=".5"></path><path fill="currentColor" d="M12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25z"></path></svg>
                         New Task
                     </a>
@@ -127,7 +127,7 @@
                 <div class="flex justify-between items-center mb-5">
                     <h4 class="text-lg font-medium">Tasks for this date</h4>
                         @if(auth()->user()->hasAnyRole(['supervisor', 'director']))
-                            <a href="{{ route('tasks.create') }}" id="new-task-modal-btn" class="btn btn-sm btn-primary" data-date="">
+                            <a href="{{ url('/tasks') }}?new_task=true" id="new-task-modal-btn" class="btn btn-sm btn-primary" data-date="">
                             <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="solar:add-circle-bold-duotone" class="iconify w-5 h-5 mr-2 iconify--solar"><path fill="currentColor" d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2s10 4.477 10 10" opacity=".5"></path><path fill="currentColor" d="M12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25z"></path></svg>
                                 New Task
                             </a>
@@ -818,7 +818,7 @@ document.addEventListener('DOMContentLoaded', function() {
         taskTitle.textContent = 'Tasks';
         
         const addButton = document.createElement('a');
-        addButton.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
+        addButton.href = `{{ url('/tasks') }}?new_task=true&due_date=${dateStr}`;
         addButton.className = 'btn btn-primary btn-sm';
         addButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="solar:add-circle-bold-duotone" class="iconify w-5 h-5 mr-2 iconify--solar"><path fill="currentColor" d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2s10 4.477 10 10" opacity=".5"></path><path fill="currentColor" d="M12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25z"></path></svg> Add Task';
         
@@ -1031,7 +1031,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Set the date for the new task button
             const dateStr = dateToShow.toISOString().split('T')[0];
             newTaskBtn.setAttribute('data-date', dateStr);
-            newTaskBtn.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
+            newTaskBtn.href = `{{ url('/tasks') }}?new_task=true&due_date=${dateStr}`;
         }
         
         try {
@@ -1380,6 +1380,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
+        // Set the date for the new task button if it exists
+        if (newTaskBtn) {
+            const dateStr = date.toISOString().split('T')[0];
+            newTaskBtn.setAttribute('data-date', dateStr);
+            newTaskBtn.href = `{{ url('/tasks') }}?new_task=true&due_date=${dateStr}`;
+        }
+        
         // Add tasks to the list
         if (!dayTasks || dayTasks.length === 0) {
             // Create an empty state that matches the theme
@@ -1422,13 +1429,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const taskCard = createTaskCard(task);
                 tasksList.appendChild(taskCard);
             });
-        }
-        
-        // Set the date for the new task button if it exists
-        if (newTaskBtn) {
-            const dateStr = date.toISOString().split('T')[0];
-            newTaskBtn.setAttribute('data-date', dateStr);
-            newTaskBtn.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
         }
         
         // Open the modal
