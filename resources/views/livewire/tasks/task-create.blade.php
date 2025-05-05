@@ -66,7 +66,7 @@
                     @error('start_date') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
                 </div>
                 
-                <div class="form-control">
+                <div class="form-control" x-data x-show="!$wire.is_repetitive">
                     <label class="label" for="due_date">
                         <span class="label-text font-medium">Due Date</span>
                     </label>

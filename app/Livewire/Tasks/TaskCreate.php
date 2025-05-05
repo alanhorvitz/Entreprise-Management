@@ -45,8 +45,20 @@ class TaskCreate extends Component
     public function updatedIsRepetitive($value)
     {
         $this->is_repetitive = filter_var($value, FILTER_VALIDATE_BOOLEAN);
-        if ($this->is_repetitive && empty($this->recurrence_days)) {
-            $this->recurrence_days = [now()->dayOfWeek];
+        if ($this->is_repetitive) {
+            // For repetitive tasks, initially set due_date same as start_date
+            $this->due_date = $this->start_date;
+            if (empty($this->recurrence_days)) {
+                $this->recurrence_days = [now()->dayOfWeek];
+            }
+        }
+    }
+
+    public function updatedStartDate($value)
+    {
+        if ($this->is_repetitive) {
+            // For repetitive tasks, keep due_date synchronized with start_date
+            $this->due_date = $value;
         }
     }
 
@@ -163,15 +175,47 @@ class TaskCreate extends Component
         
         // If task is repetitive, create the repetitive task record
         if ($this->is_repetitive) {
-            // Calculate next occurrence based on repetition rate
-            $nextOccurrence = $this->calculateNextOccurrence();
-            
             // Create binary representation of days for weekly recurrence
             $daysBinary = 0;
             if ($this->repetition_rate === 'weekly' && !empty($this->recurrence_days)) {
                 foreach ($this->recurrence_days as $day) {
                     $daysBinary |= (1 << $day); // Set bit for each selected day
                 }
+            }
+            
+            // Calculate the first occurrence date based on repetition rate
+            $startDate = Carbon::parse($this->start_date);
+            $nextOccurrence = null;
+            
+            switch ($this->repetition_rate) {
+                case 'daily':
+                    $nextOccurrence = $startDate->copy()->addDay();
+                    break;
+                case 'weekly':
+                    $nextOccurrence = $startDate->copy()->addDay();
+                    // Find the next day that matches our recurrence pattern
+                    while (!($daysBinary & (1 << $nextOccurrence->dayOfWeek))) {
+                        $nextOccurrence->addDay();
+                    }
+                    break;
+                case 'monthly':
+                    $nextOccurrence = $startDate->copy();
+                    // If we haven't passed the recurrence day this month, use it
+                    if ($startDate->day < $this->recurrence_month_day) {
+                        $day = min((int)$this->recurrence_month_day, $startDate->daysInMonth);
+                        $nextOccurrence->setDay($day);
+                    } else {
+                        // Otherwise, go to next month
+                        $nextOccurrence->addMonth();
+                        $day = min((int)$this->recurrence_month_day, $nextOccurrence->daysInMonth);
+                        $nextOccurrence->setDay($day);
+                    }
+                    break;
+                case 'yearly':
+                    $nextOccurrence = $startDate->copy()->addYear();
+                    break;
+                default:
+                    $nextOccurrence = $startDate->copy()->addDay();
             }
             
             // Create the repetitive task record
@@ -185,7 +229,7 @@ class TaskCreate extends Component
                 'recurrence_month_day' => $this->recurrence_month_day,
                 'start_date' => Carbon::parse($this->start_date),
                 'end_date' => $this->recurrence_end_date ? Carbon::parse($this->recurrence_end_date) : null,
-                'next_occurrence' => Carbon::parse($this->due_date),
+                'next_occurrence' => $nextOccurrence,
             ]);
         }
         
@@ -207,48 +251,6 @@ class TaskCreate extends Component
             'message' => 'Task created successfully!',
             'type' => 'success',
         ]);
-    }
-    
-    private function calculateNextOccurrence()
-    {
-        $dueDate = Carbon::parse($this->due_date);
-        
-        switch ($this->repetition_rate) {
-            case 'daily':
-                return strtotime($dueDate->addDay()->format('Y-m-d'));
-                
-            case 'weekly':
-                if (empty($this->recurrence_days)) {
-                    // If no days selected, default to same day next week
-                    return strtotime($dueDate->addWeek()->format('Y-m-d'));
-                }
-                
-                // Find the next occurrence based on selected days
-                $nextDate = clone $dueDate;
-                $nextDate->addDay(); // Start from the day after due date
-                
-                // Loop until we find the next day that matches our recurrence pattern
-                for ($i = 0; $i < 7; $i++) {
-                    if (in_array($nextDate->dayOfWeek, $this->recurrence_days)) {
-                        return strtotime($nextDate->format('Y-m-d'));
-                    }
-                    $nextDate->addDay();
-                }
-                return strtotime($dueDate->addWeek()->format('Y-m-d')); // Fallback
-                
-            case 'monthly':
-                // Get the specified day in the next month
-                $nextMonth = $dueDate->copy()->addMonth();
-                $day = min($this->recurrence_month_day, $nextMonth->daysInMonth);
-                $nextMonth->day($day);
-                return strtotime($nextMonth->format('Y-m-d'));
-                
-            case 'yearly':
-                return strtotime($dueDate->addYear()->format('Y-m-d'));
-                
-            default:
-                return strtotime($dueDate->format('Y-m-d'));
-        }
     }
     
     public function resetForm()
