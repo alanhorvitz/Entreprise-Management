@@ -453,25 +453,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     statusFilter.addEventListener('change', () => {
         filters.status = statusFilter.value;
-        console.log("Status filter set to:", filters.status);
-        
-        // Log which tasks match this filter
-        if (filters.status) {
-            const matchingTasks = window.tasks.filter(task => {
-                if (task.status) {
-                    const normalizedTaskStatus = normalizeStatus(task.status);
-                    const normalizedFilterStatus = normalizeStatus(filters.status);
-                    return normalizedTaskStatus === normalizedFilterStatus;
-                }
-                return false;
-            });
-            
-            console.log(`Found ${matchingTasks.length} tasks with status matching '${filters.status}'`);
-            if (matchingTasks.length > 0) {
-                console.log("Sample matching task:", matchingTasks[0]);
-            }
-        }
-        
         renderCalendar();
     });
     
@@ -515,10 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Debug task statuses
         if (window.tasks.length > 0) {
-            console.log("Sample task data:", window.tasks[0]);
-            // Log unique status values
-            const uniqueStatuses = [...new Set(window.tasks.map(task => task.status))];
-            console.log("Unique status values in data:", uniqueStatuses);
+            // Remove debug logs
         }
         
         // Use all tasks without filtering by user_id
@@ -655,10 +633,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (e.target.closest('.task-item')) {
                         return;
                     }
-                    
-                    console.log('Day clicked:', dateStr);
-                    console.log('Tasks found:', dayTasks.length);
-                    
                     // Store the tasks specifically for this day in a data attribute
                     // to ensure we're using the correct tasks when the modal opens
                     const dayTasksJSON = JSON.stringify(dayTasks);
@@ -1009,7 +983,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add click handler that stops propagation
         taskElement.addEventListener('click', (e) => {
             e.stopPropagation();
-            console.log('Task clicked:', task.title, task.id, 'Status:', task.status);
             openTaskDetailsModal(task);
         });
         
@@ -1017,14 +990,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function openTaskDetailsModal(task) {
-        console.log('Opening task details modal for:', task);
         
-        // Show task details in a modal instead of redirecting
+        // Get all required elements
         const modal = document.getElementById('task-modal');
         const modalDate = document.getElementById('modal-date');
         const tasksList = document.getElementById('tasks-list');
         const newTaskBtn = document.getElementById('new-task-modal-btn');
         const holidayNotice = document.getElementById('holiday-notice');
+        
+        // Check if required elements exist
+        if (!modal || !modalDate || !tasksList) {
+            console.error('Required modal elements not found:', {
+                modal: !!modal,
+                modalDate: !!modalDate,
+                tasksList: !!tasksList
+            });
+            return; // Exit the function if required elements are missing
+        }
         
         // Format the date for display
         let dateToShow = new Date();
@@ -1037,23 +1019,33 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear existing tasks
         tasksList.innerHTML = '';
         
-        // Hide holiday notice
-        holidayNotice.classList.add('hidden');
+        // Only manipulate optional elements if they exist
+        if (holidayNotice) {
+            holidayNotice.classList.add('hidden');
+        }
         
-        // Show new task button
-        newTaskBtn.classList.remove('hidden');
+        if (newTaskBtn) {
+            // Show new task button
+            newTaskBtn.classList.remove('hidden');
+            
+            // Set the date for the new task button
+            const dateStr = dateToShow.toISOString().split('T')[0];
+            newTaskBtn.setAttribute('data-date', dateStr);
+            newTaskBtn.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
+        }
         
-        // Set the date for the new task button
-        const dateStr = dateToShow.toISOString().split('T')[0];
-        newTaskBtn.setAttribute('data-date', dateStr);
-        newTaskBtn.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
-        
-        // Create and add the task card
-        const taskCard = createTaskCard(task);
-        tasksList.appendChild(taskCard);
-        
-        // Open the modal
-        modal.showModal();
+        try {
+            // Create and add the task card
+            const taskCard = createTaskCard(task);
+            if (taskCard) {
+                tasksList.appendChild(taskCard);
+            }
+            
+            // Open the modal
+            modal.showModal();
+        } catch (error) {
+            console.error('Error creating task card:', error);
+        }
     }
     
     function createTaskCard(task) {
@@ -1093,7 +1085,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (task.is_repetitive || task.repetitive_task) {
             const repeatBadge = document.createElement('div');
             repeatBadge.className = 'badge badge-accent ml-2 flex items-center gap-1';
-            repeatBadge.innerHTML = '<span class="text-base">🔄</span> Repeats';
+            repeatBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M9.53 2.47a.75.75 0 0 0-1.06 1.06l.72.72H9a7.75 7.75 0 1 0 0 15.5h.5a.75.75 0 0 0 0-1.5H9a6.25 6.25 0 0 1 0-12.5h2a.75.75 0 0 0 .53-1.28z" clip-rule="evenodd"></path><path fill="currentColor" d="M14.5 4.25a.75.75 0 0 0 0 1.5h.5a6.25 6.25 0 1 1 0 12.5h-2a.75.75 0 0 0-.53 1.28l2 2a.75.75 0 0 0 1.06-1.06l-.72-.72H15a7.75 7.75 0 0 0 0-15.5z" opacity="0.5"></path></svg> Repeats';
             repeatBadge.title = 'This is a repetitive task';
             titleContainer.appendChild(title);
             titleContainer.appendChild(repeatBadge);
@@ -1335,12 +1327,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function filterTasksForDate(tasks, date) {
-        console.log('Filtering tasks for date:', date.toISOString().split('T')[0]);
-        console.log('Available tasks:', tasks);
-        
         // Ensure tasks is an array before filtering
         if (!Array.isArray(tasks)) {
-            console.error('Tasks is not an array:', tasks);
             return [];
         }
         
@@ -1348,25 +1336,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!task.due_date) return false;
             
             const dueDate = new Date(task.due_date);
-            const isMatch = dueDate.getFullYear() === date.getFullYear() &&
+            return dueDate.getFullYear() === date.getFullYear() &&
                    dueDate.getMonth() === date.getMonth() &&
                    dueDate.getDate() === date.getDate();
-                   
-            if (isMatch) {
-                console.log('Matched task:', task.title, 'for date:', date.toISOString().split('T')[0]);
-            }
-            
-            return isMatch;
         });
         
-        console.log('Filtered tasks:', filteredTasks);
         return filteredTasks;
     }
     
     function openDayTasksModal(date, holidayName, dayTasks) {
-        console.log('Opening day tasks modal for date:', date.toISOString().split('T')[0]);
-        console.log('Day tasks provided:', dayTasks);
-        
         const modal = document.getElementById('task-modal');
         const modalDate = document.getElementById('modal-date');
         const tasksList = document.getElementById('tasks-list');
@@ -1376,7 +1354,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Check if all required elements exist
         if (!modal || !modalDate || !tasksList) {
-            console.error('Required modal elements not found');
             return;
         }
         
@@ -1432,7 +1409,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             tasksList.appendChild(emptyState);
         } else {
-            console.log('Creating task cards for', dayTasks.length, 'tasks');
             // First add a helpful header if multiple tasks
             if (dayTasks.length > 1) {
                 const taskCountHeader = document.createElement('h4');
@@ -1443,7 +1419,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Then add each task card
             dayTasks.forEach(task => {
-                console.log('Creating card for task:', task.title);
                 const taskCard = createTaskCard(task);
                 tasksList.appendChild(taskCard);
             });
@@ -1532,7 +1507,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 
-                // Try to extract the JSON from the script tag
                 try {
                     const scriptContent = Array.from(doc.querySelectorAll('script'))
                         .find(script => script.textContent.includes('const tasks ='))?.textContent;
@@ -1540,19 +1514,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (scriptContent) {
                         const tasksMatch = scriptContent.match(/const tasks = (.*?);/);
                         if (tasksMatch && tasksMatch[1]) {
-                            // Update global tasks array
                             window.tasks = JSON.parse(tasksMatch[1]);
-                            console.log('Updated tasks:', window.tasks);
                             renderCalendar();
                         }
                     }
                 } catch (error) {
-                    console.error('Error parsing tasks:', error);
                     window.location.reload();
                 }
             })
-            .catch(error => {
-                console.error('Error fetching tasks:', error);
+            .catch(() => {
                 window.location.reload();
             });
     }

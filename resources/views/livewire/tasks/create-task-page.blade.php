@@ -49,20 +49,24 @@
                         @error('project_id') <span class="text-error text-sm">{{ $message }}</span> @enderror
                     </div>
                     
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text required-field">Start Date</span>
+                    <div class="form-control">
+                        <label class="label" for="start_date">
+                            <span class="label-text font-medium">Start Date</span>
                         </label>
-                        <input type="date" wire:model="start_date" class="input input-bordered w-full" required />
-                        @error('start_date') <span class="text-error text-sm">{{ $message }}</span> @enderror
+                        <input type="date" id="start_date" class="input input-bordered w-full focus:input-primary" 
+                               wire:model="start_date" 
+                               min="{{ date('Y-m-d') }}" />
+                        @error('start_date') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
                     </div>
                     
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text">Due Date</span>
+                    <div class="form-control">
+                        <label class="label" for="due_date">
+                            <span class="label-text font-medium">Due Date</span>
                         </label>
-                        <input type="date" wire:model="due_date" class="input input-bordered w-full" />
-                        @error('due_date') <span class="text-error text-sm">{{ $message }}</span> @enderror
+                        <input type="date" id="due_date" class="input input-bordered w-full focus:input-primary" 
+                               wire:model="due_date" 
+                               min="{{ date('Y-m-d') }}" />
+                        @error('due_date') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
                     </div>
                     
                     <div class="form-control w-full">
@@ -130,7 +134,7 @@
                                             </div>
                                         </div>
                                     </label>
-                        @endforeach
+                                @endforeach
                             @elseif($project_id)
                                 <div class="col-span-full text-center py-4 text-gray-500">
                                     No team members found for this project
@@ -168,27 +172,29 @@
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-control">
-                    <label class="label">
+                                <label class="label">
                                     <span class="label-text">Repeat</span>
-                    </label>
+                                </label>
                                 <select wire:model.live="repetition_rate" class="select select-bordered w-full">
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                    </select>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
                                 @error('repetition_rate') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
-                </div>
+                            </div>
 
                             <div class="form-control">
-                                <label class="label">
+                                <label class="label" for="recurrence_end_date">
                                     <span class="label-text">Until (optional)</span>
                                 </label>
-                                <input type="date" wire:model="recurrence_end_date" class="input input-bordered w-full" />
+                                <input type="date" id="recurrence_end_date" class="input input-bordered w-full" 
+                                       wire:model="recurrence_end_date" 
+                                       min="{{ date('Y-m-d') }}" />
                                 @error('recurrence_end_date') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
-            </div>
-        </div>
-        
+                            </div>
+                        </div>
+                        
                         @if($repetition_rate === 'weekly')
                             <div class="form-control mt-4">
                                 <label class="label">
@@ -222,22 +228,22 @@
 
                         @if($repetition_rate === 'yearly')
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div class="form-control">
+                                <div class="form-control">
                                     <label class="label">
                                         <span class="label-text">Month</span>
-                    </label>
+                                    </label>
                                     <select class="select select-bordered w-full" wire:model.live="recurrence_month">
                                         @foreach(range(1, 12) as $month)
                                             <option value="{{ $month }}">{{ date('F', mktime(0, 0, 0, $month, 1)) }}</option>
                                         @endforeach
                                     </select>
                                     @error('recurrence_month') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
-                </div>
-                
+                                </div>
+                                
                                 <div class="form-control">
-                    <label class="label">
+                                    <label class="label">
                                         <span class="label-text">Day of month</span>
-                    </label>
+                                    </label>
                                     <input type="number" class="input input-bordered w-full" 
                                         wire:model.live="recurrence_month_day" 
                                         min="1" max="31" />
