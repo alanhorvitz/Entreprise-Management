@@ -10,12 +10,16 @@
             <!-- Main controls and view options -->
             <div class="flex flex-col md:flex-row justify-between mb-4 gap-4">
                 <div class="flex items-center space-x-2">
-                    <button id="prev-month" class="btn btn-sm">
-                        <iconify-icon icon="solar:arrow-left-linear" class="h-5 w-5"></iconify-icon>
+                <button id="prev-month" class="btn btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
                     </button>
                     <h2 id="current-month" class="text-xl font-semibold"></h2>
                     <button id="next-month" class="btn btn-sm">
-                        <iconify-icon icon="solar:arrow-right-linear" class="h-5 w-5"></iconify-icon>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
                     </button>
                     <button id="today-btn" class="btn btn-sm btn-primary ml-2">Today</button>
                 </div>
@@ -606,16 +610,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 dateElement.appendChild(dateNumber);
                 
                 // Add button (only for non-holidays, current/future dates, and authorized users)
-                if (!isHolidayDay && isCurrentMonth && @json(auth()->user()->hasRole(['director', 'supervisor']))) {
-                    const addButton = document.createElement('button');
-                    addButton.className = 'btn btn-xs btn-ghost btn-circle';
-                    addButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="solar:add-circle-bold-duotone" class="iconify w-5 h-5 mr-2 iconify--solar"><path fill="currentColor" d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2s10 4.477 10 10" opacity=".5"></path><path fill="currentColor" d="M12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25z"></path></svg>';
-                    addButton.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        openTaskCreationPage(dateStr);
-                    });
-                    dateElement.appendChild(addButton);
-                }
+                // if (!isHolidayDay && isCurrentMonth && @json(auth()->user()->hasRole(['director', 'supervisor']))) {
+                //     const addButton = document.createElement('button');
+                //     addButton.className = 'btn btn-xs btn-ghost btn-circle';
+                //     addButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="solar:add-circle-bold-duotone" class="iconify w-5 h-5 mr-2 iconify--solar"><path fill="currentColor" d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2s10 4.477 10 10" opacity=".5"></path><path fill="currentColor" d="M12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25z"></path></svg>';
+                //     addButton.addEventListener('click', (e) => {
+                //         e.stopPropagation();
+                //         openTaskCreationPage(dateStr);
+                //     });
+                //     dateElement.appendChild(addButton);
+                // }
                 
                 dayElement.appendChild(dateElement);
                 

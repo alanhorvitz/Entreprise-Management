@@ -58,7 +58,7 @@ class TaskCreate extends Component
             $this->recurrence_month_day = now()->day;
         }
     }
-
+    
     protected $rules = [
         'title' => 'required|string|max:100',
         'description' => 'nullable|string',
@@ -76,7 +76,7 @@ class TaskCreate extends Component
         'recurrence_month_day' => 'required_if:repetition_rate,monthly|integer|min:1|max:31',
         'recurrence_end_date' => 'nullable|date|after_or_equal:due_date',
     ];
-
+    
     public function loadProjectMembers()
     {
         if ($this->project_id) {
@@ -269,12 +269,12 @@ class TaskCreate extends Component
             'projects' => Project::all(),
             'projectMembers' => $this->projectMembers,
             'weekdays' => [
-                0 => 'Sunday',
-                1 => 'Monday',
-                2 => 'Tuesday',
-                3 => 'Wednesday',
-                4 => 'Thursday',
-                5 => 'Friday',
+            0 => 'Sunday',
+            1 => 'Monday',
+            2 => 'Tuesday',
+            3 => 'Wednesday',
+            4 => 'Thursday',
+            5 => 'Friday',
                 6 => 'Saturday'
             ]
         ]);

@@ -211,7 +211,7 @@
                             </div>
                         @endif
                     </div>
-                </div>
+            </div>
                 @error('assignees') <span class="text-error text-sm">{{ $message }}</span> @enderror
         </div>
         
