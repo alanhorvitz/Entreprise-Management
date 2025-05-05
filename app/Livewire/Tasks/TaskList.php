@@ -41,11 +41,20 @@ class TaskList extends Component
     {
         // Check if there's a task ID in the query string to open
         $taskId = request()->query('open_task');
-        if ($taskId) {
-            // Check if the task exists
+        $editTaskId = request()->query('edit_task');
+        
+        if ($editTaskId) {
+            // Check if the task exists for editing
+            $task = Task::find($editTaskId);
+            if ($task) {
+                // Dispatch an event to open the edit modal after the component is rendered
+                $this->dispatch('defer-load-task-edit', $editTaskId);
+            }
+        } elseif ($taskId) {
+            // Check if the task exists for viewing
             $task = Task::find($taskId);
             if ($task) {
-                // Dispatch an event to open the modal after the component is rendered
+                // Dispatch an event to open the view modal after the component is rendered
                 $this->dispatch('defer-load-task', $taskId);
             }
         }

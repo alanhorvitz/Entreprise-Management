@@ -5,7 +5,7 @@
             <div class="flex justify-between items-center mb-5">
                 <h2 class="card-title">Tasks</h2>
                 
-                @if(auth()->user()->hasPermissionTo('create tasks'))
+                @if(auth()->user()->hasRole(['director', 'supervisor']))
                 <button wire:click="openCreateModal()" class="btn btn-primary">
                     <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> New Task
                 </button>
@@ -250,15 +250,22 @@
     <script>
         // Direct DOM initialization - runs immediately
         document.addEventListener('DOMContentLoaded', function() {
-            // Check for URL parameter
+            // Check for URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const taskIdFromUrl = urlParams.get('open_task');
+            const editTaskIdFromUrl = urlParams.get('edit_task');
             
-            if (taskIdFromUrl) {
-                console.log('Task ID found in URL:', taskIdFromUrl);
+            if (editTaskIdFromUrl) {
+                console.log('Edit Task ID found in URL:', editTaskIdFromUrl);
                 // We need to wait for Livewire to be ready
                 if (window.Livewire) {
-                    console.log('Livewire already available, opening task...');
+                    console.log('Livewire already available, opening edit modal...');
+                    setTimeout(() => window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).openEditModal(editTaskIdFromUrl), 500);
+                }
+            } else if (taskIdFromUrl) {
+                console.log('View Task ID found in URL:', taskIdFromUrl);
+                if (window.Livewire) {
+                    console.log('Livewire already available, opening view modal...');
                     setTimeout(() => window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).openViewModal(taskIdFromUrl), 500);
                 }
             }
@@ -268,23 +275,38 @@
         document.addEventListener('livewire:initialized', () => {
             console.log('Livewire initialized');
             
-            // Check again for URL parameter
+            // Check for URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const taskIdFromUrl = urlParams.get('open_task');
+            const editTaskIdFromUrl = urlParams.get('edit_task');
             
-            if (taskIdFromUrl) {
-                console.log('Task ID found in URL after Livewire init:', taskIdFromUrl);
+            if (editTaskIdFromUrl) {
+                console.log('Edit Task ID found in URL after Livewire init:', editTaskIdFromUrl);
                 setTimeout(() => {
-                    console.log('Opening task modal for ID:', taskIdFromUrl);
+                    console.log('Opening edit modal for ID:', editTaskIdFromUrl);
+                    @this.openEditModal(editTaskIdFromUrl);
+                }, 500);
+            } else if (taskIdFromUrl) {
+                console.log('View Task ID found in URL after Livewire init:', taskIdFromUrl);
+                setTimeout(() => {
+                    console.log('Opening view modal for ID:', taskIdFromUrl);
                     @this.openViewModal(taskIdFromUrl);
                 }, 500);
             }
             
-            // Also listen for the event dispatched from the PHP component
+            // Listen for view modal event
             Livewire.on('defer-load-task', (taskId) => {
                 console.log('Received defer-load-task event with ID:', taskId);
                 setTimeout(() => {
                     @this.openViewModal(taskId);
+                }, 500);
+            });
+            
+            // Listen for edit modal event
+            Livewire.on('defer-load-task-edit', (taskId) => {
+                console.log('Received defer-load-task-edit event with ID:', taskId);
+                setTimeout(() => {
+                    @this.openEditModal(taskId);
                 }, 500);
             });
         });

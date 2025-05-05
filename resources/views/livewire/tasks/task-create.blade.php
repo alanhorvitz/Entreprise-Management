@@ -4,8 +4,8 @@
             <h2 class="text-2xl font-bold flex items-center gap-2 text-primary">
                 <span class="iconify w-7 h-7" data-icon="solar:add-square-bold-duotone"></span> Create New Task
             </h2>
-        </div>
-        
+    </div>
+    
         <form wire:submit="create" class="space-y-6">
             <!-- Basic Task Info -->
                 <div class="form-control mb-4">
@@ -15,7 +15,7 @@
                     <input type="text" id="title" class="input input-bordered w-full focus:input-primary text-lg" wire:model="title" required />
                     @error('title') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
                 </div>
-
+                
             
             <!-- Details -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -84,63 +84,63 @@
             <!-- Repetitive Task Section -->
             <div class="mt-4 p-4 bg-base-200 rounded-lg">
                 <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-2">
+                <label class="label cursor-pointer justify-start gap-2">
                         <input type="checkbox" class="checkbox checkbox-primary" wire:model.live="is_repetitive" />
-                        <span class="label-text font-medium">Make this a repetitive task</span>
-                    </label>
-                </div>
-
+                    <span class="label-text font-medium">Make this a repetitive task</span>
+                </label>
+            </div>
+            
                 <div class="mt-4" x-data x-show="$wire.is_repetitive">
                     <div class="bg-base-100 p-4 rounded-lg">
                         <h3 class="font-bold mb-4">Repetitive Task Options</h3>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="form-control">
-                                <label class="label" for="repetition_rate">
-                                    <span class="label-text">Repeat</span>
-                                </label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label" for="repetition_rate">
+                            <span class="label-text">Repeat</span>
+                        </label>
                                 <select id="repetition_rate" class="select select-bordered w-full" wire:model.live="repetition_rate">
-                                    <option value="daily">Daily</option>
-                                    <option value="weekly">Weekly</option>
-                                    <option value="monthly">Monthly</option>
-                                    <option value="yearly">Yearly</option>
-                                </select>
-                                @error('repetition_rate') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="form-control">
-                                <label class="label" for="recurrence_end_date">
-                                    <span class="label-text">Until (optional)</span>
-                                </label>
-                                <input type="date" id="recurrence_end_date" class="input input-bordered w-full" wire:model="recurrence_end_date" />
-                                @error('recurrence_end_date') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-
-                        @if($repetition_rate === 'weekly')
-                            <div class="form-control mt-4">
-                                <label class="label">
-                                    <span class="label-text">Repeat on</span>
-                                </label>
-                                <div class="flex flex-wrap gap-2">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                        @error('repetition_rate') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label" for="recurrence_end_date">
+                            <span class="label-text">Until (optional)</span>
+                        </label>
+                        <input type="date" id="recurrence_end_date" class="input input-bordered w-full" wire:model="recurrence_end_date" />
+                        @error('recurrence_end_date') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+                
+                @if($repetition_rate === 'weekly')
+                <div class="form-control mt-4">
+                    <label class="label">
+                        <span class="label-text">Repeat on</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2">
                                     @foreach(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as $index => $day)
                                         <label class="flex items-center gap-2 cursor-pointer">
                                             <input type="checkbox" class="checkbox checkbox-sm" 
                                                 wire:model.live="recurrence_days" 
                                                 value="{{ $index }}" />
                                             <span>{{ $day }}</span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                                @error('recurrence_days') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
-                            </div>
-                        @endif
-
-                        @if($repetition_rate === 'monthly')
-                            <div class="form-control mt-4">
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('recurrence_days') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                </div>
+                @endif
+                
+                @if($repetition_rate === 'monthly')
+                <div class="form-control mt-4">
                                 <label class="label">
-                                    <span class="label-text">Day of month</span>
-                                </label>
+                        <span class="label-text">Day of month</span>
+                    </label>
                                 <input type="number" class="input input-bordered w-full" 
                                     wire:model.live="recurrence_month_day" 
                                     min="1" max="31" />
@@ -158,7 +158,7 @@
                                         @foreach(range(1, 12) as $month)
                                             <option value="{{ $month }}">{{ date('F', mktime(0, 0, 0, $month, 1)) }}</option>
                                         @endforeach
-                                    </select>
+                    </select>
                                     @error('recurrence_month') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
                                 </div>
 
@@ -169,7 +169,7 @@
                                     <input type="number" class="input input-bordered w-full" 
                                         wire:model.live="recurrence_month_day" 
                                         min="1" max="31" />
-                                    @error('recurrence_month_day') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                    @error('recurrence_month_day') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
                                 </div>
                             </div>
                         @endif
@@ -200,7 +200,7 @@
                                         </div>
                                     </div>
                                 </label>
-                            @endforeach
+                    @endforeach
                         @elseif($project_id)
                             <div class="col-span-full text-center py-4 text-gray-500">
                                 No team members found for this project
@@ -213,8 +213,8 @@
                     </div>
                 </div>
                 @error('assignees') <span class="text-error text-sm">{{ $message }}</span> @enderror
-            </div>
-            
+        </div>
+        
             <!-- Form Actions -->
             <div class="border-t border-base-300 pt-4 flex justify-end gap-3">
                 <button type="button" class="btn btn-outline" wire:click="$dispatch('closeModal')">
@@ -225,7 +225,7 @@
                     <span class="iconify w-5 h-5 mr-2" data-icon="solar:disk-bold-duotone"></span>
                     Create Task
                 </button>
-            </div>
-        </form>
+        </div>
+    </form>
     </div>
 </div> 

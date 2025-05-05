@@ -11,24 +11,22 @@
             <div class="flex flex-col md:flex-row justify-between mb-4 gap-4">
                 <div class="flex items-center space-x-2">
                     <button id="prev-month" class="btn btn-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
+                        <iconify-icon icon="solar:arrow-left-linear" class="h-5 w-5"></iconify-icon>
                     </button>
                     <h2 id="current-month" class="text-xl font-semibold"></h2>
                     <button id="next-month" class="btn btn-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                        </svg>
+                        <iconify-icon icon="solar:arrow-right-linear" class="h-5 w-5"></iconify-icon>
                     </button>
                     <button id="today-btn" class="btn btn-sm btn-primary ml-2">Today</button>
                 </div>
 
                 <div class="flex items-center space-x-2">
+                    @if(auth()->user()->hasAnyRole(['supervisor', 'director']))
                     <a href="{{ route('tasks.create') }}?from=calendar" class="btn btn-sm btn-primary mr-2">
-                        <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
+                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="solar:add-circle-bold-duotone" class="iconify w-5 h-5 mr-2 iconify--solar"><path fill="currentColor" d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2s10 4.477 10 10" opacity=".5"></path><path fill="currentColor" d="M12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25z"></path></svg>
                         New Task
                     </a>
+                    @endif
                     <div class="btn-group">
                         <button id="view-month" class="btn btn-sm btn-active">Month</button>
                         <button id="view-week" class="btn btn-sm">Week</button>
@@ -101,9 +99,7 @@
             <h3 class="font-bold text-2xl text-primary" id="modal-date"></h3>
             <form method="dialog">
                 <button class="btn btn-circle btn-ghost">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <iconify-icon icon="solar:close-circle-bold-duotone" class="h-6 w-6"></iconify-icon>
                 </button>
             </form>
         </div>
@@ -114,7 +110,7 @@
             <!-- Holiday Notice -->
             <div id="holiday-notice" class="mb-4 p-3 bg-error/10 border-l-4 border-error rounded-lg hidden">
                 <div class="flex items-center gap-2 text-error">
-                    <iconify-icon icon="lucide:calendar-off" class="text-xl"></iconify-icon>
+                    <iconify-icon icon="solar:calendar-remove-bold-duotone" class="text-xl"></iconify-icon>
                     <div>
                         <h4 class="font-bold">NATIONAL HOLIDAY</h4>
                         <p id="holiday-name" class="text-sm">This is a Moroccan holiday. No tasks can be created on this day.</p>
@@ -126,10 +122,12 @@
             <div id="modal-tasks" class="tab-content">
                 <div class="flex justify-between items-center mb-5">
                     <h4 class="text-lg font-medium">Tasks for this date</h4>
-                        <a href="{{ route('tasks.create') }}" id="new-task-modal-btn" class="btn btn-sm btn-primary" data-date="">
-                            <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
-                            New Task
-                        </a>
+                        @if(auth()->user()->hasAnyRole(['supervisor', 'director']))
+                            <a href="{{ route('tasks.create') }}" id="new-task-modal-btn" class="btn btn-sm btn-primary" data-date="">
+                            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="solar:add-circle-bold-duotone" class="iconify w-5 h-5 mr-2 iconify--solar"><path fill="currentColor" d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2s10 4.477 10 10" opacity=".5"></path><path fill="currentColor" d="M12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25z"></path></svg>
+                                New Task
+                            </a>
+                        @endif
                 </div>
                 
                 <div id="tasks-list" class="space-y-4">
@@ -607,11 +605,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 dateNumber.textContent = date.getDate();
                 dateElement.appendChild(dateNumber);
                 
-                // Add button (only for non-holidays and current/future dates)
-                if (!isHolidayDay && isCurrentMonth) {
+                // Add button (only for non-holidays, current/future dates, and authorized users)
+                if (!isHolidayDay && isCurrentMonth && @json(auth()->user()->hasRole(['director', 'supervisor']))) {
                     const addButton = document.createElement('button');
                     addButton.className = 'btn btn-xs btn-ghost btn-circle';
-                    addButton.innerHTML = '<iconify-icon icon="lucide:plus"></iconify-icon>';
+                    addButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="solar:add-circle-bold-duotone" class="iconify w-5 h-5 mr-2 iconify--solar"><path fill="currentColor" d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2s10 4.477 10 10" opacity=".5"></path><path fill="currentColor" d="M12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25z"></path></svg>';
                     addButton.addEventListener('click', (e) => {
                         e.stopPropagation();
                         openTaskCreationPage(dateStr);
@@ -628,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     const holidayHeader = document.createElement('div');
                     holidayHeader.className = 'text-xs font-bold text-error flex items-center gap-1 mb-1';
-                    holidayHeader.innerHTML = '<iconify-icon icon="lucide:calendar-off"></iconify-icon><span>NATIONAL HOLIDAY</span>';
+                    holidayHeader.innerHTML = '<iconify-icon icon="solar:calendar-remove-bold-duotone" class="text-xl"></iconify-icon><span>NATIONAL HOLIDAY</span>';
                     
                     const holidayNameElement = document.createElement('div');
                     holidayNameElement.className = 'text-sm text-error/90 font-medium truncate';
@@ -814,7 +812,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const holidayContent = document.createElement('div');
             holidayContent.className = 'flex items-center gap-2 text-error';
-            holidayContent.innerHTML = `<iconify-icon icon="lucide:calendar-off" class="text-xl"></iconify-icon>
+            holidayContent.innerHTML = `<iconify-icon icon="solar:calendar-remove-bold-duotone" class="text-xl"></iconify-icon>
                                      <div>
                                          <h4 class="font-bold">NATIONAL HOLIDAY</h4>
                                          <p class="text-sm">${holidayName}</p>
@@ -844,7 +842,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const addButton = document.createElement('a');
         addButton.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
         addButton.className = 'btn btn-primary btn-sm';
-        addButton.innerHTML = '<iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon> Add Task';
+        addButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="solar:add-circle-bold-duotone" class="iconify w-5 h-5 mr-2 iconify--solar"><path fill="currentColor" d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2s10 4.477 10 10" opacity=".5"></path><path fill="currentColor" d="M12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25z"></path></svg> Add Task';
         
         taskHeader.appendChild(taskTitle);
         
@@ -868,7 +866,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const iconContainer = document.createElement('div');
             iconContainer.className = 'w-16 h-16 rounded-full bg-base-200 flex items-center justify-center mb-4';
-            iconContainer.innerHTML = '<iconify-icon icon="lucide:calendar-x" style="font-size: 1.75rem"></iconify-icon>';
+            iconContainer.innerHTML = '<iconify-icon icon="solar:calendar-minimalistic-bold-duotone" style="font-size: 1.75rem"></iconify-icon>';
             
             const emptyMessage = document.createElement('h4');
             emptyMessage.className = 'font-medium text-lg mb-1';
@@ -992,7 +990,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const repeatIcon = document.createElement('span');
             repeatIcon.className = 'ml-1 opacity-70';
             repeatIcon.setAttribute('title', 'Repetitive Task');
-            repeatIcon.innerHTML = '🔄'; // Repeat emoji
+            repeatIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M9.53 2.47a.75.75 0 0 0-1.06 1.06l.72.72H9a7.75 7.75 0 1 0 0 15.5h.5a.75.75 0 0 0 0-1.5H9a6.25 6.25 0 0 1 0-12.5h2a.75.75 0 0 0 .53-1.28z" clip-rule="evenodd"/><path fill="currentColor" d="M14.5 4.25a.75.75 0 0 0 0 1.5h.5a6.25 6.25 0 1 1 0 12.5h-2a.75.75 0 0 0-.53 1.28l2 2a.75.75 0 0 0 1.06-1.06l-.72-.72H15a7.75 7.75 0 0 0 0-15.5z" opacity="0.5"/></svg>'; // Repeat emoji
             taskIcons.appendChild(repeatIcon);
         }
         
@@ -1066,12 +1064,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!e.target.closest('button') && !e.target.closest('a')) {
                 // Close the current modal
                 document.getElementById('task-modal').close();
-                
                 // Use both query parameter and hash to maximize the chance of success
                 window.location.href = `{{ url('/tasks') }}?open_task=${task.id}#task-${task.id}`;
             }
         });
-        
+
         // Get priority class based on the task priority
         const priorityClass = getPriorityClass(task.priority);
         
@@ -1194,18 +1191,21 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('task-modal').close();
         });
         
-        // Edit button
-        const editButton = document.createElement('a');
-        editButton.href = `{{ url('/tasks') }}/${task.id}/edit`;
+        // Edit button - only show for authorized users
+        @if(auth()->user()->hasRole(['director', 'supervisor']))
+        const editButton = document.createElement('button');
         editButton.className = 'btn btn-sm btn-primary';
         editButton.textContent = 'Edit';
-        editButton.target = '_blank';
         editButton.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent triggering the card click
+            document.getElementById('task-modal').close();
+            // Use the same pattern as task viewing but with edit_task parameter
+            window.location.href = `{{ url('/tasks') }}?edit_task=${task.id}#task-${task.id}`;
         });
+        actions.appendChild(editButton);
+        @endif
         
         actions.appendChild(closeButton);
-        actions.appendChild(editButton);
         cardBody.appendChild(actions);
         
         taskCard.appendChild(cardBody);
@@ -1370,6 +1370,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const holidayNotice = document.getElementById('holiday-notice');
         const holidayNameElement = document.getElementById('holiday-name');
         
+        // Check if all required elements exist
+        if (!modal || !modalDate || !tasksList) {
+            console.error('Required modal elements not found');
+            return;
+        }
+        
         // Format the date for display
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         modalDate.textContent = date.toLocaleDateString('en-US', options);
@@ -1377,14 +1383,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear existing tasks
         tasksList.innerHTML = '';
         
-        // Show or hide holiday notice
-        if (holidayName) {
-            holidayNotice.classList.remove('hidden');
-            holidayNameElement.textContent = holidayName;
-            newTaskBtn.classList.add('hidden'); // Hide the new task button on holidays
-        } else {
-            holidayNotice.classList.add('hidden');
-            newTaskBtn.classList.remove('hidden');
+        // Show or hide holiday notice if the elements exist
+        if (holidayNotice && holidayNameElement) {
+            if (holidayName) {
+                holidayNotice.classList.remove('hidden');
+                holidayNameElement.textContent = holidayName;
+                if (newTaskBtn) {
+                    newTaskBtn.classList.add('hidden'); // Hide the new task button on holidays
+                }
+            } else {
+                holidayNotice.classList.add('hidden');
+                if (newTaskBtn) {
+                    newTaskBtn.classList.remove('hidden');
+                }
+            }
         }
         
         // Add tasks to the list
@@ -1396,7 +1408,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Icon container with theme-aware styling
             const iconContainer = document.createElement('div');
             iconContainer.className = 'w-16 h-16 rounded-full bg-base-200 flex items-center justify-center mb-4';
-            iconContainer.innerHTML = '<iconify-icon icon="lucide:calendar-x" style="font-size: 1.75rem"></iconify-icon>';
+            iconContainer.innerHTML = '<iconify-icon icon="solar:calendar-minimalistic-bold-duotone" style="font-size: 1.75rem"></iconify-icon>';
             
             // Empty message
             const emptyText = document.createElement('h4');
@@ -1410,7 +1422,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             emptyState.appendChild(iconContainer);
             emptyState.appendChild(emptyText);
-            emptyState.appendChild(helperText);
+            if (!holidayName) {
+                emptyState.appendChild(helperText);
+            }
             
             tasksList.appendChild(emptyState);
         } else {
@@ -1431,10 +1445,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Set the date for the new task button
-        const dateStr = date.toISOString().split('T')[0];
-        newTaskBtn.setAttribute('data-date', dateStr);
-        newTaskBtn.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
+        // Set the date for the new task button if it exists
+        if (newTaskBtn) {
+            const dateStr = date.toISOString().split('T')[0];
+            newTaskBtn.setAttribute('data-date', dateStr);
+            newTaskBtn.href = `{{ route('tasks.create') }}?from=calendar&due_date=${dateStr}`;
+        }
         
         // Open the modal
         modal.showModal();

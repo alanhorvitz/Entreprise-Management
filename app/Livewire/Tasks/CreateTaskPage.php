@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Tasks;
 
-use App\Models\Project;
 use App\Models\Task;
-use App\Models\TaskAssignment;
+use App\Models\Project;
 use App\Models\User;
+use App\Models\RepetitiveTask;
+use App\Models\TaskAssignment;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -14,17 +16,23 @@ class CreateTaskPage extends Component
     public $title = '';
     public $description = '';
     public $project_id = '';
-    public $due_date = '';
     public $priority = 'medium';
     public $current_status = 'todo';
     public $start_date = '';
+    public $due_date = '';
     public $status = 'pending_approval';
     public $assignees = [];
+    public $projectMembers = [];
+    
+    // Repetitive task fields
     public $is_repetitive = false;
     public $repetition_rate = 'weekly';
-    public $reminders_enabled = false;
-    public $reminder_days_before = 1;
+    public $recurrence_days = [];
+    public $recurrence_month_day = 1;
+    public $recurrence_end_date = '';
     
+    public $projects = [];
+
     protected $rules = [
         'title' => 'required|string|max:100',
         'description' => 'nullable|string',
@@ -38,117 +46,216 @@ class CreateTaskPage extends Component
         'assignees.*' => 'exists:users,id',
         'is_repetitive' => 'boolean',
         'repetition_rate' => 'required_if:is_repetitive,true|in:daily,weekly,monthly,yearly',
-        'reminders_enabled' => 'boolean',
-        'reminder_days_before' => 'required_if:reminders_enabled,true|integer|min:1|max:30',
+        'recurrence_days' => 'required_if:repetition_rate,weekly|array',
+        'recurrence_month_day' => 'required_if:repetition_rate,monthly|integer|min:1|max:31',
+        'recurrence_end_date' => 'nullable|date|after_or_equal:due_date',
     ];
-    
+
+    protected function casts()
+    {
+        return [
+            'is_repetitive' => 'boolean',
+        ];
+    }
+
     public function mount()
     {
-        // Set default start date to today
-        $this->start_date = date('Y-m-d');
+        // Set default dates
+        $today = Carbon::today()->format('Y-m-d');
+        $this->start_date = $today;
+        $this->due_date = $today;
         
-        // Check if there's a date parameter in the URL
-        if (request()->has('date')) {
-            try {
-                // Validate the date format
-                $date = request()->date;
-                $formattedDate = date('Y-m-d', strtotime($date));
-                
-                if ($formattedDate) {
-                    $this->due_date = $formattedDate;
-                }
-            } catch (\Exception $e) {
-                // If date is invalid, ignore it
-            }
+        // Set default recurrence values
+        $dayOfWeek = Carbon::today()->dayOfWeek;
+        $this->recurrence_days = [$dayOfWeek];
+        $this->recurrence_month_day = Carbon::today()->day;
+        
+        // If due_date is passed as a query parameter, set it
+        if (request()->has('due_date')) {
+            $this->due_date = request('due_date');
+            $this->start_date = request('due_date');
+            
+            $dayOfWeek = Carbon::parse(request('due_date'))->dayOfWeek;
+            $this->recurrence_days = [$dayOfWeek];
+            $this->recurrence_month_day = Carbon::parse(request('due_date'))->day;
+        }
+        
+        // Load projects where the user is a member
+        $this->projects = Project::whereHas('members', function($query) {
+            $query->where('user_id', Auth::id());
+        })->get();
+    }
+
+    public function updatedIsRepetitive($value)
+    {
+        $this->is_repetitive = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        if ($this->is_repetitive && empty($this->recurrence_days)) {
+            $this->recurrence_days = [now()->dayOfWeek];
         }
     }
-    
+
+    public function updatedRepetitionRate($value)
+    {
+        if ($value === 'weekly' && empty($this->recurrence_days)) {
+            $this->recurrence_days = [now()->dayOfWeek];
+        } elseif ($value === 'monthly' && !$this->recurrence_month_day) {
+            $this->recurrence_month_day = now()->day;
+        }
+    }
+
+    public function updatedProjectId($value)
+    {
+        if ($value) {
+            $this->loadProjectMembers($value);
+        } else {
+            $this->projectMembers = [];
+        }
+        $this->assignees = [];
+    }
+
+    protected function loadProjectMembers($projectId)
+    {
+        if ($projectId) {
+            $project = Project::find($projectId);
+            
+            if ($project) {
+                $this->projectMembers = $project->members()
+                    ->select('users.*', 'project_members.role')
+                    ->orderBy('project_members.role', 'desc')
+                    ->get();
+            }
+        } else {
+            $this->projectMembers = collect();
+        }
+    }
+
+    private function calculateNextOccurrence()
+    {
+        $startDate = Carbon::parse($this->start_date);
+        
+        switch ($this->repetition_rate) {
+            case 'daily':
+                return $startDate->addDay();
+            case 'weekly':
+                // Find the next occurrence based on selected days
+                $nextDate = $startDate->copy();
+                do {
+                    $nextDate->addDay();
+                } while (!in_array($nextDate->dayOfWeek, $this->recurrence_days));
+                return $nextDate;
+            case 'monthly':
+                return $startDate->addMonth()->setDay($this->recurrence_month_day);
+            case 'yearly':
+                return $startDate->addYear();
+            default:
+                return $startDate;
+        }
+    }
+
     public function create()
     {
         // Check if user has permission to create tasks
         if (!auth()->user()->hasPermissionTo('create tasks')) {
-            session()->flash('error', 'You do not have permission to create tasks.');
-            return redirect()->route('tasks.index');
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'You do not have permission to create tasks.'
+            ]);
+            return;
         }
 
         $this->validate();
         
-        $task = Task::create([
-            'title' => $this->title,
-            'description' => $this->description,
-            'project_id' => $this->project_id,
-            'created_by' => Auth::id(),
-            'due_date' => $this->due_date,
-            'priority' => $this->priority,
-            'current_status' => $this->current_status,
-            'start_date' => $this->start_date,
-            'status' => $this->status,
-        ]);
-        
-        // Assign the task to selected users
-        if (!empty($this->assignees)) {
-            foreach ($this->assignees as $userId) {
-                TaskAssignment::create([
-                    'task_id' => $task->id,
-                    'user_id' => $userId,
-                    'assigned_by' => Auth::id(),
-                ]);
-            }
-        }
-        
-        // Handle repetitive task if enabled
-        if ($this->is_repetitive) {
-            // Create a repetitive task record in the repetitive_tasks table
-            $task->repetitiveTask()->create([
-                'task_id' => $task->id,
+        // Start database transaction
+        \DB::beginTransaction();
+
+        try {
+            // Create the task
+            $task = Task::create([
+                'title' => $this->title,
+                'description' => $this->description,
                 'project_id' => $this->project_id,
                 'created_by' => Auth::id(),
-                'repetition_rate' => $this->repetition_rate,
+                'due_date' => $this->due_date,
+                'priority' => $this->priority,
+                'current_status' => $this->current_status,
+                'start_date' => $this->start_date,
+                'status' => $this->status,
+                'is_repetitive' => $this->is_repetitive,
+            ]);
+            
+            // If task is repetitive, create the repetitive task record
+            if ($this->is_repetitive) {
+                // Calculate next occurrence based on repetition rate
+                $nextOccurrence = $this->calculateNextOccurrence();
+                
+                // Create binary representation of days for weekly recurrence
+                $daysBinary = 0;
+                if ($this->repetition_rate === 'weekly' && !empty($this->recurrence_days)) {
+                    foreach ($this->recurrence_days as $day) {
+                        $daysBinary |= (1 << $day); // Set bit for each selected day
+                    }
+                }
+                
+                // Create the repetitive task record
+                RepetitiveTask::create([
+                    'task_id' => $task->id,
+                    'project_id' => $this->project_id,
+                    'created_by' => Auth::id(),
+                    'repetition_rate' => $this->repetition_rate,
+                    'recurrence_interval' => Carbon::now(),
+                    'recurrence_days' => $daysBinary,
+                    'recurrence_month_day' => $this->recurrence_month_day,
+                    'start_date' => Carbon::parse($this->start_date),
+                    'end_date' => $this->recurrence_end_date ? Carbon::parse($this->recurrence_end_date) : null,
+                    'next_occurrence' => Carbon::parse($this->due_date),
+                ]);
+            }
+            
+            // Assign the task to selected users
+            if (!empty($this->assignees)) {
+                foreach ($this->assignees as $userId) {
+                    TaskAssignment::create([
+                        'task_id' => $task->id,
+                        'user_id' => $userId,
+                        'assigned_by' => Auth::id(),
+                    ]);
+                }
+            }
+
+            \DB::commit();
+
+            // Show success notification
+            $this->dispatch('notify', [
+                'message' => 'Task created successfully!',
+                'type' => 'success'
+            ]);
+
+            // Redirect to tasks page
+            return redirect()->route('tasks.index');
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            
+            // Show error notification
+            $this->dispatch('notify', [
+                'message' => 'Error creating task: ' . $e->getMessage(),
+                'type' => 'error'
             ]);
         }
-        
-        // Handle reminders if enabled
-        if ($this->reminders_enabled) {
-            // Create a reminder for the task
-            $task->taskReminders()->create([
-                'user_id' => Auth::id(),
-                'days_before' => $this->reminder_days_before,
-            ]);
-        }
-        
-        session()->flash('message', 'Task created successfully!');
-        session()->flash('alert-type', 'success');
-        
-        // Check if we came from the calendar page
-        if (request()->has('from') && request()->from === 'calendar') {
-            return redirect()->route('calendar.index');
-        }
-        
-        return redirect()->route('tasks.index');
     }
-    
-    public function resetForm()
-    {
-        $this->title = '';
-        $this->description = '';
-        $this->project_id = '';
-        $this->due_date = '';
-        $this->priority = 'medium';
-        $this->current_status = 'todo';
-        $this->start_date = date('Y-m-d');
-        $this->status = 'pending_approval';
-        $this->assignees = [];
-        $this->is_repetitive = false;
-        $this->repetition_rate = 'weekly';
-        $this->reminders_enabled = false;
-        $this->reminder_days_before = 1;
-    }
-    
+
     public function render()
     {
         return view('livewire.tasks.create-task-page', [
-            'projects' => Project::all(),
-            'users' => User::all(),
+            'weekdays' => [
+                0 => 'Sunday',
+                1 => 'Monday',
+                2 => 'Tuesday',
+                3 => 'Wednesday',
+                4 => 'Thursday',
+                5 => 'Friday',
+                6 => 'Saturday'
+            ]
         ]);
     }
 } 

@@ -40,7 +40,7 @@ class CalendarController extends Controller
                         ->where('supervised_by', $user->id);
                 });
         }
-        
+            
         // Get task assignments for the authenticated user
         $taskAssignments = TaskAssignment::where('user_id', $user->id)->get();
         $assignedTaskIds = $taskAssignments->pluck('task_id')->toArray();
