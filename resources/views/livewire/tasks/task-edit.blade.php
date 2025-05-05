@@ -144,6 +144,32 @@
                                 @error('recurrence_month_day') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
                             </div>
                         @endif
+
+                        @if($repetition_rate === 'yearly')
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Month</span>
+                                    </label>
+                                    <select class="select select-bordered w-full" wire:model.live="recurrence_month">
+                                        @foreach(range(1, 12) as $month)
+                                            <option value="{{ $month }}">{{ date('F', mktime(0, 0, 0, $month, 1)) }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('recurrence_month') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Day of month</span>
+                                    </label>
+                                    <input type="number" class="input input-bordered w-full" 
+                                        wire:model.live="recurrence_month_day" 
+                                        min="1" max="31" />
+                                    @error('recurrence_month_day') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -20,8 +20,9 @@ return new class extends Migration
             $table->bigInteger('created_by')->references('id')->on('users');
             $table->enum('repetition_rate', ["daily","weekly","monthly","yearly"]);
             $table->dateTime('recurrence_interval');
-            $table->bigInteger('recurrence_days');
-            $table->bigInteger('recurrence_month_day');
+            $table->bigInteger('recurrence_days')->nullable();
+            $table->integer('recurrence_month_day')->nullable();
+            $table->integer('recurrence_month')->nullable();
             $table->dateTime('start_date');
             $table->dateTime('end_date')->nullable();
             $table->dateTime('next_occurrence');
