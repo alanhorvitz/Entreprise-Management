@@ -34,13 +34,44 @@ class Task extends Model
      *
      * @return array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'due_date' => 'datetime',
+        'start_date' => 'datetime',
+        'is_repetitive' => 'boolean',
+    ];
+
+    // Add status constants for better type safety
+    const STATUS_PENDING_APPROVAL = 'pending_approval';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_IN_PROGRESS = 'in_progress';
+
+    const CURRENT_STATUS_TODO = 'todo';
+    const CURRENT_STATUS_IN_PROGRESS = 'in_progress';
+    const CURRENT_STATUS_COMPLETED = 'completed';
+
+    // Add validation rules as a static property
+    public static $rules = [
+        'title' => 'required|string|max:100',
+        'description' => 'nullable|string',
+        'project_id' => 'required|exists:projects,id',
+        'created_by' => 'required|exists:users,id',
+        'due_date' => 'nullable|date',
+        'priority' => 'required|in:low,medium,high',
+        'current_status' => 'required|in:todo,in_progress,completed',
+        'start_date' => 'nullable|date',
+        'status' => 'required|in:pending_approval,approved,in_progress',
+        'is_repetitive' => 'boolean',
+    ];
+
+    protected static function boot()
     {
-        return [
-            'created_at' => 'timestamp',
-            'due_date' => 'date',
-            'start_date' => 'date',
-        ];
+        parent::boot();
+
+        static::creating(function ($task) {
+            if (!$task->status) {
+                $task->status = self::STATUS_PENDING_APPROVAL;
+            }
+        });
     }
 
     public function repetitiveTask(): BelongsTo

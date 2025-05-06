@@ -71,23 +71,54 @@ class TaskCreate extends Component
         }
     }
     
-    protected $rules = [
-        'title' => 'required|string|max:100',
-        'description' => 'nullable|string',
-        'project_id' => 'required|exists:projects,id',
-        'due_date' => 'nullable|date|after_or_equal:today',
-        'priority' => 'nullable|in:low,medium,high',
-        'current_status' => 'nullable|in:todo,in_progress,completed',
-        'start_date' => 'nullable|date|after_or_equal:today',
-        'status' => 'nullable|in:pending_approval,approved',
-        'assignees' => 'nullable|array',
-        'assignees.*' => 'exists:users,id',
-        'is_repetitive' => 'boolean',
-        'repetition_rate' => 'required_if:is_repetitive,true|in:daily,weekly,monthly,yearly',
-        'recurrence_days' => 'required_if:is_repetitive,true,repetition_rate,weekly|array',
-        'recurrence_month_day' => 'required_if:is_repetitive,true,repetition_rate,monthly|integer|min:1|max:31',
-        'recurrence_end_date' => 'nullable|date|after_or_equal:due_date',
-    ];
+    protected function rules()
+    {
+        return [
+            'title' => 'required|string|max:100',
+            'description' => 'nullable|string',
+            'project_id' => 'required|exists:projects,id',
+            'due_date' => ['nullable', 'date', function ($attribute, $value, $fail) {
+                if ($value && $this->start_date && Carbon::parse($value)->lt(Carbon::parse($this->start_date))) {
+                    $fail('The due date must be after or equal to the start date.');
+                }
+            }],
+            'priority' => 'nullable|in:low,medium,high',
+            'current_status' => 'nullable|in:todo,in_progress,completed',
+            'start_date' => 'nullable|date',
+            'status' => 'nullable|in:pending_approval,approved',
+            'assignees' => 'nullable|array',
+            'assignees.*' => 'exists:users,id',
+            'is_repetitive' => 'boolean',
+            'repetition_rate' => 'required_if:is_repetitive,true|in:daily,weekly,monthly,yearly',
+            'recurrence_days' => [
+                'array',
+                function ($attribute, $value, $fail) {
+                    if ($this->is_repetitive && $this->repetition_rate === 'weekly' && empty($value)) {
+                        $fail('The recurrence days field is required for weekly repetition.');
+                    }
+                }
+            ],
+            'recurrence_month_day' => [
+                'integer',
+                'min:1',
+                'max:31',
+                function ($attribute, $value, $fail) {
+                    if ($this->is_repetitive && $this->repetition_rate === 'monthly' && empty($value)) {
+                        $fail('The day of month is required for monthly repetition.');
+                    }
+                }
+            ],
+            'recurrence_end_date' => [
+                'nullable',
+                'date',
+                function ($attribute, $value, $fail) {
+                    if ($value && $this->start_date && Carbon::parse($value)->lt(Carbon::parse($this->start_date))) {
+                        $fail('The recurrence end date must be after or equal to the start date.');
+                    }
+                }
+            ],
+        ];
+    }
 
     // Add custom validation messages
     protected $messages = [
