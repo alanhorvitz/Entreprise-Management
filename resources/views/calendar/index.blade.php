@@ -98,7 +98,7 @@
 
 <!-- Task Modal -->
 <dialog id="task-modal" class="modal">
-    <div class="modal-box max-w-4xl bg-base-100 shadow-xl">
+    <div class="modal-box max-w-4xl  bg-base-100 shadow-xl">
         <div class="flex justify-between items-center mb-6">
             <h3 class="font-bold text-2xl text-primary" id="modal-date"></h3>
             <form method="dialog">
@@ -1582,26 +1582,24 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .task-item {
+    width: 90%; /* Decrease width to 90% of the day cell */
+    margin-left: auto;
+    margin-right: auto;
     margin-bottom: 0.3rem;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
     border-radius: 4px;
     font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: pointer;
-    border-left: 3px solid transparent;
     transition: all 0.2s ease;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     color: hsl(var(--bc));
-    position: relative;
 }
 
 .task-item:hover {
-    filter: brightness(0.95);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-    z-index: 5; /* Ensure the hover effect is visible above other items */
+    transform: translateX(2px);
 }
 
 /* Add a subtle pulsing animation for task items to draw attention */

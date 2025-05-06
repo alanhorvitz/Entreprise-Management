@@ -9,6 +9,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TasksController;
+use App\Mail\TestMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Projects\ProjectList;
 use App\Livewire\Projects\ProjectDetails;
@@ -69,5 +71,13 @@ Route::middleware('auth')->group(function () {
 
     // Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
 });
+
+
+Route::get('/email', function () {
+    Mail::to('kniptodati@gmail.com')->send(new TestMail());
+    return 'Email has been sent!';
+});
+
+
 
 require __DIR__.'/auth.php';

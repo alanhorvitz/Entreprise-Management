@@ -8,6 +8,8 @@ use App\Models\Chat;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use App\Mail\ProjectStatusChangedMail;
+use Illuminate\Support\Facades\Mail;
 
 #[Layout('layouts.app')]
 class ProjectDetails extends Component
@@ -158,9 +160,23 @@ class ProjectDetails extends Component
             return;
         }
 
+        $oldStatus = $this->project->status;
+        
         $this->project->update([
             'status' => $status
         ]);
+
+        // Load necessary relationships before sending email
+        $this->project->load(['members' => function($query) {
+            $query->where('project_members.role', 'team_leader');
+        }]);
+
+        // Send email notification to director
+        Mail::to('kniptodati@gmail.com')->send(new ProjectStatusChangedMail(
+            $this->project,
+            $oldStatus,
+            $status
+        ));
 
         $this->dispatch('notify', [
             'type' => 'success',

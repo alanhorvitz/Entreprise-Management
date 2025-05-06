@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Task;
 use Illuminate\Http\Request;
+use App\Mail\TaskCompletedMail;
+use Illuminate\Support\Facades\Mail;
 
 class TasksController extends Controller
 {
@@ -51,7 +54,16 @@ class TasksController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Not needed with Livewire
+        $task = Task::findOrFail($id);
+        
+        // Check if the task status was changed to completed
+        if ($request->status === 'pending_approval' && $task->status !== 'pending_approval') {
+            // Send email to supervisor
+            Mail::to('kniptodati@gmail.com')->send(new TaskCompletedMail($task));
+        }
+
+        // Continue with the update process
+        return redirect()->back();
     }
 
     /**

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use Illuminate\Http\Request;
+use App\Mail\ProjectStatusChangedMail;
+use Illuminate\Support\Facades\Mail;
 
 class ProjectsController extends Controller
 {
@@ -50,9 +52,23 @@ class ProjectsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Project $project)
+    public function update(Request $request, string $id)
     {
-        //
+        $project = Project::findOrFail($id);
+        $oldStatus = $project->status;
+
+        // If status is being changed
+        if ($request->has('status') && $request->status !== $oldStatus) {
+            // Send email to director
+            Mail::to('kniptodati@gmail.com')->send(new ProjectStatusChangedMail(
+                $project,
+                $oldStatus,
+                $request->status
+            ));
+        }
+
+        // Continue with the update process
+        return redirect()->back();
     }
 
     /**

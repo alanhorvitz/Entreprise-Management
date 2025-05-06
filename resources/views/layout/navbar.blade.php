@@ -8,7 +8,7 @@
                     <span class="iconify w-5 h-5" data-icon="solar:hamburger-menu-broken"></span>
                 </button>
                 
-                <!-- Search -->
+                <!-- Search
                 <div class="hidden sm:block">
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -16,7 +16,7 @@
                         </span>
                         <input type="text" class="input input-bordered w-72 pl-10 pr-4 py-2 text-sm" placeholder="Search...">
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <!-- Right side -->

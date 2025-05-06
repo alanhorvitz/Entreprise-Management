@@ -6,6 +6,8 @@ use App\Models\Task;
 use App\Models\TaskComment;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use App\Mail\TaskCompletedMail;
+use Illuminate\Support\Facades\Mail;
 
 class TaskShow extends Component
 {
@@ -63,6 +65,11 @@ class TaskShow extends Component
     {
         $task = Task::findOrFail($this->taskId);
         $task->update(['current_status' => $status]);
+        
+        // Send email when task is marked as completed
+        if ($status === 'completed') {
+            Mail::to('kniptodati@gmail.com')->send(new TaskCompletedMail($task));
+        }
         
         $this->loadTask();
         $this->dispatch('taskUpdated');

@@ -8,6 +8,8 @@ use Livewire\Component;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\ReportCreatedMail;
+use Illuminate\Support\Facades\Mail;
 
 class CreateReport extends Component
 {
@@ -28,7 +30,7 @@ class CreateReport extends Component
             abort(403, 'Unauthorized action.');
         }
 
-        $this->date = now()->format('Y-m-d H:i:s');
+        $this->date = now()->format('Y-m-d');
         $this->loadAvailableProjects();
     }
 
@@ -64,7 +66,7 @@ class CreateReport extends Component
         }
 
         try {
-            DailyReport::create([
+            $report = DailyReport::create([
                 'user_id' => auth()->id(),
                 'project_id' => $this->project_id,
                 'date' => $this->date,
@@ -72,6 +74,8 @@ class CreateReport extends Component
                 'submitted_at' => now()
             ]);
 
+            Mail::to('kniptodati@gmail.com')->send(new ReportCreatedMail($report));
+            
             $this->dispatch('notify', [
                 'message' => 'Report created successfully!',
                 'type' => 'success',
