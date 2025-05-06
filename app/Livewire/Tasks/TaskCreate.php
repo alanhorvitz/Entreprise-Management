@@ -185,6 +185,19 @@ class TaskCreate extends Component
             return;
         }
 
+        // Additional check for supervisors
+        if (auth()->user()->hasRole('supervisor')) {
+            $project = Project::find($this->project_id);
+            if (!$project || $project->supervised_by !== auth()->id()) {
+                $this->dispatch('notify', [
+                    'type' => 'error',
+                    'message' => 'You can only create tasks for projects you supervise.'
+                ]);
+                $this->dispatch('closeModal');
+                return;
+            }
+        }
+
         $this->validate();
         
         // Create the task
@@ -329,16 +342,29 @@ class TaskCreate extends Component
     
     public function render()
     {
+        $user = auth()->user();
+        
+        // Get projects based on user role
+        if ($user->hasRole('director')) {
+            $projects = Project::all();
+        } elseif ($user->hasRole('supervisor')) {
+            $projects = Project::where('supervised_by', $user->id)->get();
+        } else {
+            $projects = Project::whereHas('members', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->get();
+        }
+
         return view('livewire.tasks.task-create', [
-            'projects' => Project::all(),
+            'projects' => $projects,
             'projectMembers' => $this->projectMembers,
             'weekdays' => [
-            0 => 'Sunday',
-            1 => 'Monday',
-            2 => 'Tuesday',
-            3 => 'Wednesday',
-            4 => 'Thursday',
-            5 => 'Friday',
+                0 => 'Sunday',
+                1 => 'Monday',
+                2 => 'Tuesday',
+                3 => 'Wednesday',
+                4 => 'Thursday',
+                5 => 'Friday',
                 6 => 'Saturday'
             ]
         ]);
