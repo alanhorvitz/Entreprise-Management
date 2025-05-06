@@ -47,6 +47,7 @@ class DatabaseSeeder extends Seeder
             'last_name' => 'User',
             'email' => 'supervisor@example.com',
             'password' => Hash::make('password'),
+            'role' => 'supervisor',
             'email_verified_at' => Carbon::now(),
             'is_active' => true,
         ]);

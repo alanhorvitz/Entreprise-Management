@@ -114,7 +114,6 @@ class CreateProject extends Component
     {
         // Get all supervisors
         $query = User::where('role', 'supervisor');
-        
         // If a department is selected, order by relevance
         if ($this->department_id) {
             $query->orderByRaw("CASE 
