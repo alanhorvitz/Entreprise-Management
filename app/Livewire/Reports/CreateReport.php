@@ -24,7 +24,11 @@ class CreateReport extends Component
 
     public function mount()
     {
-        $this->date = now()->format('Y-m-d');
+        if (!auth()->user()->can('generate reports')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $this->date = now()->format('Y-m-d H:i:s');
         $this->loadAvailableProjects();
     }
 
@@ -37,6 +41,10 @@ class CreateReport extends Component
 
     public function save()
     {
+        if (!auth()->user()->can('generate reports')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $this->validate();
 
         // Ensure the date is today
@@ -80,6 +88,10 @@ class CreateReport extends Component
 
     public function render()
     {
+        if (!auth()->user()->can('generate reports')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         return view('livewire.reports.create-report');
     }
-} 
+}

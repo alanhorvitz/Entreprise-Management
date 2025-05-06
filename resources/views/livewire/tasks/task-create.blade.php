@@ -60,15 +60,19 @@
                     <label class="label" for="start_date">
                         <span class="label-text font-medium">Start Date</span>
                     </label>
-                    <input type="date" id="start_date" class="input input-bordered w-full focus:input-primary" wire:model="start_date" />
+                    <input type="date" id="start_date" class="input input-bordered w-full focus:input-primary" 
+                           wire:model="start_date" 
+                           min="{{ date('Y-m-d') }}" />
                     @error('start_date') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
                 </div>
                 
-                <div class="form-control">
+                <div class="form-control" x-data x-show="!$wire.is_repetitive">
                     <label class="label" for="due_date">
                         <span class="label-text font-medium">Due Date</span>
                     </label>
-                    <input type="date" id="due_date" class="input input-bordered w-full focus:input-primary" wire:model="due_date" />
+                    <input type="date" id="due_date" class="input input-bordered w-full focus:input-primary" 
+                           wire:model="due_date" 
+                           min="{{ date('Y-m-d') }}" />
                     @error('due_date') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
                 </div>
             </div>
@@ -112,7 +116,9 @@
                         <label class="label" for="recurrence_end_date">
                             <span class="label-text">Until (optional)</span>
                         </label>
-                        <input type="date" id="recurrence_end_date" class="input input-bordered w-full" wire:model="recurrence_end_date" />
+                        <input type="date" id="recurrence_end_date" class="input input-bordered w-full" 
+                               wire:model="recurrence_end_date" 
+                               min="{{ date('Y-m-d') }}" />
                         @error('recurrence_end_date') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
                     </div>
                 </div>

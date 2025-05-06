@@ -42,8 +42,13 @@ class TaskList extends Component
         // Check if there's a task ID in the query string to open
         $taskId = request()->query('open_task');
         $editTaskId = request()->query('edit_task');
+        $newTask = request()->query('new_task');
+        $dueDate = request()->query('due_date');
         
-        if ($editTaskId) {
+        if ($newTask) {
+            // Dispatch an event to open the create modal after the component is rendered
+            $this->dispatch('defer-load-task-create', ['due_date' => $dueDate]);
+        } elseif ($editTaskId) {
             // Check if the task exists for editing
             $task = Task::find($editTaskId);
             if ($task) {
@@ -131,9 +136,21 @@ class TaskList extends Component
 
     public function openCreateModal()
     {
+        if (!auth()->user()->hasPermissionTo('create tasks')) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'You do not have permission to create tasks.'
+            ]);
+            return;
+        }
+
+        $dueDate = request()->query('due_date');
+        
         $params = [
             'component' => 'tasks.task-create',
-            'arguments' => []
+            'arguments' => [
+                'due_date' => $dueDate
+            ]
         ];
         $this->dispatch('openModal', $params);
     }

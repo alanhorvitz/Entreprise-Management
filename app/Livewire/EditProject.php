@@ -48,6 +48,10 @@ class EditProject extends Component
 
     public function mount(Project $project)
     {
+        if (!auth()->user()->hasPermissionTo('edit projects')) {
+            abort(403, 'You do not have permission to edit projects.');
+        }
+
         $this->project = $project;
         $this->name = $project->name;
         $this->description = $project->description;
@@ -152,6 +156,11 @@ class EditProject extends Component
 
     public function update()
     {
+        if (!auth()->user()->hasPermissionTo('edit projects')) {
+            $this->showMessage('You do not have permission to edit projects.', 'error');
+            return;
+        }
+
         $this->validate();
 
         try {

@@ -37,10 +37,10 @@ class CreateTaskPage extends Component
         'title' => 'required|string|max:100',
         'description' => 'nullable|string',
         'project_id' => 'required|exists:projects,id',
-        'due_date' => 'nullable|date',
+        'due_date' => 'nullable|date|after_or_equal:today',
         'priority' => 'nullable|in:low,medium,high',
         'current_status' => 'nullable|in:todo,in_progress,completed',
-        'start_date' => 'nullable|date',
+        'start_date' => 'nullable|date|after_or_equal:today',
         'status' => 'nullable|in:pending_approval,approved',
         'assignees' => 'nullable|array',
         'assignees.*' => 'exists:users,id',
@@ -49,6 +49,11 @@ class CreateTaskPage extends Component
         'recurrence_days' => 'required_if:repetition_rate,weekly|array',
         'recurrence_month_day' => 'required_if:repetition_rate,monthly|integer|min:1|max:31',
         'recurrence_end_date' => 'nullable|date|after_or_equal:due_date',
+    ];
+
+    protected $messages = [
+        'due_date.after_or_equal' => 'The due date must be today or a future date.',
+        'start_date.after_or_equal' => 'The start date must be today or a future date.',
     ];
 
     protected function casts()
