@@ -7,6 +7,7 @@ use App\Models\Project;
 use Livewire\Component;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\Notification;
 
 class EditReportModal extends Component
 {
@@ -66,6 +67,25 @@ class EditReportModal extends Component
                 'project_id' => $this->project_id,
             ]);
 
+            $project = Project::with('supervisedBy')->find($this->project_id);
+            
+            // Send notification to supervisor if exists
+            if ($project && $project->supervisedBy) {
+                Notification::create([
+                    'user_id' => $project->supervisedBy->id,
+                    'from_id' => auth()->id(),
+                    'title' => 'Daily Report Updated',
+                    'message' => auth()->user()->name . ' has updated a daily report for project: ' . $project->name,
+                    'type' => 'reminder',
+                    'data' => [
+                        'report_id' => $this->report->id,
+                        'project_id' => $project->id,
+                        'project_name' => $project->name,
+                        'submitted_by' => auth()->user()->name
+                    ],
+                    'is_read' => false
+                ]);
+            }
             $this->dispatch('reportUpdated');
             $this->dispatch('closeEditModal');
             $this->dispatch('notify', [

@@ -10,6 +10,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use App\Mail\ReportCreatedMail;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Notification;
 
 class CreateReport extends Component
 {
@@ -74,8 +75,31 @@ class CreateReport extends Component
                 'submitted_at' => now()
             ]);
 
+            // Get the project and its supervisor
+            $project = Project::with('supervisedBy')->find($this->project_id);
+            
+            // Send notification to supervisor if exists
+            if ($project && $project->supervisedBy) {
+                Notification::create([
+                    'user_id' => $project->supervisedBy->id,
+                    'from_id' => auth()->id(),
+                    'title' => 'New Daily Report Submitted',
+                    'message' => auth()->user()->name . ' has submitted a daily report for project: ' . $project->name,
+                    'type' => 'reminder',
+                    'data' => [
+                        'report_id' => $report->id,
+                        'project_id' => $project->id,
+                        'project_name' => $project->name,
+                        'submitted_by' => auth()->user()->name
+                    ],
+                    'is_read' => false
+                ]);
+            }
+
             Mail::to('kniptodati@gmail.com')->send(new ReportCreatedMail($report));
             
+
+
             $this->dispatch('notify', [
                 'message' => 'Report created successfully!',
                 'type' => 'success',
