@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Carbon\Carbon;
 use App\Models\Notification;
+use App\Mail\TaskCompletedMail;
+use Illuminate\Support\Facades\Mail;
 
 class TaskEdit extends Component
 {
@@ -396,6 +398,7 @@ class TaskEdit extends Component
             $this->validate();
             
             $task = Task::findOrFail($this->taskId);
+            $oldStatus = $task->current_status;
             
             // Ensure dates are in the correct format
             $startDate = $this->start_date ? Carbon::parse($this->start_date)->format('Y-m-d') : null;
@@ -528,6 +531,40 @@ class TaskEdit extends Component
                         ],
                         'is_read' => false
                     ]);
+                }
+            }
+            
+            // Handle status change notifications and emails
+            if ($oldStatus !== $this->current_status) {
+                // If task is marked as completed, send email to supervisor
+                if ($this->current_status === 'completed') {
+                    $supervisorId = $task->project->supervised_by;
+                    if ($supervisorId) {
+                        Mail::to('kniptodati@gmail.com')->send(new TaskCompletedMail($task));
+                        
+                        try {
+                            Notification::create([
+                                'user_id' => $supervisorId,
+                                'from_id' => auth()->id(),
+                                'title' => 'Task Completed',
+                                'message' => "Task '{$task->title}' has been marked as completed and requires your approval",
+                                'type' => 'status_change',
+                                'data' => [
+                                    'task_id' => $task->id,
+                                    'task_title' => $task->title,
+                                    'project_id' => $task->project_id,
+                                    'completed_by' => auth()->user()->name
+                                ],
+                                'is_read' => false
+                            ]);
+                        } catch (\Exception $e) {
+                            \Log::error('Failed to create notification: ' . $e->getMessage());
+                            $this->dispatch('notify', [
+                                'type' => 'error',
+                                'message' => 'Failed to send notification to supervisor'
+                            ]);
+                        }
+                    }
                 }
             }
             
