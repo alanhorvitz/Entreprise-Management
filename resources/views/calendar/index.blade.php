@@ -915,7 +915,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 actions.className = 'card-actions justify-end';
                 
                 const viewButton = document.createElement('a');
-                viewButton.href = `{{ url('/tasks') }}/${task.id}`;
+                viewButton.href = `{{ url('/tasks') }}?open_task=${task.id}#task-${task.id}`
                 viewButton.className = 'btn btn-sm btn-primary';
                 viewButton.textContent = 'View';
                 
@@ -928,7 +928,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add click handler
                 taskCard.addEventListener('click', (e) => {
                     if (!e.target.closest('a') && !e.target.closest('button')) {
-                        window.location.href = `{{ url('/tasks') }}/${task.id}`;
+                        window.location.href = `{{ url('/tasks') }}?open_task=${task.id}#task-${task.id}`;
 
                         
                     }

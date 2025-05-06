@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Carbon\Carbon;
+use App\Models\Notification;
 
 class TaskEdit extends Component
 {
@@ -478,6 +479,7 @@ class TaskEdit extends Component
             }
             
             // Update task assignments
+            $currentAssignees = TaskAssignment::where('task_id', $this->taskId)->pluck('user_id')->toArray();
             TaskAssignment::where('task_id', $this->taskId)->delete();
             
             $normalizedAssignees = $this->normalizeAssignees($this->assignees);
@@ -487,6 +489,44 @@ class TaskEdit extends Component
                         'task_id' => $this->taskId,
                         'user_id' => $userId,
                         'assigned_by' => Auth::id(),
+                    ]);
+
+                    // Only send notification if this is a new assignee
+                    if (!in_array($userId, $currentAssignees)) {
+                        Notification::create([
+                            'user_id' => $userId,
+                            'from_id' => auth()->id(),
+                            'title' => 'New Task Assignment',
+                            'message' => "You have been assigned to task: {$this->title}",
+                            'type' => 'assignment',
+                            'data' => [
+                                'task_id' => $this->taskId,
+                                'task_title' => $this->title,
+                                'project_id' => $this->project_id,
+                                'assigned_by' => auth()->user()->name
+                            ],
+                            'is_read' => false
+                        ]);
+                    }
+                }
+            }
+
+            // Notify all current assignees about task modification (except the user making the changes)
+            foreach ($normalizedAssignees as $userId) {
+                if ($userId != auth()->id()) { // Don't notify the user making the changes
+                    Notification::create([
+                        'user_id' => $userId,
+                        'from_id' => auth()->id(),
+                        'title' => 'Task Updated',
+                        'message' => "Task '{$this->title}' has been modified",
+                        'type' => 'status_change',
+                        'data' => [
+                            'task_id' => $this->taskId,
+                            'task_title' => $this->title,
+                            'project_id' => $this->project_id,
+                            'updated_by' => auth()->user()->name
+                        ],
+                        'is_read' => false
                     ]);
                 }
             }

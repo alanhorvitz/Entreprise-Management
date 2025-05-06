@@ -10,6 +10,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use App\Models\Notification;
 
 class TaskCreate extends Component
 {
@@ -270,10 +271,29 @@ class TaskCreate extends Component
                 ]);
             }
         }
+
+        // Send notification to each assigned user
+        foreach ($this->assignees as $userId) {
+            Notification::create([
+                'user_id' => $userId,
+                'from_id' => auth()->id(),
+                'title' => 'New Task Assignment',
+                'message' => 'You have been assigned to task: ' . $task->title,
+                'type' => 'assignment',
+                'data' => [
+                    'task_id' => $task->id,
+                    'task_title' => $task->title,
+                    'project_id' => $this->project_id,
+                    'assigned_by' => auth()->user()->name
+                ],
+                'is_read' => false
+            ]);
+        }
         
         $this->resetForm();
         $this->dispatch('taskCreated');
         $this->dispatch('closeModal');
+
         $this->dispatch('notify', [
             'message' => 'Task created successfully!',
             'type' => 'success',

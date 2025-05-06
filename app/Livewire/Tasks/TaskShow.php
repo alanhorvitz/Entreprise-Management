@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use App\Mail\TaskCompletedMail;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Notification;
 
 class TaskShow extends Component
 {
@@ -69,6 +70,33 @@ class TaskShow extends Component
         // Send email when task is marked as completed
         if ($status === 'completed') {
             Mail::to('kniptodati@gmail.com')->send(new TaskCompletedMail($task));
+
+            // Get the project supervisor ID from supervised_by column
+            $supervisorId = $task->project->supervised_by;
+            if ($supervisorId) {
+                try {
+                    Notification::create([
+                        'user_id' => $supervisorId,
+                        'from_id' => auth()->id(),
+                        'title' => 'Task Completed',
+                        'message' => "Task '{$task->title}' has been marked as completed and requires your approval",
+                        'type' => 'status_change',
+                        'data' => [
+                            'task_id' => $task->id,
+                            'task_title' => $task->title,
+                            'project_id' => $task->project_id,
+                            'completed_by' => auth()->user()->name
+                        ],
+                        'is_read' => false
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to create notification: ' . $e->getMessage());
+                    $this->dispatch('notify', [
+                        'type' => 'error',
+                        'message' => 'Failed to send notification to supervisor'
+                    ]);
+                }
+            }
         }
         
         $this->loadTask();
@@ -109,27 +137,52 @@ class TaskShow extends Component
         }
 
         try {
+            $oldStatus = $this->task->status;
+            $statusMessage = '';
+
             if ($status === 'in_progress') {
                 // If returning to progress, update both status and current_status
                 $this->task->current_status = 'in_progress';
                 $this->task->status = 'pending_approval';
                 $this->task->save();
                 
-                $this->dispatch('notify', [
-                    'type' => 'success',
-                    'message' => 'Task has been returned to progress.'
-                ]);
+                $statusMessage = 'Task has been returned to progress.';
             } else {
                 // For approval status changes
                 $this->task->status = $status;
                 $this->task->save();
                 
-                $message = $status === 'approved' ? 'Task has been approved.' : 'Task is pending approval.';
-                $this->dispatch('notify', [
-                    'type' => 'success',
-                    'message' => $message
-                ]);
+                $statusMessage = $status === 'approved' ? 'Task has been approved.' : 'Task is pending approval.';
             }
+
+            // Notify all assigned members about the status change
+            foreach ($this->task->taskAssignments as $assignment) {
+                if ($assignment->user_id != auth()->id()) { // Don't notify the supervisor making the change
+                    Notification::create([
+                        'user_id' => $assignment->user_id,
+                        'from_id' => auth()->id(),
+                        'title' => 'Task Status Updated',
+                        'message' => "Task '{$this->task->title}' has been " . 
+                            ($status === 'approved' ? 'approved' : 
+                            ($status === 'in_progress' ? 'returned to progress' : 'marked as pending approval')),
+                        'type' => 'status_change',
+                        'data' => [
+                            'task_id' => $this->task->id,
+                            'task_title' => $this->task->title,
+                            'project_id' => $this->task->project_id,
+                            'old_status' => $oldStatus,
+                            'new_status' => $status,
+                            'updated_by' => auth()->user()->name
+                        ],
+                        'is_read' => false
+                    ]);
+                }
+            }
+
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => $statusMessage
+            ]);
 
             // Refresh the task data
             $this->task->refresh();
