@@ -263,31 +263,40 @@ class TaskCreate extends Component
         
         // Assign the task to selected users
         if (!empty($this->assignees)) {
-            foreach ($this->assignees as $userId) {
+            // Get all valid users in one query
+            $validUsers = User::whereIn('id', $this->assignees)->pluck('id')->toArray();
+            
+            foreach ($validUsers as $userId) {
                 TaskAssignment::create([
                     'task_id' => $task->id,
                     'user_id' => $userId,
                     'assigned_by' => Auth::id(),
                 ]);
-            }
-        }
 
-        // Send notification to each assigned user
-        foreach ($this->assignees as $userId) {
-            Notification::create([
-                'user_id' => $userId,
-                'from_id' => auth()->id(),
-                'title' => 'New Task Assignment',
-                'message' => 'You have been assigned to task: ' . $task->title,
-                'type' => 'assignment',
-                'data' => [
-                    'task_id' => $task->id,
-                    'task_title' => $task->title,
-                    'project_id' => $this->project_id,
-                    'assigned_by' => auth()->user()->name
-                ],
-                'is_read' => false
-            ]);
+                // Create notification for valid user
+                Notification::create([
+                    'user_id' => $userId,
+                    'from_id' => auth()->id(),
+                    'title' => 'New Task Assignment',
+                    'message' => 'You have been assigned to task: ' . $task->title,
+                    'type' => 'assignment',
+                    'data' => [
+                        'task_id' => $task->id,
+                        'task_title' => $task->title,
+                        'project_id' => $this->project_id,
+                        'assigned_by' => auth()->user()->name
+                    ],
+                    'is_read' => false
+                ]);
+            }
+
+            // If some users were invalid, show a warning
+            if (count($validUsers) < count($this->assignees)) {
+                $this->dispatch('notify', [
+                    'message' => 'Some selected users could not be assigned to the task.',
+                    'type' => 'warning',
+                ]);
+            }
         }
         
         $this->resetForm();
