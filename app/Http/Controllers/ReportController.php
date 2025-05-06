@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Mail\ReportCreatedMail;
+use Illuminate\Support\Facades\Mail;
 
 class ReportController extends Controller
 {
@@ -27,7 +29,13 @@ class ReportController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // $report = Report::create($request->validated());
+
+        // // Send email to supervisor
+        // Mail::to('kniptodati@gmail.com')->send(new ReportCreatedMail($report));
+        // dd('Email sent successfully');
+
+        // return redirect()->back();
     }
 
     /**

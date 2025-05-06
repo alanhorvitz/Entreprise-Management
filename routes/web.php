@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ChatsController;
 use App\Http\Controllers\DashboardController;
@@ -9,12 +8,11 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TasksController;
+use App\Mail\TestMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Projects\ProjectList;
 use App\Livewire\Projects\ProjectDetails;
-
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -34,8 +32,6 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
-    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
 });
 
 // Protected routes (only accessible when logged in)
@@ -66,8 +62,11 @@ Route::middleware('auth')->group(function () {
         }
         return back();
     })->name('notifications.markAsRead');
+});
 
-    // Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
+Route::get('/email', function () {
+    Mail::to('kniptodati@gmail.com')->send(new TestMail());
+    return 'Email has been sent!';
 });
 
 require __DIR__.'/auth.php';
