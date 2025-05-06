@@ -60,7 +60,7 @@
                         <label class="label">
                             <span class="label-text required-field">Department</span>
                         </label>
-                        <select wire:model.live="departmentId" class="select select-bordered w-full" required>
+                        <select wire:model.live="department_id" class="select select-bordered w-full" required>
                             <option value="">Select department</option>
                             @foreach($departments as $department)
                                 <option value="{{ $department->id }}">{{ $department->name }}</option>
@@ -123,13 +123,13 @@
                         <label class="label">
                             <span class="label-text required-field">Project Supervisor</span>
                         </label>
-                        <select wire:model.live="supervisor_id" class="select select-bordered w-full" required>
+                        <select wire:model.live="supervised_by" class="select select-bordered w-full" required>
                             <option value="">Select project supervisor</option>
                             @foreach($supervisors as $supervisor)
                                 <option value="{{ $supervisor->id }}">{{ $supervisor->first_name }} {{ $supervisor->last_name }}</option>
                             @endforeach
                         </select>
-                        @error('supervisor_id') <span class="text-error text-sm">{{ $message }}</span> @enderror
+                        @error('supervised_by') <span class="text-error text-sm">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-control w-full">
                         <label class="label">

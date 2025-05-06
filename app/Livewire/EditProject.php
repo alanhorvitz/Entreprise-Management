@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Department;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Notification;
+use Illuminate\Support\Facades\DB;
 
 class EditProject extends Component
 {
@@ -164,10 +166,24 @@ class EditProject extends Component
         $this->validate();
 
         try {
+            DB::beginTransaction();
+
             // Get the current team leader before update
             $currentTeamLeader = $this->project->members()
                 ->where('project_members.role', 'team_leader')
                 ->first();
+
+            // Store original members and their roles before update - Fixed to use project_members table
+            $originalMembers = $this->project->members()
+                ->withPivot('role')
+                ->get()
+                ->mapWithKeys(function ($member) {
+                    return [$member->id => $member->pivot->role];
+                })
+                ->toArray();
+            
+            // Store original supervisor
+            $originalSupervisor = $this->project->supervised_by;
 
             // Update project basic information
             $this->project->update([
@@ -183,7 +199,6 @@ class EditProject extends Component
 
             // Handle role changes if team leader has changed
             if ($currentTeamLeader && $currentTeamLeader->id != $this->team_leader_id) {
-                // Remove team_leader role from previous team leader and assign employee role
                 $currentTeamLeader->removeRole('team_leader');
                 $currentTeamLeader->assignRole('employee');
             }
@@ -207,7 +222,6 @@ class EditProject extends Component
 
             // Add regular team members
             foreach ($this->selectedTeamMembers as $memberId) {
-                // Skip if this member is already set as team manager
                 if ($memberId != $this->team_leader_id) {
                     $memberData[$memberId] = [
                         'role' => 'member',
@@ -216,18 +230,100 @@ class EditProject extends Component
                 }
             }
 
+            // Get removed members (in original but not in new memberData)
+            $removedMembers = array_diff(array_keys($originalMembers), array_keys($memberData));
+
             // Sync all members with their roles
             $this->project->members()->sync($memberData);
 
             if ($this->send_notifications) {
-                // TODO: Implement notification logic
+                // Notify new supervisor if changed
+                if ($originalSupervisor !== $this->supervised_by) {
+                    Notification::create([
+                        'user_id' => $this->supervised_by,
+                        'from_id' => auth()->id(),
+                        'title' => 'Project Supervision Assignment',
+                        'message' => "You have been assigned as supervisor for project: {$this->project->name}",
+                        'type' => 'assignment',
+                        'data' => json_encode([
+                            'project_id' => $this->project->id,
+                            'project_name' => $this->project->name,
+                            'role' => 'supervisor',
+                            'updated_by' => auth()->user()->name
+                        ]),
+                        'is_read' => false
+                    ]);
+                }
+
+                // Send notifications only to new members or members with role changes
+                foreach ($memberData as $memberId => $data) {
+                    $shouldNotify = false;
+                    $roleTitle = ucfirst(str_replace('_', ' ', $data['role']));
+                    
+                    // Check if member is new or role has changed
+                    if (!isset($originalMembers[$memberId])) {
+                        // New member
+                        $shouldNotify = true;
+                    } elseif ($originalMembers[$memberId] !== $data['role']) {
+                        // Existing member but role changed
+                        $shouldNotify = true;
+                    }
+
+                    if ($shouldNotify && $memberId !== auth()->id()) { // Don't notify the user making the changes
+                        Notification::create([
+                            'user_id' => $memberId,
+                            'from_id' => auth()->id(),
+                            'title' => 'Project Role Assignment',
+                            'message' => "You have been assigned as {$roleTitle} for project: {$this->project->name}",
+                            'type' => 'assignment',
+                            'data' => json_encode([
+                                'project_id' => $this->project->id,
+                                'project_name' => $this->project->name,
+                                'role' => $data['role'],
+                                'updated_by' => auth()->user()->name
+                            ]),
+                            'is_read' => false
+                        ]);
+                    }
+                }
+
+                // Notify removed members
+                foreach ($removedMembers as $memberId) {
+                    if ($memberId !== auth()->id()) { // Don't notify the user making the changes
+                Notification::create([
+                            'user_id' => $memberId,
+                            'from_id' => auth()->id(),
+                            'title' => 'Removed from Project',
+                            'message' => "You have been removed from project: {$this->project->name}",
+                            'type' => 'assignment',
+                            'data' => json_encode([
+                            'project_id' => $this->project->id,
+                            'project_name' => $this->project->name,
+                            'updated_by' => auth()->user()->name
+                            ]),
+                    'is_read' => false
+                ]);
+                    }
+                }
             }
 
-            session()->flash('success', 'Project updated successfully!');
+            DB::commit();
+
+            session()->flash('notify', [
+                'type' => 'success',
+                'message' => 'Project updated successfully!'
+            ]);
+
             return redirect()->route('projects.show', $this->project);
 
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to update project: ' . $e->getMessage());
+            DB::rollBack();
+            
+            session()->flash('notify', [
+                'type' => 'error',
+                'message' => 'Failed to update project: ' . $e->getMessage()
+            ]);
+            
             return null;
         }
     }

@@ -10,6 +10,14 @@ class NotificationManager extends Component
     
     protected $listeners = ['notify' => 'addNotification'];
     
+    public function mount()
+    {
+        // Check for flash notification
+        if (session()->has('notify')) {
+            $this->addNotification(session('notify'));
+        }
+    }
+    
     public function addNotification($notification)
     {
         $notification['id'] = uniqid();

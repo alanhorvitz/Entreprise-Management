@@ -8,19 +8,20 @@ use App\Models\Department;
 use App\Models\ProjectMember;
 use App\Models\UserDepartment;
 use Livewire\Component;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 
 class CreateProject extends Component
 {
     public $name;
     public $description;
-    public $departmentId;
+    public $department_id;
     public $start_date;
     public $end_date;
     public $status;
     public $budget;
     public $team_leader_id;
-    public $supervisor_id;
+    public $supervised_by;
     public $selectedTeamMembers = [];
     public $send_notifications = false;
     public $is_featured = false;
@@ -39,13 +40,13 @@ class CreateProject extends Component
         return [
             'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'departmentId' => 'required|exists:departments,id',
+            'department_id' => 'required|exists:departments,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'status' => 'required|in:planning,in_progress,completed,on_hold',
             'budget' => 'required|numeric|min:0',
             'team_leader_id' => 'required|exists:users,id',
-            'team_leader_id' => 'required|exists:users,id',
+            'supervised_by' => 'required|exists:users,id',
             'selectedTeamMembers' => 'required|array|min:1',
             'selectedTeamMembers.*' => 'exists:users,id'
         ];
@@ -69,7 +70,7 @@ class CreateProject extends Component
     {
         $this->loadDepartmentMembers();
         $this->loadSupervisors();
-        $this->reset(['team_leader_id', 'team_leader_id', 'selectedTeamMembers']);
+        $this->reset(['team_leader_id', 'selectedTeamMembers']);
     }
 
     public function updatedSelectedTeamMembers($value)
@@ -86,10 +87,10 @@ class CreateProject extends Component
 
     public function loadDepartmentMembers()
     {
-        if ($this->departmentId) {
+        if ($this->department_id) {
             // Get all employees assigned to this department through user_departments table
             $this->departmentMembers = User::whereHas('userDepartments', function($query) {
-                    $query->where('department_id', $this->departmentId);
+                    $query->where('department_id', $this->department_id);
                 })
                 ->where('role', 'employee')
                 ->get();
@@ -115,7 +116,7 @@ class CreateProject extends Component
         $query = User::where('role', 'supervisor');
         
         // If a department is selected, order by relevance
-        if ($this->departmentId) {
+        if ($this->department_id) {
             $query->orderByRaw("CASE 
                 WHEN department_id = ? THEN 0 
                 WHEN id IN (
@@ -124,7 +125,7 @@ class CreateProject extends Component
                     WHERE department_id = ?
                 ) THEN 1 
                 ELSE 2 
-            END", [$this->departmentId, $this->departmentId]);
+            END", [$this->department_id, $this->department_id]);
         }
 
         $this->availableSupervisors = $query->get();
@@ -150,12 +151,12 @@ class CreateProject extends Component
             $project = Project::create([
                 'name' => $this->name,
                 'description' => $this->description,
-                'department_id' => $this->departmentId,
+                'department_id' => $this->department_id,
                 'start_date' => $this->start_date,
                 'end_date' => $this->end_date,
                 'status' => $this->status,
                 'budget' => $this->budget,
-                'supervised_by' => $this->supervisor_id,
+                'supervised_by' => $this->supervised_by,
                 'created_by' => Auth::id(),
                 'is_featured' => $this->is_featured
             ]);
@@ -178,7 +179,7 @@ class CreateProject extends Component
             if (!empty($this->selectedTeamMembers)) {
                 foreach ($this->selectedTeamMembers as $memberId) {
                     // Skip if member is project manager or team manager
-                    if ($memberId != $this->supervisor_id && $memberId != $this->team_leader_id) {
+                    if ($memberId != $this->supervised_by && $memberId != $this->team_leader_id) {
                         ProjectMember::create([
                             'project_id' => $project->id,
                             'user_id' => $memberId,
@@ -188,12 +189,69 @@ class CreateProject extends Component
                     }
                 }
             }
-
             if ($this->send_notifications) {
-                // TODO: Implement notification logic
+                // Notify directors about new project
+                $directors = User::role('director')
+                    ->where('id', '!=', auth()->id())
+                    ->get();
+
+                foreach ($directors as $director) {
+                    Notification::create([
+                        'user_id' => $director->id,
+                        'from_id' => auth()->id(),
+                        'title' => 'New Project Created',
+                        'message' => 'A new project has been created by ' . auth()->user()->name . ': ' . $project->name,
+                        'type' => 'status_change',
+                        'data' => [
+                            'project_id' => $project->id,
+                            'project_name' => $project->name,
+                            'created_by' => auth()->user()->name
+                        ],
+                        'is_read' => false
+                    ]);
+                }
+
+                // Notify team leader
+                Notification::create([
+                    'user_id' => $this->team_leader_id,
+                    'from_id' => auth()->id(),
+                    'title' => 'Project Role Assignment',
+                    'message' => "You have been assigned as Team Leader for project: {$project->name}",
+                    'type' => 'assignment',
+                    'data' => [
+                        'project_id' => $project->id,
+                        'project_name' => $project->name,
+                        'role' => 'team_leader',
+                        'created_by' => auth()->user()->name
+                    ],
+                    'is_read' => false
+                ]);
+
+                // Notify team members
+                foreach ($this->selectedTeamMembers as $memberId) {
+                    if ($memberId != $this->supervised_by && $memberId != $this->team_leader_id) {
+                        Notification::create([
+                            'user_id' => $memberId,
+                            'from_id' => auth()->id(),
+                            'title' => 'Project Role Assignment', 
+                            'message' => "You have been assigned as Team Member for project: {$project->name}",
+                            'type' => 'assignment',
+                            'data' => [
+                                'project_id' => $project->id,
+                                'project_name' => $project->name,
+                                'role' => 'member',
+                                'created_by' => auth()->user()->name
+                            ],
+                            'is_read' => false
+                        ]);
+                    }
+                }
             }
 
-            session()->flash('success', 'Project created successfully!');
+            session()->flash('notify', [
+                'type' => 'success',
+                'message' => 'Project created successfully!'
+            ]);
             return redirect()->route('projects.index');
 
         } catch (\Exception $e) {
@@ -216,15 +274,15 @@ class CreateProject extends Component
     public function updatedSupervisorId()
     {
         // Reset team manager if they're the same person
-        if ($this->supervisor_id === $this->team_leader_id) {
-            $this->supervisor_id = null;
+        if ($this->supervised_by === $this->team_leader_id) {
+            $this->supervised_by = null;
         }
     }
 
     public function updatedTeamLeaderId()
     {
         // Reset project manager if they're the same person
-        if ($this->team_leader_id === $this->supervisor_id) {
+        if ($this->team_leader_id === $this->supervised_by) {
             $this->team_leader_id = null;
         }
     }

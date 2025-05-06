@@ -4,10 +4,11 @@ namespace App\Livewire\Projects;
 
 use App\Models\Project;
 use App\Models\ProjectMember;
-use App\Models\Chat;
+use App\Models\Notification;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use App\Models\User;
 
 #[Layout('layouts.app')]
 class ProjectDetails extends Component
@@ -75,13 +76,32 @@ class ProjectDetails extends Component
                 ->where('user_id', $this->memberToDelete)
                 ->delete();
 
+            Notification::create([
+                'user_id' => $this->memberToDelete,
+                'from_id' => auth()->id(),
+                'title' => 'Removed from Project',
+                'message' => 'You have been removed from project: ' . $this->project->name,
+                'type' => 'assignment',
+                'data' => [
+                    'project_id' => $this->project->id,
+                    'project_name' => $this->project->name
+                ],
+                'is_read' => false
+            ]);
+
             $this->project->refresh();
             $this->showDeleteModal = false;
             $this->memberToDelete = null;
             
-            session()->flash('success', 'Member removed successfully.');
+            session()->flash('notify', [
+                'type' => 'success',
+                'message' => 'Member removed successfully.'
+            ]);
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to remove member.');
+            session()->flash('notify', [
+                'type' => 'error',
+                'message' => 'Failed to remove member.'
+            ]);
         }
     }
 
@@ -95,19 +115,21 @@ class ProjectDetails extends Component
             // Delete project members
             ProjectMember::where('project_id', $this->project->id)->delete();
 
-            // Delete associated chat data
-            // Chat::where('project_id', $this->project->id)->delete();
-
-            // Delete the project
             $this->project->delete();
 
             $this->showProjectDeleteModal = false;
 
-            session()->flash('success', 'Project deleted successfully.');
+            session()->flash('notify', [
+                'type' => 'success',
+                'message' => 'Project deleted successfully.'
+            ]);
 
             return redirect()->route('projects.index');
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to delete project.');
+            session()->flash('notify', [
+                'type' => 'error',
+                'message' => 'Failed to delete project.'
+            ]);
         }
     }
 
@@ -158,16 +180,48 @@ class ProjectDetails extends Component
             return;
         }
 
-        $this->project->update([
-            'status' => $status
-        ]);
+        try {
+            $this->project->update([
+                'status' => $status
+            ]);
+            
+            // Get all directors except current user
+            $directors = User::role('director')
+                ->where('id', '!=', auth()->id())
+                ->get();
+            
+            // Send notification to each director
+            foreach ($directors as $director) {
+                Notification::create([
+                    'user_id' => $director->id,
+                    'from_id' => auth()->id(),
+                    'title' => 'Project Status Updated',
+                    'message' => 'Project status has been updated to ' . $status . ' for project: ' . $this->project->name,
+                    'type' => 'status_change',
+                    'data' => [
+                        'project_id' => $this->project->id,
+                        'project_name' => $this->project->name,
+                        'new_status' => $status,
+                        'updated_by' => auth()->user()->name
+                    ],
+                    'is_read' => false
+                ]);
+            }
 
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => 'Project status updated successfully!'
-        ]);
+            // Use dispatch for immediate feedback since we're staying on the same page
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => 'Project status updated successfully!'
+            ]);
 
-        $this->dispatch('statusUpdated');
+            $this->dispatch('statusUpdated');
+            
+        } catch (\Exception $e) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'Failed to update project status: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function render()

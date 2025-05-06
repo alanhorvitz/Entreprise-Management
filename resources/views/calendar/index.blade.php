@@ -929,6 +929,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 taskCard.addEventListener('click', (e) => {
                     if (!e.target.closest('a') && !e.target.closest('button')) {
                         window.location.href = `{{ url('/tasks') }}/${task.id}`;
+
+                        
                     }
                 });
             });

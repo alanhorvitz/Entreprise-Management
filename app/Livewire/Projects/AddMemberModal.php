@@ -68,6 +68,20 @@ class AddMemberModal extends Component
                     'role' => 'member',
                     'joined_at' => now(),
                 ]);
+                
+                // Create notification for the added member
+                Notification::create([
+                    'user_id' => $memberId,
+                    'from_id' => auth()->id(),
+                    'title' => 'Added to Project',
+                    'message' => 'You have been added to project: ' . $this->project->name,
+                    'type' => 'assignment',
+                    'data' => [
+                        'project_id' => $this->project->id,
+                        'project_name' => $this->project->name
+                    ],
+                    'is_read' => false
+                ]);
             }
 
             $this->dispatch('memberAdded');
