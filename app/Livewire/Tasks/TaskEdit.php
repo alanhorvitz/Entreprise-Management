@@ -210,23 +210,54 @@ class TaskEdit extends Component
         $this->due_date = $nextDate->format('Y-m-d');
     }
     
-    protected $rules = [
-        'title' => 'required|string|max:100',
-        'description' => 'nullable|string',
-        'project_id' => 'required|exists:projects,id',
-        'due_date' => 'nullable|date|after_or_equal:today',
-        'priority' => 'nullable|in:low,medium,high',
-        'current_status' => 'nullable|in:todo,in_progress,completed',
-        'start_date' => 'nullable|date|after_or_equal:today',
-        'status' => 'nullable|in:pending_approval,approved',
-        'assignees' => 'nullable|array',
-        'assignees.*' => 'exists:users,id',
-        'is_repetitive' => 'boolean',
-        'repetition_rate' => 'required_if:is_repetitive,true|in:daily,weekly,monthly,yearly',
-        'recurrence_days' => 'required_if:is_repetitive,true,repetition_rate,weekly|array',
-        'recurrence_month_day' => 'required_if:is_repetitive,true,repetition_rate,monthly|integer|min:1|max:31',
-        'recurrence_end_date' => 'nullable|date|after_or_equal:due_date',
-    ];
+    protected function rules()
+    {
+        return [
+            'title' => 'required|string|max:100',
+            'description' => 'nullable|string',
+            'project_id' => 'required|exists:projects,id',
+            'due_date' => ['nullable', 'date', function ($attribute, $value, $fail) {
+                if ($value && $this->start_date && Carbon::parse($value)->lt(Carbon::parse($this->start_date))) {
+                    $fail('The due date must be after or equal to the start date.');
+                }
+            }],
+            'priority' => 'nullable|in:low,medium,high',
+            'current_status' => 'nullable|in:todo,in_progress,completed',
+            'start_date' => 'nullable|date',
+            'status' => 'nullable|in:pending_approval,approved',
+            'assignees' => 'nullable|array',
+            'assignees.*' => 'exists:users,id',
+            'is_repetitive' => 'boolean',
+            'repetition_rate' => 'required_if:is_repetitive,true|in:daily,weekly,monthly,yearly',
+            'recurrence_days' => [
+                'array',
+                function ($attribute, $value, $fail) {
+                    if ($this->is_repetitive && $this->repetition_rate === 'weekly' && empty($value)) {
+                        $fail('The recurrence days field is required for weekly repetition.');
+                    }
+                }
+            ],
+            'recurrence_month_day' => [
+                'integer',
+                'min:1',
+                'max:31',
+                function ($attribute, $value, $fail) {
+                    if ($this->is_repetitive && $this->repetition_rate === 'monthly' && empty($value)) {
+                        $fail('The day of month is required for monthly repetition.');
+                    }
+                }
+            ],
+            'recurrence_end_date' => [
+                'nullable',
+                'date',
+                function ($attribute, $value, $fail) {
+                    if ($value && $this->start_date && Carbon::parse($value)->lt(Carbon::parse($this->start_date))) {
+                        $fail('The recurrence end date must be after or equal to the start date.');
+                    }
+                }
+            ],
+        ];
+    }
 
     protected $messages = [
         'due_date.after_or_equal' => 'The due date must be today or a future date.',
@@ -340,118 +371,138 @@ class TaskEdit extends Component
         $this->loadProjectMembers();
     }
     
+    protected function normalizeAssignees($assignees)
+    {
+        if (is_array($assignees) && count($assignees) === 2 && isset($assignees[0]) && is_array($assignees[0])) {
+            return $assignees[0];
+        }
+        return $assignees;
+    }
+
     public function update()
     {
-        // Check if user has permission to edit tasks
-        if (!auth()->user()->hasPermissionTo('edit tasks')) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'You do not have permission to edit tasks.'
-            ]);
-            $this->dispatch('closeModal');
-            return;
-        }
+        try {
+            // Check if user has permission to edit tasks
+            if (!auth()->user()->hasPermissionTo('edit tasks')) {
+                $this->dispatch('notify', [
+                    'type' => 'error',
+                    'message' => 'You do not have permission to edit tasks.'
+                ]);
+                $this->dispatch('closeModal');
+                return;
+            }
 
-        $this->validate();
-        
-        $task = Task::findOrFail($this->taskId);
-        
-        $task->update([
-            'title' => $this->title,
-            'description' => $this->description,
-            'project_id' => $this->project_id,
-            'due_date' => $this->due_date,
-            'priority' => $this->priority,
-            'current_status' => $this->current_status,
-            'start_date' => $this->start_date,
-            'status' => $this->status,
-            'is_repetitive' => $this->is_repetitive,
-        ]);
-        
-        // Handle repetitive task data
-        if ($this->is_repetitive) {
-            // Calculate binary representation of days for weekly recurrence
-            $daysBinary = 0;
-            if ($this->repetition_rate === 'weekly' && !empty($this->recurrence_days)) {
-                foreach ($this->recurrence_days as $day) {
-                    $daysBinary |= (1 << $day);
+            $this->validate();
+            
+            $task = Task::findOrFail($this->taskId);
+            
+            // Ensure dates are in the correct format
+            $startDate = $this->start_date ? Carbon::parse($this->start_date)->format('Y-m-d') : null;
+            $dueDate = $this->due_date ? Carbon::parse($this->due_date)->format('Y-m-d') : null;
+            $recurrenceEndDate = $this->recurrence_end_date ? Carbon::parse($this->recurrence_end_date)->format('Y-m-d') : null;
+            
+            $updateData = [
+                'title' => $this->title,
+                'description' => $this->description,
+                'project_id' => $this->project_id,
+                'due_date' => $dueDate,
+                'priority' => $this->priority,
+                'current_status' => $this->current_status,
+                'start_date' => $startDate,
+                'status' => $this->status,
+                'is_repetitive' => $this->is_repetitive,
+            ];
+            
+            $task->update($updateData);
+            
+            // Handle repetitive task data
+            if ($this->is_repetitive) {
+                // Calculate binary representation of days for weekly recurrence
+                $daysBinary = 0;
+                if ($this->repetition_rate === 'weekly' && !empty($this->recurrence_days)) {
+                    foreach ($this->recurrence_days as $day) {
+                        $daysBinary |= (1 << $day);
+                    }
+                }
+                
+                // Calculate the next occurrence date based on repetition rate
+                $startDate = Carbon::parse($this->start_date);
+                $nextOccurrence = null;
+                
+                switch ($this->repetition_rate) {
+                    case 'daily':
+                        $nextOccurrence = $startDate->copy()->addDay();
+                        break;
+                    case 'weekly':
+                        $nextOccurrence = $startDate->copy()->addDay();
+                        while (!($daysBinary & (1 << $nextOccurrence->dayOfWeek))) {
+                            $nextOccurrence->addDay();
+                        }
+                        break;
+                    case 'monthly':
+                        $nextOccurrence = $startDate->copy();
+                        if ($startDate->day < $this->recurrence_month_day) {
+                            $day = min((int)$this->recurrence_month_day, $startDate->daysInMonth);
+                            $nextOccurrence->setDay($day);
+                        } else {
+                            $nextOccurrence->addMonth();
+                            $day = min((int)$this->recurrence_month_day, $nextOccurrence->daysInMonth);
+                            $nextOccurrence->setDay($day);
+                        }
+                        break;
+                    case 'yearly':
+                        $nextOccurrence = $startDate->copy()->addYear();
+                        break;
+                    default:
+                        $nextOccurrence = $startDate->copy()->addDay();
+                }
+                
+                // Update or create repetitive task record
+                $task->repetitiveTask()->updateOrCreate(
+                    ['task_id' => $this->taskId],
+                    [
+                        'project_id' => $this->project_id,
+                        'created_by' => auth()->id(),
+                        'repetition_rate' => $this->repetition_rate,
+                        'recurrence_interval' => Carbon::now(),
+                        'recurrence_days' => $daysBinary,
+                        'recurrence_month_day' => $this->recurrence_month_day,
+                        'start_date' => Carbon::parse($startDate),
+                        'end_date' => $recurrenceEndDate ? Carbon::parse($recurrenceEndDate) : null,
+                        'next_occurrence' => $nextOccurrence,
+                    ]
+                );
+            } else {
+                // Delete repetitive task record if exists
+                $task->repetitiveTask()->delete();
+            }
+            
+            // Update task assignments
+            TaskAssignment::where('task_id', $this->taskId)->delete();
+            
+            $normalizedAssignees = $this->normalizeAssignees($this->assignees);
+            if (!empty($normalizedAssignees)) {
+                foreach ($normalizedAssignees as $userId) {
+                    TaskAssignment::create([
+                        'task_id' => $this->taskId,
+                        'user_id' => $userId,
+                        'assigned_by' => Auth::id(),
+                    ]);
                 }
             }
             
-            // Calculate the next occurrence date based on repetition rate
-            $startDate = Carbon::parse($this->start_date);
-            $nextOccurrence = null;
-            
-            switch ($this->repetition_rate) {
-                case 'daily':
-                    $nextOccurrence = $startDate->copy()->addDay();
-                    break;
-                case 'weekly':
-                    $nextOccurrence = $startDate->copy()->addDay();
-                    // Find the next day that matches our recurrence pattern
-                    while (!($daysBinary & (1 << $nextOccurrence->dayOfWeek))) {
-                        $nextOccurrence->addDay();
-                    }
-                    break;
-                case 'monthly':
-                    $nextOccurrence = $startDate->copy();
-                    // If we haven't passed the recurrence day this month, use it
-                    if ($startDate->day < $this->recurrence_month_day) {
-                        $day = min((int)$this->recurrence_month_day, $startDate->daysInMonth);
-                        $nextOccurrence->setDay($day);
-                    } else {
-                        // Otherwise, go to next month
-                        $nextOccurrence->addMonth();
-                        $day = min((int)$this->recurrence_month_day, $nextOccurrence->daysInMonth);
-                        $nextOccurrence->setDay($day);
-                    }
-                    break;
-                case 'yearly':
-                    $nextOccurrence = $startDate->copy()->addYear();
-                    break;
-                default:
-                    $nextOccurrence = $startDate->copy()->addDay();
-            }
-            
-            // Update or create repetitive task record
-            $task->repetitiveTask()->updateOrCreate(
-                ['task_id' => $this->taskId],
-                [
-                    'project_id' => $this->project_id,
-                    'created_by' => auth()->id(),
-                    'repetition_rate' => $this->repetition_rate,
-                    'recurrence_interval' => Carbon::now(),
-                    'recurrence_days' => $daysBinary,
-                    'recurrence_month_day' => $this->recurrence_month_day,
-                    'start_date' => Carbon::parse($this->start_date),
-                    'end_date' => $this->recurrence_end_date ? Carbon::parse($this->recurrence_end_date) : null,
-                    'next_occurrence' => $nextOccurrence,
-                ]
-            );
-        } else {
-            // Delete repetitive task record if exists
-            $task->repetitiveTask()->delete();
+            $this->dispatch('taskUpdated');
+            $this->dispatch('closeModal');
+            $this->dispatch('notify', [
+                'message' => 'Task updated successfully!',
+                'type' => 'success',
+            ]);
+        } catch (\Exception $e) {
+            $this->dispatch('notify', [
+                'message' => 'Error updating task: ' . $e->getMessage(),
+                'type' => 'error',
+            ]);
         }
-        
-        // Update task assignments
-        TaskAssignment::where('task_id', $this->taskId)->delete();
-        
-        if (!empty($this->assignees)) {
-            foreach ($this->assignees as $userId) {
-                TaskAssignment::create([
-                    'task_id' => $this->taskId,
-                    'user_id' => $userId,
-                    'assigned_by' => Auth::id(),
-                ]);
-            }
-        }
-        
-        $this->dispatch('taskUpdated');
-        $this->dispatch('closeModal');
-        $this->dispatch('notify', [
-            'message' => 'Task updated successfully!',
-            'type' => 'success',
-        ]);
     }
     
     public function render()

@@ -90,6 +90,60 @@ class TaskShow extends Component
         $this->dispatch('openModal', $params);
     }
     
+    public function updateApprovalStatus($status)
+    {
+        if (!auth()->user()->hasRole(['director', 'supervisor'])) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'You do not have permission to change the approval status.'
+            ]);
+            return;
+        }
+
+        if ($this->task->current_status !== 'completed') {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'Only completed tasks can have their approval status changed.'
+            ]);
+            return;
+        }
+
+        try {
+            if ($status === 'in_progress') {
+                // If returning to progress, update both status and current_status
+                $this->task->current_status = 'in_progress';
+                $this->task->status = 'pending_approval';
+                $this->task->save();
+                
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'message' => 'Task has been returned to progress.'
+                ]);
+            } else {
+                // For approval status changes
+                $this->task->status = $status;
+                $this->task->save();
+                
+                $message = $status === 'approved' ? 'Task has been approved.' : 'Task is pending approval.';
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'message' => $message
+                ]);
+            }
+
+            // Refresh the task data
+            $this->task->refresh();
+            
+            // Emit event for task update
+            $this->dispatch('taskUpdated');
+        } catch (\Exception $e) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'Error updating task status: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
     public function render()
     {
         return view('livewire.tasks.task-show');

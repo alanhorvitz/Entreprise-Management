@@ -137,7 +137,7 @@
                                     {{ $task->title }}
                                     @if($task->is_repetitive)
                                         <span class="badge badge-sm badge-accent ml-1">
-                                            <iconify-icon icon="lucide:repeat" class="mr-1"></iconify-icon> Recurring
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M9.53 2.47a.75.75 0 0 0-1.06 1.06l.72.72H9a7.75 7.75 0 1 0 0 15.5h.5a.75.75 0 0 0 0-1.5H9a6.25 6.25 0 0 1 0-12.5h2a.75.75 0 0 0 .53-1.28z" clip-rule="evenodd"></path><path fill="currentColor" d="M14.5 4.25a.75.75 0 0 0 0 1.5h.5a6.25 6.25 0 1 1 0 12.5h-2a.75.75 0 0 0-.53 1.28l2 2a.75.75 0 0 0 1.06-1.06l-.72-.72H15a7.75 7.75 0 0 0 0-15.5z" opacity="0.5"></path></svg> Recurring
                                         </span>
                                     @endif
                                 </div>
@@ -149,17 +149,33 @@
                         </td>
                         <td>
                             @php
-                                $statusClass = [
-                                    'todo' => 'badge-secondary',
-                                    'in_progress' => 'badge-primary',
-                                    'completed' => 'badge-success',
-                                ][$task->current_status] ?? 'badge-ghost';
+                                $isDirectorOrSupervisor = auth()->user()->hasRole(['director', 'supervisor']);
                                 
-                                $statusLabel = [
-                                    'todo' => 'To Do',
-                                    'in_progress' => 'In Progress',
-                                    'completed' => 'Done',
-                                ][$task->current_status] ?? $task->current_status;
+                                if ($isDirectorOrSupervisor && $task->current_status === 'completed') {
+                                    // For completed tasks, show approval status to directors and supervisors
+                                    $statusClass = [
+                                        'pending_approval' => 'badge-warning',
+                                        'approved' => 'badge-success',
+                                    ][$task->status] ?? 'badge-ghost';
+                                    
+                                    $statusLabel = [
+                                        'pending_approval' => 'Pending Approval',
+                                        'approved' => 'Approved',
+                                    ][$task->status] ?? $task->status;
+                                } else {
+                                    // For non-completed tasks or non-director/supervisor users, show current status
+                                    $statusClass = [
+                                        'todo' => 'badge-secondary',
+                                        'in_progress' => 'badge-primary',
+                                        'completed' => 'badge-success',
+                                    ][$task->current_status] ?? 'badge-ghost';
+                                    
+                                    $statusLabel = [
+                                        'todo' => 'To Do',
+                                        'in_progress' => 'In Progress',
+                                        'completed' => 'Done',
+                                    ][$task->current_status] ?? $task->current_status;
+                                }
                             @endphp
                             <span class="badge badge-sm whitespace-nowrap !px-2 min-w-[60px] text-center {{ $statusClass }}">{{ $statusLabel }}</span>
                         </td>

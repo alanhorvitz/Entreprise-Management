@@ -37,24 +37,50 @@
                         <h4 class="text-base font-semibold mb-2">Status</h4>
                         <div class="dropdown dropdown-hover">
                             @php
-                                $statusClass = [
-                                    'todo' => 'badge-secondary',
-                                    'in_progress' => 'badge-primary',
-                                    'completed' => 'badge-success',
-                                ][$task->current_status] ?? 'badge-ghost';
+                                $isDirectorOrSupervisor = auth()->user()->hasRole(['director', 'supervisor']);
                                 
-                                $statusLabel = [
-                                    'todo' => 'Not Started',
-                                    'in_progress' => 'In Progress',
-                                    'completed' => 'Completed',
-                                ][$task->current_status] ?? $task->current_status;
+                                if ($isDirectorOrSupervisor && $task->current_status === 'completed') {
+                                    // For completed tasks, show approval options to directors and supervisors
+                                    $statusClass = [
+                                        'pending_approval' => 'badge-warning',
+                                        'approved' => 'badge-success',
+                                        'in_progress' => 'badge-primary',
+                                    ][$task->status] ?? 'badge-ghost';
+                                    
+                                    $statusLabel = [
+                                        'pending_approval' => 'Pending Approval',
+                                        'approved' => 'Approved',
+                                        'in_progress' => 'Return to Progress',
+                                    ][$task->status] ?? $task->status;
+                                } else {
+                                    // For non-completed tasks or non-director/supervisor users, show current status
+                                    $statusClass = [
+                                        'todo' => 'badge-secondary',
+                                        'in_progress' => 'badge-primary',
+                                        'completed' => 'badge-success',
+                                    ][$task->current_status] ?? 'badge-ghost';
+                                    
+                                    $statusLabel = [
+                                        'todo' => 'Not Started',
+                                        'in_progress' => 'In Progress',
+                                        'completed' => 'Completed',
+                                    ][$task->current_status] ?? $task->current_status;
+                                }
                             @endphp
                             <div tabindex="0" role="button" class="badge {{ $statusClass }} badge-lg">{{ $statusLabel }}</div>
-                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                <li><a wire:click="updateStatus('todo')" class="cursor-pointer {{ $task->current_status === 'todo' ? 'active' : '' }}">Not Started</a></li>
-                                <li><a wire:click="updateStatus('in_progress')" class="cursor-pointer {{ $task->current_status === 'in_progress' ? 'active' : '' }}">In Progress</a></li>
-                                <li><a wire:click="updateStatus('completed')" class="cursor-pointer {{ $task->current_status === 'completed' ? 'active' : '' }}">Completed</a></li>
-                            </ul>
+                            @if($isDirectorOrSupervisor && $task->current_status === 'completed')
+                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                    <li><a wire:click="updateApprovalStatus('approved')" class="cursor-pointer {{ $task->status === 'approved' ? 'active' : '' }}">Approved</a></li>
+                                    <li><a wire:click="updateApprovalStatus('pending_approval')" class="cursor-pointer {{ $task->status === 'pending_approval' ? 'active' : '' }}">Pending Approval</a></li>
+                                    <li><a wire:click="updateApprovalStatus('in_progress')" class="cursor-pointer {{ $task->status === 'in_progress' ? 'active' : '' }}">Return to Progress</a></li>
+                                </ul>
+                            @else
+                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                    <li><a wire:click="updateStatus('todo')" class="cursor-pointer {{ $task->current_status === 'todo' ? 'active' : '' }}">Not Started</a></li>
+                                    <li><a wire:click="updateStatus('in_progress')" class="cursor-pointer {{ $task->current_status === 'in_progress' ? 'active' : '' }}">In Progress</a></li>
+                                    <li><a wire:click="updateStatus('completed')" class="cursor-pointer {{ $task->current_status === 'completed' ? 'active' : '' }}">Completed</a></li>
+                                </ul>
+                            @endif
                         </div>
                     </div>
                     
