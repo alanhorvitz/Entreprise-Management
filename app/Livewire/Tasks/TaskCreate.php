@@ -84,8 +84,8 @@ class TaskCreate extends Component
         'assignees.*' => 'exists:users,id',
         'is_repetitive' => 'boolean',
         'repetition_rate' => 'required_if:is_repetitive,true|in:daily,weekly,monthly,yearly',
-        'recurrence_days' => 'required_if:repetition_rate,weekly|array',
-        'recurrence_month_day' => 'required_if:repetition_rate,monthly|integer|min:1|max:31',
+        'recurrence_days' => 'required_if:is_repetitive,true,repetition_rate,weekly|array',
+        'recurrence_month_day' => 'required_if:is_repetitive,true,repetition_rate,monthly|integer|min:1|max:31',
         'recurrence_end_date' => 'nullable|date|after_or_equal:due_date',
     ];
 
