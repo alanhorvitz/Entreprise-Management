@@ -17,7 +17,7 @@ class TaskAssignment extends Model
      */
     protected $fillable = [
         'task_id',
-        'user_id',
+        'employee_id',
         'assigned_by',
         'assigned_at',
     ];
@@ -27,21 +27,18 @@ class TaskAssignment extends Model
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'assigned_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'assigned_at' => 'datetime',
+    ];
 
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class);
     }
 
-    public function user(): BelongsTo
+    public function employee(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class);
     }
 
     public function assignedBy(): BelongsTo

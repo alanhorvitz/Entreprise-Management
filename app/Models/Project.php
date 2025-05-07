@@ -70,7 +70,7 @@ class Project extends Model
     /**
      * Get the user who created the project.
      */
-    public function createdBy(): BelongsTo
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
@@ -78,7 +78,7 @@ class Project extends Model
     /**
      * Get the user who supervises the project.
      */
-    public function supervisedBy(): BelongsTo
+    public function supervisor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'supervised_by');
     }
@@ -88,10 +88,9 @@ class Project extends Model
      */
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'project_members')
-            ->withPivot('role', 'joined_at')
-            ->withTimestamps()
-            ->using(ProjectMember::class);
+        return $this->belongsToMany(Employee::class, 'project_members')
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     /**
@@ -100,5 +99,20 @@ class Project extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function chatMessages(): HasMany
+    {
+        return $this->hasMany(ProjectsChatMessage::class);
+    }
+
+    public function dailyReports(): HasMany
+    {
+        return $this->hasMany(DailyReport::class);
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(ProjectAttachment::class);
     }
 }

@@ -31,7 +31,7 @@ class ProjectMember extends Pivot
      */
     protected $fillable = [
         'project_id',
-        'user_id',
+        'employee_id',
         'role',
         'joined_at',
     ];
@@ -54,10 +54,10 @@ class ProjectMember extends Pivot
     }
 
     /**
-     * Get the user that is the member.
+     * Get the employee that is the member.
      */
-    public function user(): BelongsTo
+    public function employee(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class);
     }
 }

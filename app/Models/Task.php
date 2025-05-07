@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Task extends Model
 {
@@ -113,11 +114,11 @@ class Task extends Model
     }
     
     /**
-     * Get all assigned users for this task
+     * Get all assigned employees for this task
      */
-    public function assignedUsers()
+    public function assignedEmployees(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'task_assignments', 'task_id', 'user_id')
+        return $this->belongsToMany(Employee::class, 'task_assignments', 'task_id', 'employee_id')
             ->withPivot('assigned_by', 'assigned_at')
             ->withTimestamps();
     }
