@@ -28,6 +28,7 @@ class EditProject extends Component
     public $send_notifications = true;
     public $departmentMembers = [];
     public $availableSupervisors = [];
+    public $is_featured;
 
     // Add message properties
     public $showMessage = false;
@@ -51,7 +52,7 @@ class EditProject extends Component
     public function mount(Project $project)
     {
         if (!auth()->user()->hasPermissionTo('edit projects')) {
-            abort(403, 'You do not have permission to edit projects.');
+            abort(403, 'Unauthorized action.');
         }
 
         $this->project = $project;
@@ -66,21 +67,31 @@ class EditProject extends Component
         // Load supervisor
         $this->supervised_by = $project->supervised_by;
         
-        // First load selected team members
-        $this->selectedTeamMembers = $project->members()
+        // Load all project members (both team leader and regular members)
+        $this->selectedTeamMembers = DB::table('project_members')
+            ->select('users.id')
+            ->join('employees', 'project_members.employee_id', '=', 'employees.id')
+            ->join('users', 'employees.user_id', '=', 'users.id')
+            ->where('project_members.project_id', $project->id)
             ->pluck('users.id')
             ->toArray();
         
         // Then load team members for dropdown
         $this->teamMembers = User::whereIn('id', $this->selectedTeamMembers)
-            ->select('users.*')
             ->get();
-
+ 
         // Load team leader
-        $teamLeader = $project->members()
+        $teamLeader = DB::table('project_members')
+            ->select('users.*')
+            ->join('employees', 'project_members.employee_id', '=', 'employees.id')
+            ->join('users', 'employees.user_id', '=', 'users.id')
+            ->where('project_members.project_id', $project->id)
             ->where('project_members.role', 'team_leader')
             ->first();
-        $this->team_leader_id = $teamLeader?->id;
+
+        if ($teamLeader) {
+            $this->team_leader_id = $teamLeader->id;
+        }
 
         // Load department members and supervisors for selection
         if ($this->department_id) {
@@ -91,9 +102,18 @@ class EditProject extends Component
  
     public function updatedSelectedTeamMembers()
     {
+        // If team leader is unselected from team members, reset team leader
+        if ($this->team_leader_id && !in_array($this->team_leader_id, $this->selectedTeamMembers)) {
+            $this->team_leader_id = null;
+        }
+
         $this->teamMembers = User::whereIn('id', $this->selectedTeamMembers)
             ->select('id', 'first_name', 'last_name')
             ->get();
+
+        if (empty($this->selectedTeamMembers)) {
+            $this->team_leader_id = null; // Reset team leader if no members selected
+        }
     }
 
     public function updatedDepartmentId($value)
@@ -123,10 +143,13 @@ class EditProject extends Component
      */
     private function loadDepartmentMembers()
     {
-        $this->departmentMembers = User::whereHas('departments', function($query) {
-                $query->where('departments.id', $this->department_id);
+        $this->departmentMembers = User::role('employee')
+            ->whereHas('employee', function($query) {
+                $query->whereHas('departments', function($query) {
+                    $query->where('department_id', $this->department_id);
+                });
             })
-            ->where('role', 'employee')
+            ->where('is_active', true)
             ->get();
     }
 
@@ -136,16 +159,19 @@ class EditProject extends Component
     private function loadSupervisors()
     {
         // Get all supervisors
-        $this->availableSupervisors = User::where('role', 'supervisor')
+        $this->availableSupervisors = User::whereHas('roles', function($query) {
+                $query->where('name', 'supervisor');
+            })
+            ->where('is_active', true)
             ->orderByRaw("CASE 
-                WHEN department_id = ? THEN 0 
-                WHEN id IN (
-                    SELECT user_id 
-                    FROM user_departments 
-                    WHERE department_id = ?
-                ) THEN 1 
-                ELSE 2 
-            END", [$this->department_id, $this->department_id])
+                WHEN EXISTS (
+                    SELECT 1 FROM employees e 
+                    JOIN employee_departments ed ON e.id = ed.employee_id 
+                    WHERE e.user_id = users.id 
+                    AND ed.department_id = ?
+                ) THEN 0 
+                ELSE 1 
+            END", [$this->department_id])
             ->get();
     }
 
@@ -173,7 +199,7 @@ class EditProject extends Component
                 ->where('project_members.role', 'team_leader')
                 ->first();
 
-            // Store original members and their roles before update - Fixed to use project_members table
+            // Store original members and their roles before update
             $originalMembers = $this->project->members()
                 ->withPivot('role')
                 ->get()
@@ -212,21 +238,28 @@ class EditProject extends Component
             // Prepare member data with roles
             $memberData = [];
 
-            // Add team manager as team_leader
+            // Add team manager as team_leader and also as a member
             if ($this->team_leader_id) {
-                $memberData[$this->team_leader_id] = [
-                    'role' => 'team_leader',
-                    'joined_at' => now()
-                ];
+                $teamLeaderEmployee = \App\Models\Employee::where('user_id', $this->team_leader_id)->first();
+                if ($teamLeaderEmployee) {
+                    $memberData[$teamLeaderEmployee->id] = [
+                        'role' => 'team_leader',
+                        'joined_at' => now()
+                    ];
+                }
             }
 
             // Add regular team members
             foreach ($this->selectedTeamMembers as $memberId) {
-                if ($memberId != $this->team_leader_id) {
-                    $memberData[$memberId] = [
-                        'role' => 'member',
-                        'joined_at' => now()
-                    ];
+                $employee = \App\Models\Employee::where('user_id', $memberId)->first();
+                if ($employee) {
+                    // Skip if already added as team leader
+                    if (!isset($memberData[$employee->id])) {
+                        $memberData[$employee->id] = [
+                            'role' => 'member',
+                            'joined_at' => now()
+                        ];
+                    }
                 }
             }
 
@@ -256,15 +289,21 @@ class EditProject extends Component
                 }
 
                 // Send notifications only to new members or members with role changes
-                foreach ($memberData as $memberId => $data) {
+                foreach ($memberData as $employeeId => $data) {
                     $shouldNotify = false;
                     $roleTitle = ucfirst(str_replace('_', ' ', $data['role']));
                     
+                    // Get the user ID from the employee record
+                    $employee = \App\Models\Employee::find($employeeId);
+                    if (!$employee) continue;
+                    
+                    $memberId = $employee->user_id;
+                    
                     // Check if member is new or role has changed
-                    if (!isset($originalMembers[$memberId])) {
+                    if (!isset($originalMembers[$employeeId])) {
                         // New member
                         $shouldNotify = true;
-                    } elseif ($originalMembers[$memberId] !== $data['role']) {
+                    } elseif ($originalMembers[$employeeId] !== $data['role']) {
                         // Existing member but role changed
                         $shouldNotify = true;
                     }
@@ -288,21 +327,26 @@ class EditProject extends Component
                 }
 
                 // Notify removed members
-                foreach ($removedMembers as $memberId) {
+                foreach ($removedMembers as $employeeId) {
+                    $employee = \App\Models\Employee::find($employeeId);
+                    if (!$employee) continue;
+                    
+                    $memberId = $employee->user_id;
+                    
                     if ($memberId !== auth()->id()) { // Don't notify the user making the changes
-                Notification::create([
+                        Notification::create([
                             'user_id' => $memberId,
                             'from_id' => auth()->id(),
                             'title' => 'Removed from Project',
                             'message' => "You have been removed from project: {$this->project->name}",
                             'type' => 'assignment',
                             'data' => json_encode([
-                            'project_id' => $this->project->id,
-                            'project_name' => $this->project->name,
-                            'updated_by' => auth()->user()->name
+                                'project_id' => $this->project->id,
+                                'project_name' => $this->project->name,
+                                'updated_by' => auth()->user()->name
                             ]),
-                    'is_read' => false
-                ]);
+                            'is_read' => false
+                        ]);
                     }
                 }
             }
@@ -314,7 +358,7 @@ class EditProject extends Component
                 'message' => 'Project updated successfully!'
             ]);
 
-            return redirect()->route('projects.show', $this->project);
+            return $this->redirect(route('projects.show', $this->project), navigate: true);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -325,6 +369,14 @@ class EditProject extends Component
             ]);
             
             return null;
+        }
+    }
+
+    public function updatedTeamLeaderId()
+    {
+        // If team leader is selected, add them to selectedTeamMembers if not already there
+        if ($this->team_leader_id && !in_array($this->team_leader_id, $this->selectedTeamMembers)) {
+            $this->selectedTeamMembers[] = $this->team_leader_id;
         }
     }
 

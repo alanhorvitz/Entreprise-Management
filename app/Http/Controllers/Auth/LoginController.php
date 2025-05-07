@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 class LoginController extends Controller
 {
@@ -33,6 +35,27 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+            
+            $user = Auth::user();
+            
+            // Get the user's role from their app
+            if ($user->hasRole('super_admin')) {
+                // If they are super_admin, give them director role
+                $user->syncRoles(['director']);
+            } 
+            else if ($user->hasRole('admin')) {
+                // If they are admin, check if they are supervisor in their employee record
+                if ($user->employee && $user->employee->types()->where('type', 'supervisor')->exists()) {
+                    $user->syncRoles(['supervisor']);
+                } else {
+                    $user->syncRoles(['employee']);
+                }
+            } 
+            else {
+                // Default to employee role
+                $user->syncRoles(['employee']);
+            }
+            
             return redirect()->intended(route('dashboard'));
         }
 

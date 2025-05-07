@@ -19,6 +19,12 @@ use App\Models\EmailReminder;
 use App\Models\RepetitiveTask;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Employee;
+use App\Models\Status;
+use App\Models\Department;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use App\Models\EmployeeDepartment;
 
 class DatabaseSeeder extends Seeder
 {
@@ -30,52 +36,90 @@ class DatabaseSeeder extends Seeder
         // Seed roles and permissions first
         $this->call(RoleAndPermissionSeeder::class);
 
-        // Create director user
-        $director = User::create([
-            'first_name' => 'Director',
-            'last_name' => 'User',
-            'email' => 'director@example.com',
-            'password' => Hash::make('password'),
-            'email_verified_at' => Carbon::now(),
-            'is_active' => true,
-        ]);
-        $director->assignRole('director');
+        // Create departments
+        $departments = [
+            ['name' => 'IT', 'description' => 'Information Technology Department'],
+            ['name' => 'HR', 'description' => 'Human Resources Department'],
+            ['name' => 'Finance', 'description' => 'Finance Department'],
+            ['name' => 'Marketing', 'description' => 'Marketing Department'],
+        ];
 
-        // Create supervisor user
-        $supervisor = User::create([
-            'first_name' => 'Supervisor',
-            'last_name' => 'User',
-            'email' => 'supervisor@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'supervisor',
-            'email_verified_at' => Carbon::now(),
-            'is_active' => true,
-        ]);
-        $supervisor->assignRole('supervisor');
+        foreach ($departments as $department) {
+            Department::create($department);
+        }
 
-        // Create employee user
-        $employee = User::create([
-            'first_name' => 'Employee',
-            'last_name' => 'User',
-            'email' => 'employee@example.com',
-            'password' => Hash::make('password'),
-            'email_verified_at' => Carbon::now(),
-            'is_active' => true,
+        // Create status
+        $status = Status::create([
+            'status' => 'active'
         ]);
-        $employee->assignRole('employee');
 
-        // Call department seeder before creating users
-        $this->call(DepartmentSeeder::class);
-        
-        // Create users
+        // Create users with roles
         $users = [
+            [
+                'email' => 'director@example.com',
+                'password' => Hash::make('password'),
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'is_active' => true
+            ],
+            [
+                'email' => 'supervisor@example.com',
+                'password' => Hash::make('password'),
+                'first_name' => 'Jane',
+                'last_name' => 'Smith',
+                'is_active' => true
+            ],
+            [
+                'email' => 'employee@example.com',
+                'password' => Hash::make('password'),
+                'first_name' => 'Bob',
+                'last_name' => 'Johnson',
+                'is_active' => true
+            ],
+        ];
+
+        $roles = ['director', 'supervisor', 'employee'];
+        foreach ($users as $index => $userData) {
+            $user = User::create($userData);
+            $user->assignRole($roles[$index]);
+
+            // Create employee record
+            $employee = Employee::create([
+                'employee_code' => 'EMP' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                'cin' => 'CIN' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                'user_id' => $user->id,
+                'hire_date' => now(),
+                'position' => ucfirst($roles[$index]),
+                'salary' => 50000,
+                'status_id' => $status->id
+            ]);
+
+            // Assign departments based on role
+            if ($roles[$index] === 'director') {
+                // Director has access to all departments
+                foreach (Department::all() as $department) {
+                    EmployeeDepartment::create([
+                        'employee_id' => $employee->id,
+                        'department_id' => $department->id,
+                    ]);
+                }
+            } else {
+                // Others get assigned to random departments
+                $randomDepartment = Department::inRandomOrder()->first();
+                EmployeeDepartment::create([
+                    'employee_id' => $employee->id,
+                    'department_id' => $randomDepartment->id,
+                ]);
+            }
+        }
+
+        // Create additional users
+        $additionalUsers = [
             [
                 'first_name' => 'Admin',
                 'last_name' => 'User',
                 'email' => 'admin@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'director',
-                'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
             ],
@@ -84,122 +128,106 @@ class DatabaseSeeder extends Seeder
                 'last_name' => 'Manager',
                 'email' => 'pm@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'team_leader',
-                'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-                ],
+            ],
             [
                 'first_name' => 'Team',
                 'last_name' => 'Member1',
                 'email' => 'member1@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'employee',
-                'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-                ],
+            ],
             [
                 'first_name' => 'Team',
                 'last_name' => 'Member2',
                 'email' => 'member2@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'employee',
-                'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-                ],
+            ],
             [
                 'first_name' => 'Sarah',
                 'last_name' => 'Johnson',
                 'email' => 'sarah@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'supervisor',
-                'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-                ],
+            ],
             [
                 'first_name' => 'Michael',
                 'last_name' => 'Williams',
                 'email' => 'michael@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'employee',
-                'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-                ],
+            ],
             [
                 'first_name' => 'Emily',
                 'last_name' => 'Clark',
                 'email' => 'emily@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'employee',
-                'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-                ],
+            ],
             [
                 'first_name' => 'James',
                 'last_name' => 'Brown',
                 'email' => 'james@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'team_leader',
-                'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-                ],
+            ],
             [
                 'first_name' => 'Jessica',
                 'last_name' => 'Miller',
                 'email' => 'jessica@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'employee',
-                'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-                ],
+            ],
             [
                 'first_name' => 'David',
                 'last_name' => 'Wilson',
                 'email' => 'david@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'employee',
-                'department_id' => rand(1, 10),
                 'email_verified_at' => Carbon::now(),
                 'is_active' => true
-                    ]
+            ]
         ];
 
+        $additionalRoles = ['director', 'team_leader', 'employee', 'employee', 'supervisor', 'employee', 'employee', 'team_leader', 'employee', 'employee'];
         $createdUsers = [];
-        foreach ($users as $userData) {
-            $user = User::create($userData);
-            $user->assignRole($userData['role']);
-            $createdUsers[] = $user;
-        }
 
-        // Assign users to multiple departments
-        foreach ($createdUsers as $user) {
-            // Ensure user is assigned to their primary department
-            UserDepartment::create([
+        foreach ($additionalUsers as $index => $userData) {
+            $user = User::create($userData);
+            $user->assignRole($additionalRoles[$index]);
+            $createdUsers[] = $user;
+
+            // Create employee for each user
+            $employee = Employee::create([
+                'employee_code' => 'EMP' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                'cin' => 'CIN' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
                 'user_id' => $user->id,
-                'department_id' => $user->department_id
+                'status_id' => $status->id
             ]);
-            
-            // Randomly assign additional departments (0-2 more departments)
-            $additionalDepartments = rand(0, 2);
-            $availableDepartments = range(1, 10);
-            // Remove primary department from available departments
-            $availableDepartments = array_diff($availableDepartments, [$user->department_id]);
-            
-            // Shuffle and take random number of departments
-            shuffle($availableDepartments);
-            $selectedDepartments = array_slice($availableDepartments, 0, $additionalDepartments);
-            
-            foreach ($selectedDepartments as $departmentId) {
-                UserDepartment::create([
-                    'user_id' => $user->id,
-                    'department_id' => $departmentId
+
+            // Assign departments based on role
+            if ($additionalRoles[$index] === 'director') {
+                // Director has access to all departments
+                foreach (Department::all() as $department) {
+                    EmployeeDepartment::create([
+                        'employee_id' => $employee->id,
+                        'department_id' => $department->id,
+                    ]);
+                }
+            } else {
+                // Others get assigned to random departments
+                $randomDepartment = Department::inRandomOrder()->first();
+                EmployeeDepartment::create([
+                    'employee_id' => $employee->id,
+                    'department_id' => $randomDepartment->id,
                 ]);
             }
         }
@@ -212,7 +240,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'in_progress',
                 'start_date' => Carbon::now()->subDays(30),
                 'end_date' => Carbon::now()->addDays(60),
-                'department_id' => rand(1, 10),
+                'department_id' => rand(1, 4),
                 'budget' => rand(10000, 100000),
                 'supervised_by' => rand(1, 10)
             ],
@@ -222,7 +250,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'planning',
                 'start_date' => Carbon::now()->subDays(10),
                 'end_date' => Carbon::now()->addDays(90),
-                'department_id' => rand(1, 10),
+                'department_id' => rand(1, 4),
                 'budget' => rand(10000, 100000),
                 'supervised_by' => rand(1, 10)
             ],
@@ -232,7 +260,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'in_progress',
                 'start_date' => Carbon::now()->subDays(45),
                 'end_date' => Carbon::now()->addDays(15),
-                'department_id' => rand(1, 10),
+                'department_id' => rand(1, 4),
                 'budget' => rand(10000, 100000),
                 'supervised_by' => rand(1, 10)
             ],
@@ -242,7 +270,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'planning',
                 'start_date' => Carbon::now(),
                 'end_date' => Carbon::now()->addDays(45),
-                'department_id' => rand(1, 10),
+                'department_id' => rand(1, 4),
                 'budget' => rand(10000, 100000),
                 'supervised_by' => rand(1, 10)
             ]
@@ -271,7 +299,7 @@ class DatabaseSeeder extends Seeder
             // Project manager is on all projects
             ProjectMember::create([
                 'project_id' => $project->id,
-                'user_id' => $createdUsers[1]->id,
+                'employee_id' => Employee::where('user_id', $createdUsers[1]->id)->first()->id,
                 'role' => 'team_leader',
                 'joined_at' => Carbon::now()->subDays(rand(30, 60))
             ]);
@@ -280,7 +308,7 @@ class DatabaseSeeder extends Seeder
             if ($index % 2 == 0) {
                 ProjectMember::create([
                     'project_id' => $project->id,
-                    'user_id' => $createdUsers[7]->id, // James Brown (new PM)
+                    'employee_id' => Employee::where('user_id', $createdUsers[7]->id)->first()->id,
                     'role' => 'team_leader',
                     'joined_at' => Carbon::now()->subDays(rand(25, 55))
                 ]);
@@ -289,25 +317,23 @@ class DatabaseSeeder extends Seeder
             // Add supervisor to projects
             ProjectMember::create([
                 'project_id' => $project->id,
-                'user_id' => $createdUsers[4]->id, // Sarah Johnson (supervisor)
+                'employee_id' => Employee::where('user_id', $createdUsers[4]->id)->first()->id,
                 'role' => 'member',
                 'joined_at' => Carbon::now()->subDays(rand(28, 58))
             ]);
             
             // Add team members to projects
-            // First team member is on all projects
             ProjectMember::create([
                 'project_id' => $project->id,
-                'user_id' => $createdUsers[2]->id,
+                'employee_id' => Employee::where('user_id', $createdUsers[2]->id)->first()->id,
                 'role' => 'member',
                 'joined_at' => Carbon::now()->subDays(rand(10, 30))
             ]);
             
-            // Add new employees to projects with different patterns
-            // Michael Williams on all projects
+            // Add new employees to projects
             ProjectMember::create([
                 'project_id' => $project->id,
-                'user_id' => $createdUsers[5]->id, 
+                'employee_id' => Employee::where('user_id', $createdUsers[5]->id)->first()->id,
                 'role' => 'member',
                 'joined_at' => Carbon::now()->subDays(rand(15, 35))
             ]);
@@ -316,14 +342,14 @@ class DatabaseSeeder extends Seeder
             if ($index % 2 == 0) {
                 ProjectMember::create([
                     'project_id' => $project->id,
-                    'user_id' => $createdUsers[6]->id, // Emily
+                    'employee_id' => Employee::where('user_id', $createdUsers[6]->id)->first()->id,
                     'role' => 'member',
                     'joined_at' => Carbon::now()->subDays(rand(10, 30))
                 ]);
             } else {
                 ProjectMember::create([
                     'project_id' => $project->id,
-                    'user_id' => $createdUsers[8]->id, // Jessica
+                    'employee_id' => Employee::where('user_id', $createdUsers[8]->id)->first()->id,
                     'role' => 'member',
                     'joined_at' => Carbon::now()->subDays(rand(10, 30))
                 ]);
@@ -333,7 +359,7 @@ class DatabaseSeeder extends Seeder
             if ($index % 2 == 0) {
                 ProjectMember::create([
                     'project_id' => $project->id,
-                    'user_id' => $createdUsers[9]->id, // David
+                    'employee_id' => Employee::where('user_id', $createdUsers[9]->id)->first()->id,
                     'role' => 'member',
                     'joined_at' => Carbon::now()->subDays(rand(5, 25))
                 ]);
@@ -343,7 +369,7 @@ class DatabaseSeeder extends Seeder
             if ($index % 2 == 1) {
                 ProjectMember::create([
                     'project_id' => $project->id,
-                    'user_id' => $createdUsers[3]->id,
+                    'employee_id' => Employee::where('user_id', $createdUsers[3]->id)->first()->id,
                     'role' => 'member',
                     'joined_at' => Carbon::now()->subDays(rand(10, 30))
                 ]);
@@ -411,7 +437,7 @@ class DatabaseSeeder extends Seeder
                 TaskStatusHistory::create([
                     'task_id' => $task->id,
                     'user_id' => $createdUsers[1]->id,
-                    'old_status' => null,
+                    'old_status' => 'todo',
                     'new_status' => $task->current_status,
                     'changed_at' => Carbon::now(),
                     'notes' => 'Initial status'
@@ -433,7 +459,7 @@ class DatabaseSeeder extends Seeder
                 if (rand(0, 1) == 1) {
                     TaskAssignment::create([
                         'task_id' => $task->id,
-                        'user_id' => $createdUsers[2]->id, // Team member 1
+                        'employee_id' => Employee::where('user_id', $createdUsers[2]->id)->first()->id, // Team member 1
                         'assigned_by' => $createdUsers[1]->id, // PM assigns
                         'assigned_at' => Carbon::now()->subDays(rand(1, 10))
                     ]);
@@ -443,7 +469,7 @@ class DatabaseSeeder extends Seeder
                 if (rand(0, 1) == 1) {
                     TaskAssignment::create([
                         'task_id' => $task->id,
-                        'user_id' => $createdUsers[3]->id, // Team member 2
+                        'employee_id' => Employee::where('user_id', $createdUsers[3]->id)->first()->id, // Team member 2
                         'assigned_by' => $createdUsers[1]->id, // PM assigns
                         'assigned_at' => Carbon::now()->subDays(rand(1, 10))
                     ]);
@@ -455,7 +481,7 @@ class DatabaseSeeder extends Seeder
                     if (rand(0, 3) == 0) { // 25% chance for each new employee
                         TaskAssignment::create([
                             'task_id' => $task->id,
-                            'user_id' => $createdUsers[$employeeId]->id,
+                            'employee_id' => Employee::where('user_id', $createdUsers[$employeeId]->id)->first()->id,
                             'assigned_by' => rand(0, 1) == 0 ? $createdUsers[1]->id : $createdUsers[7]->id, // Assigned by either PM
                             'assigned_at' => Carbon::now()->subDays(rand(1, 10))
                         ]);
@@ -466,7 +492,7 @@ class DatabaseSeeder extends Seeder
                 if (rand(0, 7) == 0) { // ~12.5% chance
                     TaskAssignment::create([
                         'task_id' => $task->id,
-                        'user_id' => $createdUsers[4]->id, // Sarah (supervisor)
+                        'employee_id' => Employee::where('user_id', $createdUsers[4]->id)->first()->id, // Sarah (supervisor)
                         'assigned_by' => $createdUsers[1]->id, // PM assigns
                         'assigned_at' => Carbon::now()->subDays(rand(1, 10))
                     ]);
@@ -476,7 +502,7 @@ class DatabaseSeeder extends Seeder
                 if (rand(0, 6) == 0) { // ~16.6% chance
                     TaskAssignment::create([
                         'task_id' => $task->id,
-                        'user_id' => $createdUsers[7]->id, // James (PM)
+                        'employee_id' => Employee::where('user_id', $createdUsers[7]->id)->first()->id, // James (PM)
                         'assigned_by' => $createdUsers[7]->id, // Self-assigned
                         'assigned_at' => Carbon::now()->subDays(rand(1, 10))
                     ]);
@@ -486,7 +512,7 @@ class DatabaseSeeder extends Seeder
                 if (rand(0, 5) == 0) {
                     TaskAssignment::create([
                         'task_id' => $task->id,
-                        'user_id' => $createdUsers[1]->id, // PM
+                        'employee_id' => Employee::where('user_id', $createdUsers[1]->id)->first()->id, // PM
                         'assigned_by' => $createdUsers[1]->id, // Self-assigned
                         'assigned_at' => Carbon::now()->subDays(rand(1, 10))
                     ]);
@@ -500,7 +526,8 @@ class DatabaseSeeder extends Seeder
             $usedDates = [];
             
             // Get all projects the user is a member of
-            $userProjects = ProjectMember::where('user_id', $user->id)
+            $employee = Employee::where('user_id', $user->id)->first();
+            $userProjects = ProjectMember::where('employee_id', $employee->id)
                 ->pluck('project_id')
                 ->toArray();
             
@@ -517,29 +544,12 @@ class DatabaseSeeder extends Seeder
                     // Randomly select one of the user's projects
                     $projectId = $userProjects[array_rand($userProjects)];
                     
-                    $report = DailyReport::create([
+                    DailyReport::create([
                         'user_id' => $user->id,
                         'project_id' => $projectId,
                         'date' => $date,
                         'summary' => "Daily report for " . $date->format('Y-m-d')
                     ]);
-
-                    // Add tasks from the selected project to the report
-                    $taskCount = rand(1, 5);
-                    $userTasks = TaskAssignment::where('user_id', $user->id)
-                        ->whereHas('task', function($query) use ($projectId) {
-                            $query->where('project_id', $projectId);
-                        })
-                        ->inRandomOrder()
-                        ->take($taskCount)
-                        ->get();
-
-                    foreach ($userTasks as $taskAssignment) {
-                        ReportTask::create([
-                            'report_id' => $report->id,
-                            'task_id' => $taskAssignment->task_id
-                        ]);
-                    }
                 }
             }
         }

@@ -21,7 +21,6 @@ return new class extends Migration
             $table->string('remember_token', 100)->nullable();
             $table->timestamp('last_login')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->enum('role', ['director', 'supervisor', 'team_leader', 'employee'])->default('employee');
             $table->foreignId('department_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
         });

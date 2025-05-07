@@ -10,6 +10,7 @@ use App\Models\UserDepartment;
 use Livewire\Component;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Employee;
 
 class CreateProject extends Component
 {
@@ -75,6 +76,11 @@ class CreateProject extends Component
 
     public function updatedSelectedTeamMembers($value)
     {
+        // If team leader is unselected from team members, reset team leader
+        if ($this->team_leader_id && !in_array($this->team_leader_id, $this->selectedTeamMembers)) {
+            $this->team_leader_id = null;
+        }
+
         // Update available team managers based on selected team members
         if (!empty($this->selectedTeamMembers)) {
             $this->availableTeamManagers = User::whereIn('id', $this->selectedTeamMembers)
@@ -82,17 +88,21 @@ class CreateProject extends Component
         } 
         else {
             $this->availableTeamManagers = collect();
+            $this->team_leader_id = null; // Reset team leader if no members selected
         }
     }
 
     public function loadDepartmentMembers()
     {
         if ($this->department_id) {
-            // Get all employees assigned to this department through user_departments table
-            $this->departmentMembers = User::whereHas('userDepartments', function($query) {
-                    $query->where('department_id', $this->department_id);
+            // Get all employees assigned to this department through employee_departments table
+            $this->departmentMembers = User::role('employee')
+                ->whereHas('employee', function($query) {
+                    $query->whereHas('departments', function($query) {
+                        $query->where('department_id', $this->department_id);
+                    });
                 })
-                ->where('role', 'employee')
+                ->where('is_active', true)
                 ->get();
 
             // Reset team members and manager when department changes
@@ -112,19 +122,24 @@ class CreateProject extends Component
      */
     private function loadSupervisors()
     {
-        // Get all supervisors
-        $query = User::where('role', 'supervisor');
-        // If a department is selected, order by relevance
+        // Get all supervisors first
+        $query = User::whereHas('employee', function($query) {
+            $query->where('position', 'Supervisor');
+        })->where('is_active', true);
+
+        // If department is selected, prioritize supervisors from that department
         if ($this->department_id) {
-            $query->orderByRaw("CASE 
-                WHEN department_id = ? THEN 0 
-                WHEN id IN (
-                    SELECT user_id 
-                    FROM user_departments 
-                    WHERE department_id = ?
-                ) THEN 1 
-                ELSE 2 
-            END", [$this->department_id, $this->department_id]);
+            $query->orderByRaw("
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM employee_departments ed
+                        INNER JOIN employees e ON e.id = ed.employee_id
+                        INNER JOIN users u ON u.id = e.user_id
+                        WHERE u.id = users.id 
+                        AND ed.department_id = ?
+                    ) THEN 1 
+                    ELSE 2 
+                END", [$this->department_id]);
         }
 
         $this->availableSupervisors = $query->get();
@@ -166,28 +181,37 @@ class CreateProject extends Component
                 $teamLeader->assignRole('team_leader');
             }
 
-            // Attach project manager
-            ProjectMember::create([
-                'project_id' => $project->id,
-                'user_id' => $this->team_leader_id,
-                'role' => 'team_leader',
-                'joined_at' => now(),
-            ]);
+            // Get employee IDs
+            $teamLeaderEmployee = Employee::where('user_id', $this->team_leader_id)->first();
+
+            // Attach team leader
+            if ($teamLeaderEmployee) {
+                ProjectMember::create([
+                    'project_id' => $project->id,
+                    'employee_id' => $teamLeaderEmployee->id,
+                    'role' => 'team_leader',
+                    'joined_at' => now(),
+                ]);
+            }
 
             // Attach team members
             if (!empty($this->selectedTeamMembers)) {
                 foreach ($this->selectedTeamMembers as $memberId) {
-                    // Skip if member is project manager or team manager
-                    if ($memberId != $this->supervised_by && $memberId != $this->team_leader_id) {
-                        ProjectMember::create([
-                            'project_id' => $project->id,
-                            'user_id' => $memberId,
-                            'role' => 'member',
-                            'joined_at' => now(),
-                        ]);
+                    $employee = Employee::where('user_id', $memberId)->first();
+                    if ($employee) {
+                        // Skip if already added as team leader
+                        if ($employee->id !== $teamLeaderEmployee?->id) {
+                            ProjectMember::create([
+                                'project_id' => $project->id,
+                                'employee_id' => $employee->id,
+                                'role' => 'member',
+                                'joined_at' => now(),
+                            ]);
+                        }
                     }
                 }
             }
+
             if ($this->send_notifications) {
                 // Notify directors about new project
                 $directors = User::role('director')
@@ -251,7 +275,8 @@ class CreateProject extends Component
                 'type' => 'success',
                 'message' => 'Project created successfully!'
             ]);
-            return redirect()->route('projects.index');
+
+            return $this->redirect(route('projects.index'), navigate: true);
 
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to create project: ' . $e->getMessage());
@@ -283,6 +308,11 @@ class CreateProject extends Component
         // Reset project manager if they're the same person
         if ($this->team_leader_id === $this->supervised_by) {
             $this->team_leader_id = null;
+        }
+
+        // If team leader is selected, add them to selectedTeamMembers if not already there
+        if ($this->team_leader_id && !in_array($this->team_leader_id, $this->selectedTeamMembers)) {
+            $this->selectedTeamMembers[] = $this->team_leader_id;
         }
     }
 }

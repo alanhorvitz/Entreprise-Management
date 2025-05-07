@@ -89,7 +89,7 @@ class ProjectList extends Component
     public function render()
     {
         $query = Project::query()
-            ->with(['createdBy', 'supervisedBy', 'members']);
+            ->with(['createdBy', 'supervisedBy', 'members.user']);
 
         // Apply permission-based filtering
         if (auth()->user()->hasPermissionTo('view all projects')) {
@@ -104,7 +104,11 @@ class ProjectList extends Component
             // For supervisors and employees, show only their assigned projects
             $query->where(function($query) {
                 $query->whereHas('members', function ($query) {
-                    $query->where('user_id', auth()->id());
+                    // Get the employee record for the current user
+                    $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
+                    if ($employee) {
+                        $query->where('employee_id', $employee->id);
+                    }
                 })->orWhere('supervised_by', auth()->id());
             })->when($this->search, function ($query) {
                 $query->where(function ($query) {

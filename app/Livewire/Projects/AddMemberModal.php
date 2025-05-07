@@ -26,21 +26,27 @@ class AddMemberModal extends Component
 
     public function loadAvailableMembers()
     {
-        $this->availableMembers = User::whereHas('userDepartments', function($query) {
+        // Get all employees in the department
+        $departmentEmployees = \App\Models\Employee::whereHas('departments', function($query) {
                 $query->where('department_id', $this->project->department_id);
             })
+            ->whereHas('user', function($query) {
+                $query->whereHas('roles', function($query) {
+                    $query->where('name', 'employee');
+                })
+                ->where('is_active', true);
+            })
             ->whereNotIn('id', function($query) {
-                $query->select('user_id')
+                $query->select('employee_id')
                     ->from('project_members')
                     ->where('project_id', $this->project->id);
             })
-            ->where('is_active', true)
-            ->where('role', 'employee')
-            ->orderByRaw("CASE 
-                WHEN department_id = ? THEN 0
-                ELSE 1 
-            END", [$this->project->department_id])
+            ->with('user')
             ->get();
+
+        $this->availableMembers = $departmentEmployees->map(function($employee) {
+            return $employee->user;
+        });
     }
 
     public function open()
@@ -61,17 +67,21 @@ class AddMemberModal extends Component
             'selectedMembers' => 'required|array|min:1',
         ]);
 
-            foreach ($this->selectedMembers as $memberId) {
+        foreach ($this->selectedMembers as $userId) {
+            // Get the employee record for this user
+            $employee = \App\Models\Employee::where('user_id', $userId)->first();
+            
+            if ($employee) {
                 ProjectMember::create([
                     'project_id' => $this->project->id,
-                    'user_id' => $memberId,
+                    'employee_id' => $employee->id,
                     'role' => 'member',
                     'joined_at' => now(),
                 ]);
                 
                 // Create notification for the added member
                 Notification::create([
-                    'user_id' => $memberId,
+                    'user_id' => $userId,
                     'from_id' => auth()->id(),
                     'title' => 'Added to Project',
                     'message' => 'You have been added to project: ' . $this->project->name,
@@ -83,9 +93,10 @@ class AddMemberModal extends Component
                     'is_read' => false
                 ]);
             }
+        }
 
-            $this->dispatch('memberAdded');
-            $this->close();
+        $this->dispatch('memberAdded');
+        $this->close();
     }
 
     public function render()

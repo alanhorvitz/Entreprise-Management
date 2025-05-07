@@ -43,6 +43,8 @@ class ProjectMember extends Pivot
      */
     protected $casts = [
         'joined_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
     /**

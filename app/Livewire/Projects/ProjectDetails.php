@@ -33,10 +33,16 @@ class ProjectDetails extends Component
     public function mount(Project $project)
     {
         // Check if user has permission to view this project
-        if (!auth()->user()->hasPermissionTo('view all projects') && 
-            !$project->members()->where('user_id', auth()->id())->exists() &&
-            $project->supervised_by !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
+        if (!auth()->user()->hasPermissionTo('view all projects')) {
+            // Get the employee record for the current user
+            $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
+            
+            // Check if user is a member or supervisor
+            if (!$employee || 
+                (!$project->members()->where('employee_id', $employee->id)->exists() && 
+                $project->supervised_by !== auth()->id())) {
+                abort(403, 'Unauthorized action.');
+            }
         }
 
         $this->project = $project->load(['createdBy', 'supervisedBy', 'members', 'tasks']);
@@ -74,12 +80,24 @@ class ProjectDetails extends Component
         }
 
         try {
-            ProjectMember::where('project_id', $this->project->id)
-                ->where('user_id', $this->memberToDelete)
-                ->delete();
+            // Get the project member record
+            $projectMember = ProjectMember::where('project_id', $this->project->id)
+                ->where('employee_id', $this->memberToDelete)
+                ->first();
 
+            if (!$projectMember) {
+                throw new \Exception('Project member not found.');
+            }
+
+            // Get the user ID for notification
+            $user = $projectMember->employee->user;
+
+            // Delete the project member
+            $projectMember->delete();
+
+            // Create notification
             Notification::create([
-                'user_id' => $this->memberToDelete,
+                'user_id' => $user->id,
                 'from_id' => auth()->id(),
                 'title' => 'Removed from Project',
                 'message' => 'You have been removed from project: ' . $this->project->name,
@@ -102,7 +120,7 @@ class ProjectDetails extends Component
         } catch (\Exception $e) {
             session()->flash('notify', [
                 'type' => 'error',
-                'message' => 'Failed to remove member.'
+                'message' => 'Failed to remove member: ' . $e->getMessage()
             ]);
         }
     }
@@ -114,9 +132,10 @@ class ProjectDetails extends Component
         }
 
         try {
-            // Delete project members
-            ProjectMember::where('project_id', $this->project->id)->delete();
+            // Detach all members using the relationship
+            $this->project->members()->detach();
 
+            // Delete the project
             $this->project->delete();
 
             $this->showProjectDeleteModal = false;
@@ -130,7 +149,7 @@ class ProjectDetails extends Component
         } catch (\Exception $e) {
             session()->flash('notify', [
                 'type' => 'error',
-                'message' => 'Failed to delete project.'
+                'message' => 'Failed to delete project: ' . $e->getMessage()
             ]);
         }
     }
@@ -183,10 +202,12 @@ class ProjectDetails extends Component
         }
 
         try {
+            $oldStatus = $this->project->status;
+            
             $this->project->update([
                 'status' => $status
             ]);
-            
+
             // Get all directors except current user
             $directors = User::role('director')
                 ->where('id', '!=', auth()->id())
@@ -210,28 +231,27 @@ class ProjectDetails extends Component
                 ]);
             }
 
-        $oldStatus = $this->project->status;
-        
-        $this->project->update([
-            'status' => $status
-        ]);
+            // Load the project with its relationships
+            $this->project->load([
+                'members' => function($query) {
+                    $query->where('role', 'team_leader');
+                },
+                'members.user'  // Load the user relationship directly from ProjectMember
+            ]);
 
-        // Load necessary relationships before sending email
-        $this->project->load(['members' => function($query) {
-            $query->where('project_members.role', 'team_leader');
-        }]);
 
-        // Send email notification to director
-        Mail::to('kniptodati@gmail.com')->send(new ProjectStatusChangedMail(
-            $this->project,
-            $oldStatus,
-            $status
-        ));
+                // Send email notification to team leader
+                Mail::to('kniptodati@gmail.com')->send(new ProjectStatusChangedMail(
+                    $this->project,
+                    $oldStatus,
+                    $status
+                ));
+            
 
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => 'Project status updated successfully!'
-        ]);
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => 'Project status updated successfully!'
+            ]);
 
             $this->dispatch('statusUpdated');
             

@@ -96,9 +96,9 @@
                             @forelse($project->members as $member)
                                 @if($loop->iteration <= 3)
                                 <div class="w-8 h-8 rounded-full border-2 border-base-100 overflow-hidden">
-                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($member->name) }}" 
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($member->user->name) }}" 
                                          class="w-full h-full object-cover"
-                                         alt="{{ $member->name }}" />
+                                         alt="{{ $member->user->name }}" />
                                 </div>
                                 @endif
                             @empty

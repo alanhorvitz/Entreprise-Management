@@ -122,4 +122,16 @@ class Task extends Model
             ->withPivot('assigned_by', 'assigned_at')
             ->withTimestamps();
     }
+
+    /**
+     * Get all assigned users for this task through employees
+     */
+    public function assignedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'task_assignments', 'task_id', 'employee_id', 'id', 'id')
+            ->join('employees', 'employees.id', '=', 'task_assignments.employee_id')
+            ->whereColumn('users.id', '=', 'employees.user_id')
+            ->withPivot('assigned_by', 'assigned_at')
+            ->withTimestamps();
+    }
 }

@@ -27,9 +27,7 @@ class User extends Authenticatable
         'first_name',
         'last_name',
         'last_login',
-        'is_active',
-        'role',
-        'department_id'
+        'is_active'
     ];
 
     /**
@@ -73,28 +71,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the user's primary department.
+     * Get the user's primary department through employee relationship.
      */
-    public function department(): BelongsTo
+    public function department()
     {
-        return $this->belongsTo(Department::class);
+        return $this->employee?->departments()->first();
     }
 
     /**
-     * Get all departments that the user belongs to through user_departments.
+     * Get all departments that the user belongs to through employee relationship.
      */
-    public function departments(): BelongsToMany
+    public function departments()
     {
-        return $this->belongsToMany(Department::class, 'user_departments')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Get all department assignments for the user.
-     */
-    public function userDepartments(): HasMany
-    {
-        return $this->hasMany(UserDepartment::class);
+        return $this->employee?->departments() ?? collect();
     }
 
     /**
@@ -105,5 +94,10 @@ class User extends Authenticatable
         return $this->belongsToMany(Project::class, 'project_members', 'employee_id', 'project_id')
                     ->withPivot('role', 'joined_at')
                     ->withTimestamps();
+    }
+
+    public function employee()
+    {
+        return $this->hasOne(Employee::class);
     }
 }

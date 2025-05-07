@@ -49,13 +49,13 @@ class Dashboard extends Component
                 ->count();
             $completedTasks = Task::whereIn('project_id', $projectIds)
                 ->whereHas('taskAssignments', function($query) use ($user) {
-                    $query->where('user_id', $user->id);
+                    $query->where('employee_id', $user->id);
                 })
                 ->where('current_status', 'completed')
                 ->count();
             $pendingTasks = Task::whereIn('project_id', $projectIds)
                 ->whereHas('taskAssignments', function($query) use ($user) {
-                    $query->where('user_id', $user->id);
+                    $query->where('employee_id', $user->id);
                 })
                 ->whereIn('current_status', ['todo', 'in_progress'])
                 ->count();
@@ -69,11 +69,11 @@ class Dashboard extends Component
         
         // Pending approvals - only for director and supervisor
         if ($user->hasRole('director')) {
-        $pendingApprovals = Task::with(['project', 'createdBy'])
-            ->where('status', 'pending_approval')
-            ->latest()
-            ->take(2)
-            ->get();
+            $pendingApprovals = Task::with(['project', 'createdBy'])
+                ->where('status', 'pending_approval')
+                ->latest()
+                ->take(2)
+                ->get();
         } elseif ($user->hasRole('supervisor')) {
             $pendingApprovals = Task::with(['project', 'createdBy'])
                 ->where('status', 'pending_approval')
@@ -89,30 +89,38 @@ class Dashboard extends Component
         
         // Tasks due soon - filtered by project access
         if ($user->hasRole('director')) {
-        $tasksDueSoon = Task::with(['project', 'assignedUsers'])
-            ->whereIn('current_status', ['todo', 'in_progress'])
-            ->whereNotNull('due_date')
-            ->where('due_date', '>=', Carbon::now())
-            ->where('due_date', '<=', Carbon::now()->addDays(7))
-            ->orderBy('due_date')
-            ->take(3)
-            ->get();
-        } else {
-            $projectIds = $user->hasRole('supervisor') 
-                ? Project::where('supervised_by', $user->id)->pluck('id')
-                : $user->projectMembers()->pluck('project_id');
-                
-            $tasksDueSoon = Task::with(['project', 'assignedUsers'])
-                ->whereIn('project_id', $projectIds)
+            $tasksDueSoon = Task::with(['project', 'createdBy'])
+                ->where('due_date', '>=', now())
+                ->where('due_date', '<=', now()->addDays(7))
                 ->whereIn('current_status', ['todo', 'in_progress'])
-                ->whereNotNull('due_date')
-                ->where('due_date', '>=', Carbon::now())
-                ->where('due_date', '<=', Carbon::now()->addDays(7))
-                ->orderBy('due_date')
-                ->take(3)
+                ->latest()
+                ->take(5)
+                ->get();
+        } elseif ($user->hasRole('supervisor')) {
+            $tasksDueSoon = Task::with(['project', 'createdBy'])
+                ->where('due_date', '>=', now())
+                ->where('due_date', '<=', now()->addDays(7))
+                ->whereIn('current_status', ['todo', 'in_progress'])
+                ->whereIn('project_id', function($query) use ($user) {
+                    $query->select('id')->from('projects')->where('supervised_by', $user->id);
+                })
+                ->latest()
+                ->take(5)
+                ->get();
+        } else {
+            $tasksDueSoon = Task::with(['project', 'createdBy'])
+                ->where('due_date', '>=', now())
+                ->where('due_date', '<=', now()->addDays(7))
+                ->whereIn('current_status', ['todo', 'in_progress'])
+                ->whereIn('project_id', $projectIds)
+                ->whereHas('taskAssignments', function($query) use ($user) {
+                    $query->where('employee_id', $user->id);
+                })
+                ->latest()
+                ->take(5)
                 ->get();
         }
-
+        
         return view('livewire.dashboard', [
             'activeProjects' => $activeProjects,
             'completedTasks' => $completedTasks,
@@ -121,7 +129,7 @@ class Dashboard extends Component
             'recentProjects' => $recentProjects,
             'pendingApprovals' => $pendingApprovals,
             'tasksDueSoon' => $tasksDueSoon,
-            'canApproveTask' => $user->hasRole(['director', 'supervisor'])
+            'canApproveTask' => $user->hasRole(['director', 'supervisor']),
         ]);
     }
 

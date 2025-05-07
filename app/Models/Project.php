@@ -76,6 +76,14 @@ class Project extends Model
     }
 
     /**
+     * Alias for creator relationship.
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->creator();
+    }
+
+    /**
      * Get the user who supervises the project.
      */
     public function supervisor(): BelongsTo
@@ -84,13 +92,23 @@ class Project extends Model
     }
 
     /**
+     * Alias for supervisor relationship.
+     */
+    public function supervisedBy(): BelongsTo
+    {
+        return $this->supervisor();
+    }
+
+    /**
      * Get the members of the project.
      */
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(Employee::class, 'project_members')
-            ->withPivot('role')
-            ->withTimestamps();
+            ->using(ProjectMember::class)
+            ->withPivot('role', 'joined_at')
+            ->withTimestamps()
+            ->with('user');
     }
 
     /**

@@ -153,11 +153,11 @@
                                     <div class="flex items-center space-x-3">
                                         <div class="avatar flex items-center justify-center">
                                             <div class="w-8 h-8">
-                                                <img src="https://ui-avatars.com/api/?name={{ urlencode($member->name) }}" class="w-full h-full object-cover" />
+                                                <img src="https://ui-avatars.com/api/?name={{ urlencode($member->user->name) }}" class="w-full h-full object-cover" />
                                             </div>
                                         </div>
                                         <div>
-                                            <div class="font-bold">{{ $member->name }}</div>
+                                            <div class="font-bold">{{ $member->user->name }}</div>
                                             <div class="text-sm text-base-content/70">{{ $member->pivot->role }}</div>
                                         </div>
                                     </div>
@@ -282,12 +282,12 @@
                                                 <div class="flex items-center space-x-3">
                                                     <div class="avatar">
                                                         <div class="w-8 h-8">
-                                                            <img src="https://ui-avatars.com/api/?name={{ urlencode($member->name) }}" />
+                                                            <img src="https://ui-avatars.com/api/?name={{ urlencode($member->user->name) }}" />
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <div class="font-bold">{{ $member->name }}</div>
-                                                        <div class="text-sm text-base-content/70">{{ $member->email }}</div>
+                                                        <div class="font-bold">{{ $member->user->name }}</div>
+                                                        <div class="text-sm text-base-content/70">{{ $member->user->email }}</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -295,7 +295,7 @@
                                             <td>{{ $member->pivot->joined_at->format('M d, Y') }}</td>
                                             @if($canManageMembers)
                                                 <td>
-                                                    <button wire:click="confirmDelete({{ $member->id }})" class="btn btn-ghost btn-sm text-error">
+                                                    <button wire:click="confirmDelete({{ $member->pivot->employee_id }})" class="btn btn-ghost btn-sm text-error">
                                                         <span class="iconify w-5 h-5" data-icon="solar:trash-bin-trash-bold-duotone"></span>
                                                     </button>
                                                 </td>
