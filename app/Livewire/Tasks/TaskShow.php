@@ -28,7 +28,7 @@ class TaskShow extends Component
     
     public function loadTask()
     {
-        $this->task = Task::with(['project', 'createdBy', 'taskAssignments.user', 'taskComments.user', 'repetitiveTask'])
+        $this->task = Task::with(['project', 'createdBy', 'taskAssignments.employee', 'taskComments.user', 'repetitiveTask'])
             ->findOrFail($this->taskId);
     }
     

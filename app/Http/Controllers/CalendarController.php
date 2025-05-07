@@ -8,6 +8,7 @@ use App\Models\TaskAssignment;
 use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\RepetitiveTask;
+use App\Models\Employee;
 use Carbon\Carbon;
 
 class CalendarController extends Controller
@@ -20,11 +21,12 @@ class CalendarController extends Controller
     public function index()
     {
         $user = auth()->user();
+        $employee = $user->employee;
         
         // Initialize tasks query with proper eager loading
         $tasksQuery = Task::with(['project', 'repetitiveTask', 'taskAssignments'])
-            ->whereHas('taskAssignments', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
+            ->whereHas('taskAssignments', function ($query) use ($employee) {
+                $query->where('employee_id', $employee->id);
             });
         
         // Apply role-based visibility rules
@@ -41,8 +43,8 @@ class CalendarController extends Controller
                 });
         }
             
-        // Get task assignments for the authenticated user
-        $taskAssignments = TaskAssignment::where('user_id', $user->id)->get();
+        // Get task assignments for the authenticated user's employee record
+        $taskAssignments = TaskAssignment::where('employee_id', $employee->id)->get();
         $assignedTaskIds = $taskAssignments->pluck('task_id')->toArray();
         
         // Process tasks and generate repetitive instances
@@ -71,8 +73,8 @@ class CalendarController extends Controller
         } elseif ($user->hasRole('supervisor')) {
             $projects = Project::where('supervised_by', $user->id)->get();
         } else {
-            $projects = Project::whereHas('members', function($query) use ($user) {
-                $query->where('user_id', $user->id);
+            $projects = Project::whereHas('members', function($query) use ($employee) {
+                $query->where('employee_id', $employee->id);
             })->get();
         }
         

@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Models\Notification;
 
 class TaskList extends Component
 {
@@ -197,9 +198,11 @@ class TaskList extends Component
             ->when($this->statusFilter, function (Builder $query) {
                 return $query->where('current_status', $this->statusFilter);
             })
-            ->when($this->assigneeFilter, function (Builder $query) {
-                return $query->whereHas('taskAssignments', function (Builder $query) {
-                    $query->where('user_id', $this->assigneeFilter);
+            ->when($this->assigneeFilter, function (Builder $query) use ($user) {
+                return $query->whereHas('taskAssignments', function (Builder $query) use ($user) {
+                    $query->whereHas('employee', function (Builder $subQuery) use ($user) {
+                        $subQuery->where('user_id', $user->id);
+                    });
                 });
             })
             ->when($this->repetitiveFilter !== '', function (Builder $query) {
@@ -215,46 +218,105 @@ class TaskList extends Component
             // Directors can see all tasks - no additional filtering needed
         } elseif ($user->hasRole('supervisor')) {
             // Supervisors can see all tasks in projects they supervise
-            $tasks->whereIn('project_id', function($query) use ($user) {
-                $query->select('id')
-                    ->from('projects')
-                    ->where('supervised_by', $user->id);
+            $tasks->whereHas('project', function($query) use ($user) {
+                $query->where('supervised_by', $user->id);
+            });
+        } elseif ($user->hasRole('team_leader')) {
+            // Team leaders can see all tasks in their projects
+            $tasks->whereHas('project', function($query) use ($user) {
+                $query->whereHas('members', function($subQuery) use ($user) {
+                    $subQuery->where('user_id', $user->id);
+                });
             });
         } else {
-            // Regular users (team_leaders and employees) can only see tasks assigned to them
-            $tasks->whereHas('taskAssignments', function (Builder $query) use ($user) {
-                $query->where('user_id', $user->id);
+            // Regular employees can only see their own assigned tasks
+            $tasks->whereHas('taskAssignments', function($query) use ($user) {
+                $query->whereHas('employee', function($subQuery) use ($user) {
+                    $subQuery->where('user_id', $user->id);
+                });
             });
         }
 
         $tasks = $tasks->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
-        // Get projects and users based on role
+        // Get projects based on role
         if ($user->hasRole('director')) {
-        $projects = Project::all();
-        $users = User::all();
+            $projects = Project::all();
         } elseif ($user->hasRole('supervisor')) {
             $projects = Project::where('supervised_by', $user->id)->get();
-            $users = User::whereIn('id', function($query) use ($projects) {
-                $query->select('user_id')
-                    ->from('project_members')
-                    ->whereIn('project_id', $projects->pluck('id'));
+        } else {
+            // Both team leaders and regular employees see their assigned projects
+            $projects = Project::whereHas('members', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->get();
+        }
+
+        // Get users based on role and project visibility
+        if ($user->hasRole('director')) {
+            $users = User::all();
+        } elseif ($user->hasRole('supervisor')) {
+            // Get users from supervised projects
+            $users = User::whereHas('employee', function($query) use ($projects) {
+                $query->whereHas('projects', function($subQuery) use ($projects) {
+                    $subQuery->whereIn('projects.id', $projects->pluck('id'));
+                });
+            })->get();
+        } elseif ($user->hasRole('team_leader')) {
+            // Team leaders can see all users in their projects
+            $users = User::whereHas('employee', function($query) use ($projects) {
+                $query->whereHas('projects', function($subQuery) use ($projects) {
+                    $subQuery->whereIn('projects.id', $projects->pluck('id'));
+                });
             })->get();
         } else {
-            $projectIds = $user->projectMembers()->pluck('project_id');
-            $projects = Project::whereIn('id', $projectIds)->get();
-            $users = User::whereIn('id', function($query) use ($projectIds) {
-                $query->select('user_id')
-                    ->from('project_members')
-                    ->whereIn('project_id', $projectIds);
-            })->get();
+            // Regular employees only see themselves
+            $users = User::where('id', $user->id)->get();
         }
 
         return view('livewire.tasks.task-list', [
             'tasks' => $tasks,
             'projects' => $projects,
             'users' => $users,
+        ]);
+    }
+
+    public function updateTaskStatus($taskId, $status)
+    {
+        $task = Task::findOrFail($taskId);
+        $oldStatus = $task->current_status;
+
+        $task->current_status = $status;
+        $task->save();
+
+        // Notify all assigned members about the status change
+        foreach ($task->taskAssignments as $assignment) {
+            $employee = $assignment->employee;
+            if ($employee && $employee->user_id !== auth()->id()) { // Don't notify the supervisor making the change
+                Notification::create([
+                    'user_id' => $employee->user_id,
+                    'from_id' => auth()->id(),
+                    'title' => 'Task Status Updated',
+                    'message' => "Task '{$task->title}' has been " . 
+                        ($status === 'approved' ? 'approved' : 
+                        ($status === 'in_progress' ? 'returned to progress' : 'marked as pending approval')),
+                    'type' => 'status_change',
+                    'data' => [
+                        'task_id' => $task->id,
+                        'task_title' => $task->title,
+                        'project_id' => $task->project_id,
+                        'old_status' => $oldStatus,
+                        'new_status' => $status,
+                        'updated_by' => auth()->user()->name
+                    ],
+                    'is_read' => false
+                ]);
+            }
+        }
+
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'message' => 'Task status updated successfully.'
         ]);
     }
 } 

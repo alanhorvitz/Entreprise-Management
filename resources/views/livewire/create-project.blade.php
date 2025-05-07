@@ -126,7 +126,12 @@
                         <select wire:model.live="supervised_by" class="select select-bordered w-full" required>
                             <option value="">Select project supervisor</option>
                             @foreach($supervisors as $supervisor)
-                                <option value="{{ $supervisor->id }}">{{ $supervisor->first_name }} {{ $supervisor->last_name }}</option>
+                                <option value="{{ $supervisor->id }}" @if($supervisor->id === $team_leader_id) disabled @endif>
+                                    {{ $supervisor->first_name }} {{ $supervisor->last_name }}
+                                    @if($department_id && $supervisor->employee && $supervisor->employee->departments->contains($department_id))
+                                        (Current Department)
+                                    @endif
+                                </option>
                             @endforeach
                         </select>
                         @error('supervised_by') <span class="text-error text-sm">{{ $message }}</span> @enderror

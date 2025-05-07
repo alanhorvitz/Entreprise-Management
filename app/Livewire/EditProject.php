@@ -63,35 +63,29 @@ class EditProject extends Component
         $this->end_date = $project->end_date?->format('Y-m-d');
         $this->status = $project->status;
         $this->budget = $project->budget;
-        
-        // Load supervisor
         $this->supervised_by = $project->supervised_by;
-        
-        // Load all project members (both team leader and regular members)
-        $this->selectedTeamMembers = DB::table('project_members')
-            ->select('users.id')
-            ->join('employees', 'project_members.employee_id', '=', 'employees.id')
-            ->join('users', 'employees.user_id', '=', 'users.id')
-            ->where('project_members.project_id', $project->id)
-            ->pluck('users.id')
-            ->toArray();
-        
-        // Then load team members for dropdown
-        $this->teamMembers = User::whereIn('id', $this->selectedTeamMembers)
-            ->get();
- 
-        // Load team leader
-        $teamLeader = DB::table('project_members')
-            ->select('users.*')
-            ->join('employees', 'project_members.employee_id', '=', 'employees.id')
-            ->join('users', 'employees.user_id', '=', 'users.id')
-            ->where('project_members.project_id', $project->id)
-            ->where('project_members.role', 'team_leader')
-            ->first();
 
+        // Load all project members including team leader
+        $projectMembers = DB::table('project_members')
+            ->select('users.id', 'project_members.role')
+            ->join('employees', 'project_members.employee_id', '=', 'employees.id')
+            ->join('users', 'employees.user_id', '=', 'users.id')
+            ->where('project_members.project_id', $project->id)
+            ->get();
+
+        // Set selected team members
+        $this->selectedTeamMembers = $projectMembers->pluck('id')->toArray();
+
+        // Set team leader
+        $teamLeader = $projectMembers->firstWhere('role', 'team_leader');
         if ($teamLeader) {
             $this->team_leader_id = $teamLeader->id;
         }
+
+        // Load team members for dropdown
+        $this->teamMembers = User::whereIn('id', $this->selectedTeamMembers)
+            ->select('id', 'first_name', 'last_name')
+            ->get();
 
         // Load department members and supervisors for selection
         if ($this->department_id) {
@@ -102,18 +96,15 @@ class EditProject extends Component
  
     public function updatedSelectedTeamMembers()
     {
-        // If team leader is unselected from team members, reset team leader
+        // If team leader is unselected, reset team leader
         if ($this->team_leader_id && !in_array($this->team_leader_id, $this->selectedTeamMembers)) {
             $this->team_leader_id = null;
         }
 
+        // Update team members list for dropdown
         $this->teamMembers = User::whereIn('id', $this->selectedTeamMembers)
             ->select('id', 'first_name', 'last_name')
             ->get();
-
-        if (empty($this->selectedTeamMembers)) {
-            $this->team_leader_id = null; // Reset team leader if no members selected
-        }
     }
 
     public function updatedDepartmentId($value)
@@ -194,23 +185,6 @@ class EditProject extends Component
         try {
             DB::beginTransaction();
 
-            // Get the current team leader before update
-            $currentTeamLeader = $this->project->members()
-                ->where('project_members.role', 'team_leader')
-                ->first();
-
-            // Store original members and their roles before update
-            $originalMembers = $this->project->members()
-                ->withPivot('role')
-                ->get()
-                ->mapWithKeys(function ($member) {
-                    return [$member->id => $member->pivot->role];
-                })
-                ->toArray();
-            
-            // Store original supervisor
-            $originalSupervisor = $this->project->supervised_by;
-
             // Update project basic information
             $this->project->update([
                 'name' => $this->name,
@@ -223,94 +197,36 @@ class EditProject extends Component
                 'supervised_by' => $this->supervised_by,
             ]);
 
-            // Handle role changes if team leader has changed
-            if ($currentTeamLeader && $currentTeamLeader->id != $this->team_leader_id) {
-                $currentTeamLeader->removeRole('team_leader');
-                $currentTeamLeader->assignRole('employee');
-            }
+            // Get employee IDs for selected users
+            $employeeIds = \App\Models\Employee::whereIn('user_id', $this->selectedTeamMembers)
+                ->pluck('id')
+                ->toArray();
 
-            // Assign team_leader role to the new team leader
-            $newTeamLeader = User::find($this->team_leader_id);
-            if ($newTeamLeader) {
-                $newTeamLeader->syncRoles(['team_leader']);
-            }
-
-            // Prepare member data with roles
+            // Prepare member data
             $memberData = [];
-
-            // Add team manager as team_leader and also as a member
-            if ($this->team_leader_id) {
-                $teamLeaderEmployee = \App\Models\Employee::where('user_id', $this->team_leader_id)->first();
-                if ($teamLeaderEmployee) {
-                    $memberData[$teamLeaderEmployee->id] = [
-                        'role' => 'team_leader',
-                        'joined_at' => now()
-                    ];
-                }
+            foreach ($employeeIds as $employeeId) {
+                $userId = \App\Models\Employee::find($employeeId)->user_id;
+                $memberData[$employeeId] = [
+                    'role' => $userId == $this->team_leader_id ? 'team_leader' : 'member',
+                    'joined_at' => now()
+                ];
             }
 
-            // Add regular team members
-            foreach ($this->selectedTeamMembers as $memberId) {
-                $employee = \App\Models\Employee::where('user_id', $memberId)->first();
-                if ($employee) {
-                    // Skip if already added as team leader
-                    if (!isset($memberData[$employee->id])) {
-                        $memberData[$employee->id] = [
-                            'role' => 'member',
-                            'joined_at' => now()
-                        ];
-                    }
-                }
-            }
-
-            // Get removed members (in original but not in new memberData)
-            $removedMembers = array_diff(array_keys($originalMembers), array_keys($memberData));
-
-            // Sync all members with their roles
+            // Sync project members
             $this->project->members()->sync($memberData);
 
+            // Handle notifications if enabled
             if ($this->send_notifications) {
-                // Notify new supervisor if changed
-                if ($originalSupervisor !== $this->supervised_by) {
-                    Notification::create([
-                        'user_id' => $this->supervised_by,
-                        'from_id' => auth()->id(),
-                        'title' => 'Project Supervision Assignment',
-                        'message' => "You have been assigned as supervisor for project: {$this->project->name}",
-                        'type' => 'assignment',
-                        'data' => json_encode([
-                            'project_id' => $this->project->id,
-                            'project_name' => $this->project->name,
-                            'role' => 'supervisor',
-                            'updated_by' => auth()->user()->name
-                        ]),
-                        'is_read' => false
-                    ]);
-                }
-
-                // Send notifications only to new members or members with role changes
+                // Notify about role changes and new assignments
                 foreach ($memberData as $employeeId => $data) {
-                    $shouldNotify = false;
-                    $roleTitle = ucfirst(str_replace('_', ' ', $data['role']));
-                    
-                    // Get the user ID from the employee record
                     $employee = \App\Models\Employee::find($employeeId);
-                    if (!$employee) continue;
+                    $userId = $employee->user_id;
                     
-                    $memberId = $employee->user_id;
-                    
-                    // Check if member is new or role has changed
-                    if (!isset($originalMembers[$employeeId])) {
-                        // New member
-                        $shouldNotify = true;
-                    } elseif ($originalMembers[$employeeId] !== $data['role']) {
-                        // Existing member but role changed
-                        $shouldNotify = true;
-                    }
-
-                    if ($shouldNotify && $memberId !== auth()->id()) { // Don't notify the user making the changes
+                    if ($userId !== auth()->id()) {
+                        $roleTitle = $data['role'] === 'team_leader' ? 'Team Manager' : 'Member';
+                        
                         Notification::create([
-                            'user_id' => $memberId,
+                            'user_id' => $userId,
                             'from_id' => auth()->id(),
                             'title' => 'Project Role Assignment',
                             'message' => "You have been assigned as {$roleTitle} for project: {$this->project->name}",
@@ -326,28 +242,22 @@ class EditProject extends Component
                     }
                 }
 
-                // Notify removed members
-                foreach ($removedMembers as $employeeId) {
-                    $employee = \App\Models\Employee::find($employeeId);
-                    if (!$employee) continue;
-                    
-                    $memberId = $employee->user_id;
-                    
-                    if ($memberId !== auth()->id()) { // Don't notify the user making the changes
-                        Notification::create([
-                            'user_id' => $memberId,
-                            'from_id' => auth()->id(),
-                            'title' => 'Removed from Project',
-                            'message' => "You have been removed from project: {$this->project->name}",
-                            'type' => 'assignment',
-                            'data' => json_encode([
-                                'project_id' => $this->project->id,
-                                'project_name' => $this->project->name,
-                                'updated_by' => auth()->user()->name
-                            ]),
-                            'is_read' => false
-                        ]);
-                    }
+                // Notify new supervisor if changed
+                if ($this->project->getOriginal('supervised_by') !== $this->supervised_by) {
+                    Notification::create([
+                        'user_id' => $this->supervised_by,
+                        'from_id' => auth()->id(),
+                        'title' => 'Project Supervision Assignment',
+                        'message' => "You have been assigned as supervisor for project: {$this->project->name}",
+                        'type' => 'assignment',
+                        'data' => json_encode([
+                            'project_id' => $this->project->id,
+                            'project_name' => $this->project->name,
+                            'role' => 'supervisor',
+                            'updated_by' => auth()->user()->name
+                        ]),
+                        'is_read' => false
+                    ]);
                 }
             }
 

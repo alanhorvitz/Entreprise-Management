@@ -197,12 +197,18 @@ class ReportList extends Component
 
     public function render()
     {
-        $reportsQuery = DailyReport::with(['user', 'user.departments', 'project']);
+        // First, get the reports with proper eager loading
+        $reportsQuery = DailyReport::with(['user', 'user.employee.departments', 'project']);
 
         // Filter reports based on user's role and project membership
         if (!auth()->user()->hasRole('director') && !auth()->user()->hasPermissionTo('view daily reports')) {
-            $userProjectIds = auth()->user()->projectMembers()->pluck('project_id')->toArray();
-            $reportsQuery->whereIn('project_id', $userProjectIds);
+            $employee = auth()->user()->employee;
+            if ($employee) {
+                $userProjectIds = Project::whereHas('members', function($query) use ($employee) {
+                    $query->where('employee_id', $employee->id);
+                })->pluck('id')->toArray();
+                $reportsQuery->whereIn('project_id', $userProjectIds);
+            }
         }
 
         $reportsQuery->when($this->startDate && $this->endDate, function($query) {
@@ -212,7 +218,7 @@ class ReportList extends Component
                 $query->where('project_id', $this->projectFilter);
             })
             ->when($this->departmentFilter, function($query) {
-                $query->whereHas('user.departments', function($q) {
+                $query->whereHas('user.employee.departments', function($q) {
                     $q->where('departments.id', $this->departmentFilter);
                 });
             })
@@ -226,10 +232,20 @@ class ReportList extends Component
             })
             ->orderBy('date', 'desc');
 
+        // Initialize $projects variable
+        $projects = collect();
+
         // Filter project dropdown to only show projects user is a member of
-        $projects = auth()->user()->hasPermissionTo('view reports') 
-            ? Project::all()
-            : Project::whereIn('id', auth()->user()->projectMembers()->pluck('project_id'))->get();
+        if (auth()->user()->hasPermissionTo('view reports')) {
+            $projects = Project::all();
+        } else {
+            $employee = auth()->user()->employee;
+            if ($employee) {
+                $projects = Project::whereHas('members', function($query) use ($employee) {
+                    $query->where('employee_id', $employee->id);
+                })->get();
+            }
+        }
 
         return view('livewire.reports.report-list', [
             'reports' => $reportsQuery->paginate(10),

@@ -21,7 +21,7 @@ class AssigneeReportModal extends Component
     public function mount($userId)
     {
         $this->userId = $userId;
-        $this->user = User::with('departments')->find($userId);
+        $this->user = User::with(['employee.departments'])->find($userId);
         $this->setDateRange('today');
         $this->loadReports();
     }

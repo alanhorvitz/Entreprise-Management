@@ -128,10 +128,10 @@ class Task extends Model
      */
     public function assignedUsers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'task_assignments', 'task_id', 'employee_id', 'id', 'id')
+        return $this->belongsToMany(User::class, 'task_assignments', 'task_id', 'employee_id')
             ->join('employees', 'employees.id', '=', 'task_assignments.employee_id')
-            ->whereColumn('users.id', '=', 'employees.user_id')
-            ->withPivot('assigned_by', 'assigned_at')
+            ->whereColumn('employees.user_id', '=', 'users.id')
+            ->withPivot(['assigned_by', 'assigned_at'])
             ->withTimestamps();
     }
 }

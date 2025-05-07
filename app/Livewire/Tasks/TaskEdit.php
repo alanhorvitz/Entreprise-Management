@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use App\Models\Notification;
 use App\Mail\TaskCompletedMail;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Employee;
 
 class TaskEdit extends Component
 {
@@ -274,9 +275,21 @@ class TaskEdit extends Component
             
             if ($project) {
                 $this->projectMembers = $project->members()
-                    ->select('users.*', 'project_members.role')
+                    ->with('user')
                     ->orderBy('project_members.role', 'desc')
-                    ->get();
+                    ->get()
+                    ->map(function($employee) {
+                        $nameParts = explode(' ', $employee->user->first_name . ' ' . $employee->user->last_name);
+                        $firstName = $nameParts[0];
+                        $lastName = implode(' ', array_slice($nameParts, 1));
+                        
+                        return (object) [
+                            'id' => $employee->id,
+                            'first_name' => $firstName,
+                            'last_name' => $lastName,
+                            'role' => $employee->pivot->role
+                        ];
+                    });
             }
         } else {
             $this->projectMembers = collect();
@@ -292,7 +305,7 @@ class TaskEdit extends Component
     
     public function loadTask()
     {
-        $task = Task::with('repetitiveTask')->findOrFail($this->taskId);
+        $task = Task::with(['repetitiveTask', 'taskAssignments.employee'])->findOrFail($this->taskId);
         
         $this->title = $task->title;
         $this->description = $task->description;
@@ -367,8 +380,8 @@ class TaskEdit extends Component
             $this->due_date = $task->due_date ? $task->due_date->format('Y-m-d') : null;
         }
         
-        // Load assigned users
-        $this->assignees = $task->taskAssignments->pluck('user_id')->toArray();
+        // Load assigned employees
+        $this->assignees = $task->taskAssignments->pluck('employee_id')->toArray();
         
         // Load project members
         $this->loadProjectMembers();
@@ -482,22 +495,28 @@ class TaskEdit extends Component
             }
             
             // Update task assignments
-            $currentAssignees = TaskAssignment::where('task_id', $this->taskId)->pluck('user_id')->toArray();
+            $currentAssignees = TaskAssignment::where('task_id', $this->taskId)
+                ->pluck('employee_id')
+                ->toArray();
+            
             TaskAssignment::where('task_id', $this->taskId)->delete();
             
             $normalizedAssignees = $this->normalizeAssignees($this->assignees);
             if (!empty($normalizedAssignees)) {
-                foreach ($normalizedAssignees as $userId) {
+                foreach ($normalizedAssignees as $employeeId) {
+                    $employee = Employee::with('user')->findOrFail($employeeId);
+                    
                     TaskAssignment::create([
                         'task_id' => $this->taskId,
-                        'user_id' => $userId,
+                        'employee_id' => $employeeId,
                         'assigned_by' => Auth::id(),
+                        'assigned_at' => now()
                     ]);
 
                     // Only send notification if this is a new assignee
-                    if (!in_array($userId, $currentAssignees)) {
+                    if (!in_array($employeeId, $currentAssignees)) {
                         Notification::create([
-                            'user_id' => $userId,
+                            'user_id' => $employee->user->id,
                             'from_id' => auth()->id(),
                             'title' => 'New Task Assignment',
                             'message' => "You have been assigned to task: {$this->title}",
@@ -515,10 +534,11 @@ class TaskEdit extends Component
             }
 
             // Notify all current assignees about task modification (except the user making the changes)
-            foreach ($normalizedAssignees as $userId) {
-                if ($userId != auth()->id()) { // Don't notify the user making the changes
+            foreach ($normalizedAssignees as $employeeId) {
+                $employee = Employee::with('user')->findOrFail($employeeId);
+                if ($employee->user->id != auth()->id()) { // Don't notify the user making the changes
                     Notification::create([
-                        'user_id' => $userId,
+                        'user_id' => $employee->user->id,
                         'from_id' => auth()->id(),
                         'title' => 'Task Updated',
                         'message' => "Task '{$this->title}' has been modified",

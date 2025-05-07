@@ -122,27 +122,21 @@ class CreateProject extends Component
      */
     private function loadSupervisors()
     {
-        // Get all supervisors first
-        $query = User::whereHas('employee', function($query) {
-            $query->where('position', 'Supervisor');
-        })->where('is_active', true);
-
-        // If department is selected, prioritize supervisors from that department
-        if ($this->department_id) {
-            $query->orderByRaw("
-                CASE 
-                    WHEN EXISTS (
-                        SELECT 1 FROM employee_departments ed
-                        INNER JOIN employees e ON e.id = ed.employee_id
-                        INNER JOIN users u ON u.id = e.user_id
-                        WHERE u.id = users.id 
-                        AND ed.department_id = ?
-                    ) THEN 1 
-                    ELSE 2 
-                END", [$this->department_id]);
-        }
-
-        $this->availableSupervisors = $query->get();
+        // Get all supervisors
+        $this->availableSupervisors = User::whereHas('roles', function($query) {
+                $query->where('name', 'supervisor');
+            })
+            ->where('is_active', true)
+            ->orderByRaw("CASE 
+                WHEN EXISTS (
+                    SELECT 1 FROM employees e 
+                    JOIN employee_departments ed ON e.id = ed.employee_id 
+                    WHERE e.user_id = users.id 
+                    AND ed.department_id = ?
+                ) THEN 0 
+                ELSE 1 
+            END", [$this->department_id])
+            ->get();
     }
 
     private function showMessage($message, $type)

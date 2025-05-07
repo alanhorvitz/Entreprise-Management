@@ -133,14 +133,12 @@
                     </div>
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text required-field">Team Manager</span>
+                            <span class="label-text required-field">Team Leader</span>
                         </label>
                         <select wire:model="team_leader_id" class="select select-bordered w-full" required>
-                            <option value="">Select team manager</option>
+                            <option value="">Select team leader</option>
                             @foreach($teamMembers as $member)
-                                <option value="{{ $member->id }}" {{ $member->id == $team_leader_id ? 'selected' : '' }}>
-                                    {{ $member->first_name }} {{ $member->last_name }}
-                                </option>
+                                <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
                             @endforeach
                         </select>
                         @error('team_leader_id') <span class="text-error text-sm">{{ $message }}</span> @enderror
@@ -160,13 +158,13 @@
                 </div>
                 <div class="form-control w-full mt-4">
                     <label class="label">
-                        <span class="label-text">Team Members</span>
+                        <span class="label-text required-field">Team Members</span>
                     </label>
                     <div class="bg-base-200 p-4 rounded-lg">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                             @if($departmentMembers)
                                 @foreach($departmentMembers as $member)
-                                    <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-base-300 rounded-md" wire:key="department-{{ $department_id }}-member-{{ $member->id }}">
+                                    <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-base-300 rounded-md" wire:key="member-{{ $member->id }}">
                                         <input type="checkbox" 
                                             wire:model.live="selectedTeamMembers" 
                                             value="{{ $member->id }}" 
@@ -179,13 +177,16 @@
                                                     <span>{{ substr($member->first_name, 0, 1) }}{{ substr($member->last_name, 0, 1) }}</span>
                                                 </div>
                                             </div>
-                                            <div>
+                                            <div class="flex flex-col">
                                                 <span>{{ $member->first_name }} {{ $member->last_name }}</span>
-                                                @if($member->id === $supervised_by)
-                                                    <span class="badge badge-sm">Supervisor</span>
-                                                @elseif($member->id === $team_leader_id)
-                                                    <span class="badge badge-sm">Team Manager</span>
-                                                @endif
+                                                <div class="flex gap-1">
+                                                    @if($member->id === $supervised_by)
+                                                        <span class="badge badge-sm">Supervisor</span>
+                                                    @endif
+                                                    @if($member->id === $team_leader_id)
+                                                        <span class="badge badge-sm badge-primary">Team Leader</span>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                     </label>

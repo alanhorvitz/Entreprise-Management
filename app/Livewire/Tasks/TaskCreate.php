@@ -134,9 +134,22 @@ class TaskCreate extends Component
             
             if ($project) {
                 $this->projectMembers = $project->members()
-                    ->select('users.*', 'project_members.role')
+                    ->with('user')
                     ->orderBy('project_members.role', 'desc')
-                    ->get();
+                    ->get()
+                    ->map(function ($employee) {
+                        $user = $employee->user;
+                        $nameParts = explode(' ', $user->name);
+                        $firstName = $nameParts[0];
+                        $lastName = implode(' ', array_slice($nameParts, 1));
+                        
+                        return (object) [
+                            'id' => $user->id,
+                            'first_name' => $firstName,
+                            'last_name' => $lastName,
+                            'role' => $employee->pivot->role
+                        ];
+                    });
             }
         } else {
             $this->projectMembers = collect();
@@ -276,19 +289,20 @@ class TaskCreate extends Component
         
         // Assign the task to selected users
         if (!empty($this->assignees)) {
-            // Get all valid users in one query
-            $validUsers = User::whereIn('id', $this->assignees)->pluck('id')->toArray();
+            // Get all employees for the selected users
+            $employees = \App\Models\Employee::whereIn('user_id', $this->assignees)->get();
             
-            foreach ($validUsers as $userId) {
+            foreach ($employees as $employee) {
                 TaskAssignment::create([
                     'task_id' => $task->id,
-                    'user_id' => $userId,
+                    'employee_id' => $employee->id,
                     'assigned_by' => Auth::id(),
+                    'assigned_at' => now()
                 ]);
 
-                // Create notification for valid user
+                // Create notification for the user
                 Notification::create([
-                    'user_id' => $userId,
+                    'user_id' => $employee->user_id,
                     'from_id' => auth()->id(),
                     'title' => 'New Task Assignment',
                     'message' => 'You have been assigned to task: ' . $task->title,
@@ -304,7 +318,7 @@ class TaskCreate extends Component
             }
 
             // If some users were invalid, show a warning
-            if (count($validUsers) < count($this->assignees)) {
+            if ($employees->count() < count($this->assignees)) {
                 $this->dispatch('notify', [
                     'message' => 'Some selected users could not be assigned to the task.',
                     'type' => 'warning',

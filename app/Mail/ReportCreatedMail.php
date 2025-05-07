@@ -8,17 +8,21 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class ReportCreatedMail extends Mailable
+class ReportCreatedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
+
+    public $report;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(
-        public DailyReport $report
-    ) {}
+    public function __construct(DailyReport $report)
+    {
+        $this->report = $report;
+    }
 
     /**
      * Get the message envelope.
