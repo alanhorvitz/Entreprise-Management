@@ -60,21 +60,21 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'first_name' => 'John',
                 'last_name' => 'Doe',
-                'is_active' => true
+        
             ],
             [
                 'email' => 'supervisor@example.com',
                 'password' => Hash::make('password'),
                 'first_name' => 'Jane',
                 'last_name' => 'Smith',
-                'is_active' => true
+        
             ],
             [
                 'email' => 'employee@example.com',
                 'password' => Hash::make('password'),
                 'first_name' => 'Bob',
                 'last_name' => 'Johnson',
-                'is_active' => true
+        
             ],
         ];
 
@@ -87,10 +87,23 @@ class DatabaseSeeder extends Seeder
             $employee = Employee::create([
                 'employee_code' => 'EMP' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
                 'cin' => 'CIN' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
-                'user_id' => $user->id,
-                'hire_date' => now(),
-                'position' => ucfirst($roles[$index]),
+                'cin_attachment' => 'default_cin.pdf',
+                'profile_picture' => 'default_profile.jpg',
+                'address' => 'Default Address',
+                'personal_num' => '06' . str_pad($user->id, 8, '0', STR_PAD_LEFT),
+                'professional_num' => '06' . str_pad($user->id, 8, '0', STR_PAD_LEFT),
+                'pin' => '1234',
+                'puk' => '12345678',
                 'salary' => 50000,
+                'hourly_salary' => 250,
+                'is_project' => false,
+                'hours' => '40',
+                'ice' => 'ICE' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                'professional_email' => $user->email,
+                'cnss' => 'CNSS' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                'assurance' => 'ASS' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                'operator_id' => null,
+                'user_id' => $user->id,
                 'status_id' => $status->id
             ]);
 
@@ -121,7 +134,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'admin@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => Carbon::now(),
-                'is_active' => true
+        
             ],
             [
                 'first_name' => 'Project',
@@ -129,7 +142,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'pm@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => Carbon::now(),
-                'is_active' => true
+        
             ],
             [
                 'first_name' => 'Team',
@@ -137,7 +150,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'member1@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => Carbon::now(),
-                'is_active' => true
+        
             ],
             [
                 'first_name' => 'Team',
@@ -145,7 +158,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'member2@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => Carbon::now(),
-                'is_active' => true
+        
             ],
             [
                 'first_name' => 'Sarah',
@@ -153,7 +166,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'sarah@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => Carbon::now(),
-                'is_active' => true
+        
             ],
             [
                 'first_name' => 'Michael',
@@ -161,7 +174,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'michael@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => Carbon::now(),
-                'is_active' => true
+        
             ],
             [
                 'first_name' => 'Emily',
@@ -169,7 +182,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'emily@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => Carbon::now(),
-                'is_active' => true
+        
             ],
             [
                 'first_name' => 'James',
@@ -177,7 +190,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'james@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => Carbon::now(),
-                'is_active' => true
+        
             ],
             [
                 'first_name' => 'Jessica',
@@ -185,7 +198,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'jessica@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => Carbon::now(),
-                'is_active' => true
+        
             ],
             [
                 'first_name' => 'David',
@@ -193,7 +206,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'david@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => Carbon::now(),
-                'is_active' => true
+        
             ]
         ];
 
@@ -209,6 +222,22 @@ class DatabaseSeeder extends Seeder
             $employee = Employee::create([
                 'employee_code' => 'EMP' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
                 'cin' => 'CIN' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                'cin_attachment' => 'default_cin.pdf',
+                'profile_picture' => 'default_profile.jpg',
+                'address' => 'Default Address',
+                'personal_num' => '06' . str_pad($user->id, 8, '0', STR_PAD_LEFT),
+                'professional_num' => '06' . str_pad($user->id, 8, '0', STR_PAD_LEFT),
+                'pin' => '1234',
+                'puk' => '12345678',
+                'salary' => 50000,
+                'hourly_salary' => 250,
+                'is_project' => false,
+                'hours' => '40',
+                'ice' => 'ICE' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                'professional_email' => $user->email,
+                'cnss' => 'CNSS' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                'assurance' => 'ASS' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                'operator_id' => null,
                 'user_id' => $user->id,
                 'status_id' => $status->id
             ]);

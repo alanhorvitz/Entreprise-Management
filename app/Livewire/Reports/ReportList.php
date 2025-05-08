@@ -226,7 +226,7 @@ class ReportList extends Component
         $reportsQuery = DailyReport::with(['user', 'user.employee.departments', 'project']);
 
         $user = auth()->user();
-        $employeeId = $user->employee->id;
+        $employee = $user->employee;
 
         // Filter reports based on user's role
         if ($user->hasRole('director')) {
@@ -238,13 +238,29 @@ class ReportList extends Component
                 $query->where('supervised_by', $user->id);
             });
         } else {
-            // Get user's projects where they are either team leader or member
-            $userProjects = Project::whereHas('members', function($query) use ($employeeId) {
-                $query->where('employee_id', $employeeId);
-            })->pluck('id')->toArray();
+            // For team_leader and employee
+            if ($employee) {
+                // Get user's projects where they are either team leader or member
+                $userProjects = Project::whereHas('members', function($query) use ($employee) {
+                    $query->where('employee_id', $employee->id);
+                })->pluck('id')->toArray();
 
-            // Filter reports to only show those from user's projects
-            $reportsQuery->whereIn('project_id', $userProjects);
+                // Filter reports to only show those from user's projects
+                $reportsQuery->whereIn('project_id', $userProjects);
+            } else {
+                // If no employee record exists, return empty paginated collection
+                return view('livewire.reports.report-list', [
+                    'reports' => DailyReport::where('id', 0)->paginate(10),
+                    'projects' => collect(),
+                    'departments' => Department::all(),
+                    'dateRangeOptions' => [
+                        'today' => 'Today (' . Carbon::today()->format('M d, Y') . ')',
+                        'yesterday' => 'Yesterday',
+                        'last_7_days' => 'Last 7 Days',
+                        'last_30_days' => 'Last 30 Days'
+                    ]
+                ]);
+            }
         }
 
         $reportsQuery->when($this->startDate && $this->endDate, function($query) {
@@ -274,9 +290,9 @@ class ReportList extends Component
         } elseif ($user->hasRole('supervisor')) {
             $projects = Project::where('supervised_by', $user->id)->get();
         } else {
-            $projects = Project::whereHas('members', function($query) use ($employeeId) {
-                $query->where('employee_id', $employeeId);
-            })->get();
+            $projects = $employee ? Project::whereHas('members', function($query) use ($employee) {
+                $query->where('employee_id', $employee->id);
+            })->get() : collect();
         }
 
         return view('livewire.reports.report-list', [

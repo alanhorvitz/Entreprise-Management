@@ -24,12 +24,6 @@ class CalendarController extends Controller
         $employee = $user->employee;
         
         // Initialize tasks query with proper eager loading
-        $tasksQuery = Task::with(['project', 'repetitiveTask', 'taskAssignments'])
-            ->whereHas('taskAssignments', function ($query) use ($employee) {
-                $query->where('employee_id', $employee->id);
-            });
-        
-        // Apply role-based visibility rules
         if ($user->hasRole('director')) {
             // Directors can see all tasks
             $tasksQuery = Task::with(['project', 'repetitiveTask', 'taskAssignments']);
@@ -41,10 +35,25 @@ class CalendarController extends Controller
                         ->from('projects')
                         ->where('supervised_by', $user->id);
                 });
+        } else {
+            // For team_leader and employee
+            if ($employee) {
+                $tasksQuery = Task::with(['project', 'repetitiveTask', 'taskAssignments'])
+                    ->whereHas('taskAssignments', function ($query) use ($employee) {
+                        $query->where('employee_id', $employee->id);
+                    });
+            } else {
+                // If no employee record exists, return empty collections
+                return view('calendar.index', [
+                    'tasks' => collect(),
+                    'projects' => collect(),
+                    'assignedTaskIds' => []
+                ]);
+            }
         }
             
         // Get task assignments for the authenticated user's employee record
-        $taskAssignments = TaskAssignment::where('employee_id', $employee->id)->get();
+        $taskAssignments = $employee ? TaskAssignment::where('employee_id', $employee->id)->get() : collect();
         $assignedTaskIds = $taskAssignments->pluck('task_id')->toArray();
         
         // Process tasks and generate repetitive instances
@@ -73,9 +82,9 @@ class CalendarController extends Controller
         } elseif ($user->hasRole('supervisor')) {
             $projects = Project::where('supervised_by', $user->id)->get();
         } else {
-            $projects = Project::whereHas('members', function($query) use ($employee) {
+            $projects = $employee ? Project::whereHas('members', function($query) use ($employee) {
                 $query->where('employee_id', $employee->id);
-            })->get();
+            })->get() : collect();
         }
         
         return view('calendar.index', [

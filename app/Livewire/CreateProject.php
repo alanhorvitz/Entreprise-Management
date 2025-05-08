@@ -126,7 +126,6 @@ class CreateProject extends Component
         $this->availableSupervisors = User::whereHas('roles', function($query) {
                 $query->where('name', 'supervisor');
             })
-            ->where('is_active', true)
             ->orderByRaw("CASE 
                 WHEN EXISTS (
                     SELECT 1 FROM employees e 

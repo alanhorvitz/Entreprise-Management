@@ -18,10 +18,10 @@
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">Daily Reports</h2>
         @php
-            $employeeId = auth()->user()->employee->id;
-            $isTeamLeader = App\Models\ProjectMember::where('employee_id', $employeeId)
+            $employee = auth()->user()->employee;
+            $isTeamLeader = $employee ? App\Models\ProjectMember::where('employee_id', $employee->id)
                 ->where('role', 'team_leader')
-                ->exists();
+                ->exists() : false;
         @endphp
         
         @if(auth()->user()->hasRole('director') || $isTeamLeader)

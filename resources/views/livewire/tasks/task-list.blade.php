@@ -5,7 +5,7 @@
             <div class="flex justify-between items-center mb-5">
                 <h2 class="card-title">Tasks</h2>
                 
-                @if(auth()->user()->hasRole(['director', 'supervisor']))
+                @if(auth()->user()->hasPermissionTo('create tasks'))
                 <button wire:click="openCreateModal()" class="btn btn-primary">
                     <span class="iconify w-5 h-5 mr-2" data-icon="solar:add-circle-bold-duotone"></span> New Task
                 </button>

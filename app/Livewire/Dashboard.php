@@ -43,36 +43,45 @@ class Dashboard extends Component
                 ->get();
         } else {
             // For team_leader and employee
-            $projectIds = $user->employee->projects()->pluck('projects.id');
-            
-            $activeProjects = Project::whereIn('id', $projectIds)
-                ->whereIn('status', ['planning', 'in_progress'])
+            if ($user->employee) {
+                $projectIds = $user->employee->projects()->pluck('projects.id');
+                
+                $activeProjects = Project::whereIn('id', $projectIds)
+                    ->whereIn('status', ['planning', 'in_progress'])
+                    ->count();
+
+                // Get tasks assigned to the user
+                $completedTasks = Task::whereHas('taskAssignments', function($query) use ($user) {
+                    $query->whereHas('employee', function($subQuery) use ($user) {
+                        $subQuery->where('user_id', $user->id);
+                    });
+                })
+                ->where('current_status', 'completed')
                 ->count();
 
-            // Get tasks assigned to the user
-            $completedTasks = Task::whereHas('taskAssignments', function($query) use ($user) {
-                $query->whereHas('employee', function($subQuery) use ($user) {
-                    $subQuery->where('user_id', $user->id);
-                });
-            })
-            ->where('current_status', 'completed')
-            ->count();
+                $pendingTasks = Task::whereHas('taskAssignments', function($query) use ($user) {
+                    $query->whereHas('employee', function($subQuery) use ($user) {
+                        $subQuery->where('user_id', $user->id);
+                    });
+                })
+                ->whereIn('current_status', ['todo', 'in_progress'])
+                ->count();
 
-            $pendingTasks = Task::whereHas('taskAssignments', function($query) use ($user) {
-                $query->whereHas('employee', function($subQuery) use ($user) {
-                    $subQuery->where('user_id', $user->id);
-                });
-            })
-            ->whereIn('current_status', ['todo', 'in_progress'])
-            ->count();
-
-            $teamMembers = $projectIds->count();
-            
-            $recentProjects = Project::with(['members'])
-                ->whereIn('id', $projectIds)
-                ->latest()
-                ->take(5)
-                ->get();
+                $teamMembers = $projectIds->count();
+                
+                $recentProjects = Project::with(['members'])
+                    ->whereIn('id', $projectIds)
+                    ->latest()
+                    ->take(5)
+                    ->get();
+            } else {
+                // If no employee record exists, set default values
+                $activeProjects = 0;
+                $completedTasks = 0;
+                $pendingTasks = 0;
+                $teamMembers = 0;
+                $recentProjects = collect();
+            }
         }
         
         // Pending approvals - only for director and supervisor
