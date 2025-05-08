@@ -90,23 +90,25 @@
         
         <!-- Message input - fixed at bottom -->
         @if($currentProject)
-            @if(auth()->user()->hasRole('director') || auth()->user()->hasRole('supervisor') || auth()->user()->hasPermissionTo('send messages'))
-        <div class="bg-base-200 rounded-lg shadow-md p-4 flex-shrink-0">
-            <form wire:submit.prevent="sendMessage" class="flex gap-2">
-                <input 
-                    type="text" 
-                    wire:model="newMessage"
-                    placeholder="Type your message here..." 
-                    class="input input-bordered w-full" 
-                    required 
-                    autofocus
-                >
-                <button type="submit" class="btn btn-primary">
-                    <span class="iconify" data-icon="heroicons:paper-airplane"></span>
-                    Send
-                </button>
-            </form>
-        </div>
+            @if(auth()->user()->hasRole('director') || 
+                (auth()->user()->hasRole('supervisor') && $currentProject['supervised_by'] == auth()->id()) || 
+                auth()->user()->hasPermissionTo('send messages'))
+                <div class="bg-base-200 rounded-lg shadow-md p-4 flex-shrink-0">
+                    <form wire:submit.prevent="sendMessage" class="flex gap-2">
+                        <input 
+                            type="text" 
+                            wire:model="newMessage"
+                            placeholder="Type your message here..." 
+                            class="input input-bordered w-full" 
+                            required 
+                            autofocus
+                        >
+                        <button type="submit" class="btn btn-primary">
+                            <span class="iconify" data-icon="heroicons:paper-airplane"></span>
+                            Send
+                        </button>
+                    </form>
+                </div>
             @endif
         @endif
     </div>

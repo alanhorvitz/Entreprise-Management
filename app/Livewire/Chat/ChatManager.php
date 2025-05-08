@@ -28,10 +28,19 @@ class ChatManager extends Component
                     ->get()
                     ->toArray();
             } elseif ($user->hasRole('supervisor')) {
-                $this->projects = Project::with('supervisedBy')
+                // For supervisors, get projects they supervise
+                $this->projects = Project::with(['supervisedBy', 'members'])
                     ->where('supervised_by', $user->id)
+                    ->orderBy('created_at', 'desc')
                     ->get()
                     ->toArray();
+                
+                // Debug supervisor projects
+                \Log::info('Supervisor Projects Loaded', [
+                    'user_id' => $user->id,
+                    'projects_count' => count($this->projects),
+                    'first_project' => $this->projects[0] ?? null
+                ]);
             } else {
                 // For employees and other users, get all projects where they are a member
                 $employee = $user->employee;
@@ -40,14 +49,11 @@ class ChatManager extends Component
             
             if ($projectId) {
                 // If project ID is provided, try to find that project
-                $project = Project::with('supervisedBy')->find($projectId);
+                $project = Project::with(['supervisedBy', 'members'])->find($projectId);
                 if ($project && ($user->hasRole('director') || 
-                               ($user->hasRole('supervisor') && $project->supervised_by === $user->id) ||
+                               ($user->hasRole('supervisor') && $project->supervised_by == $user->id) ||
                                in_array($project->id, array_column($this->projects, 'id')))) {
                     $this->currentProject = $project->toArray();
-                    if ($project->supervisedBy) {
-                        $this->currentProject['supervisedBy'] = $project->supervisedBy->toArray();
-                    }
                 } else {
                     // Fallback to first project if the specified project doesn't exist
                     // or the user doesn't have access
@@ -56,6 +62,14 @@ class ChatManager extends Component
             } else {
                 // Get the first project or null if no projects
                 $this->currentProject = $this->projects[0] ?? null;
+            }
+            
+            // Debug current project
+            if ($user->hasRole('supervisor')) {
+                \Log::info('Current Project Set', [
+                    'user_id' => $user->id,
+                    'current_project' => $this->currentProject
+                ]);
             }
             
             // If a project exists, get its chat messages
@@ -151,6 +165,36 @@ class ChatManager extends Component
         }
     }
     
+    public function canSendMessages()
+    {
+        $user = Auth::user();
+        
+        if ($user->hasRole('director')) {
+            return true;
+        }
+        
+        if ($user->hasRole('supervisor')) {
+            // Debug the values we're comparing
+            \Log::info('Supervisor Permission Check', [
+                'user_id' => $user->id,
+                'current_project' => $this->currentProject,
+                'supervised_by' => $this->currentProject['supervised_by'] ?? null,
+                'comparison_result' => $this->currentProject && 
+                    $this->currentProject['supervised_by'] == $user->id
+            ]);
+            
+            // Get the project from database to verify
+            $project = Project::find($this->currentProject['id']);
+            
+            // Return true if this user is the supervisor
+            return $project && $project->supervised_by == $user->id;
+        }
+        
+        $employee = $user->employee;
+        return $employee && collect($employee->projects()->pluck('projects.id'))
+            ->contains($this->currentProject['id']);
+    }
+
     public function sendMessage()
     {
         // Validate the message
@@ -158,17 +202,7 @@ class ChatManager extends Component
             'newMessage' => 'required|string'
         ]);
 
-        $user = Auth::user();
-        $canSend = false;
-        if ($user->hasRole('director')) {
-            $canSend = true;
-        } elseif ($user->hasRole('supervisor')) {
-            $canSend = $this->currentProject && $this->currentProject['supervised_by'] == $user->id;
-        } else {
-            $employee = $user->employee;
-            $canSend = $employee && collect($employee->projects()->pluck('projects.id'))->contains($this->currentProject['id']);
-        }
-        if (!$canSend) {
+        if (!$this->canSendMessages()) {
             abort(403, 'You are not allowed to chat in this project.');
         }
 
