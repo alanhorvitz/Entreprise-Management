@@ -15,6 +15,10 @@
                         <span class="iconify w-5 h-5 mr-3" data-icon="solar:home-2-bold-duotone"></span>
                         <span>Dashboard</span>
                     </a>
+                    <a href="/employees" class="flex items-center px-3 py-2 text-sm font-medium rounded-lg hover:bg-base-200 transition-colors group {{ request()->is('employees') ? 'bg-primary/10 text-primary' : 'text-base-content/80' }}">
+                        <span class="iconify w-5 h-5 mr-3" data-icon="solar:users-group-rounded-bold-duotone"></span>
+                        <span>Employees</span>
+                    </a>
                     <a href="/projects" class="flex items-center px-3 py-2 text-sm font-medium rounded-lg hover:bg-base-200 transition-colors group {{ request()->is('projects') ? 'bg-primary/10 text-primary' : 'text-base-content/80' }}">
                         <span class="iconify w-5 h-5 mr-3" data-icon="solar:chart-2-bold-duotone"></span>
                         <span>Projects</span>

@@ -28,5 +28,6 @@ class AppServiceProvider extends ServiceProvider
         \Livewire\Livewire::component('modals.modal-manager', \App\Livewire\Modals\ModalManager::class);
         \Livewire\Livewire::component('notification-manager', \App\Livewire\NotificationManager::class);
         \Livewire\Livewire::component('chat.chat-manager', \App\Livewire\Chat\ChatManager::class);
+        \Livewire\Livewire::component('employees.employee-details', \App\Livewire\Employees\EmployeeDetails::class);
     }
 }

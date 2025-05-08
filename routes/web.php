@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Projects\ProjectList;
 use App\Livewire\Projects\ProjectDetails;
-
+use App\Http\Controllers\EmployeeController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -38,6 +38,9 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+
+    Route::resource('employees', EmployeeController::class);
     Route::resource('projects', ProjectsController::class);
     Route::resource('tasks', TasksController::class);
     Route::resource('calendar', CalendarController::class);
