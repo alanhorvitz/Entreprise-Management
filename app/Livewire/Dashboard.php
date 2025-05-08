@@ -43,23 +43,31 @@ class Dashboard extends Component
                 ->get();
         } else {
             // For team_leader and employee
-            $projectIds = $user->projectMembers()->pluck('project_id');
+            $projectIds = $user->employee->projects()->pluck('projects.id');
+            
             $activeProjects = Project::whereIn('id', $projectIds)
                 ->whereIn('status', ['planning', 'in_progress'])
                 ->count();
-            $completedTasks = Task::whereIn('project_id', $projectIds)
-                ->whereHas('taskAssignments', function($query) use ($user) {
-                    $query->where('employee_id', $user->id);
-                })
-                ->where('current_status', 'completed')
-                ->count();
-            $pendingTasks = Task::whereIn('project_id', $projectIds)
-                ->whereHas('taskAssignments', function($query) use ($user) {
-                    $query->where('employee_id', $user->id);
-                })
-                ->whereIn('current_status', ['todo', 'in_progress'])
-                ->count();
-            $teamMembers = $user->projectMembers()->count();
+
+            // Get tasks assigned to the user
+            $completedTasks = Task::whereHas('taskAssignments', function($query) use ($user) {
+                $query->whereHas('employee', function($subQuery) use ($user) {
+                    $subQuery->where('user_id', $user->id);
+                });
+            })
+            ->where('current_status', 'completed')
+            ->count();
+
+            $pendingTasks = Task::whereHas('taskAssignments', function($query) use ($user) {
+                $query->whereHas('employee', function($subQuery) use ($user) {
+                    $subQuery->where('user_id', $user->id);
+                });
+            })
+            ->whereIn('current_status', ['todo', 'in_progress'])
+            ->count();
+
+            $teamMembers = $projectIds->count();
+            
             $recentProjects = Project::with(['members'])
                 ->whereIn('id', $projectIds)
                 ->latest()
@@ -87,9 +95,9 @@ class Dashboard extends Component
             $pendingApprovals = collect();
         }
         
-        // Tasks due soon - filtered by project access
+        // Tasks due soon - filtered by project access and assignments
         if ($user->hasRole('director')) {
-            $tasksDueSoon = Task::with(['project', 'createdBy'])
+            $tasksDueSoon = Task::with(['project', 'createdBy', 'assignedUsers'])
                 ->where('due_date', '>=', now())
                 ->where('due_date', '<=', now()->addDays(7))
                 ->whereIn('current_status', ['todo', 'in_progress'])
@@ -97,7 +105,7 @@ class Dashboard extends Component
                 ->take(5)
                 ->get();
         } elseif ($user->hasRole('supervisor')) {
-            $tasksDueSoon = Task::with(['project', 'createdBy'])
+            $tasksDueSoon = Task::with(['project', 'createdBy', 'assignedUsers'])
                 ->where('due_date', '>=', now())
                 ->where('due_date', '<=', now()->addDays(7))
                 ->whereIn('current_status', ['todo', 'in_progress'])
@@ -108,13 +116,15 @@ class Dashboard extends Component
                 ->take(5)
                 ->get();
         } else {
-            $tasksDueSoon = Task::with(['project', 'createdBy'])
+            // For team_leader and employee - only show their assigned tasks
+            $tasksDueSoon = Task::with(['project', 'createdBy', 'assignedUsers'])
                 ->where('due_date', '>=', now())
                 ->where('due_date', '<=', now()->addDays(7))
                 ->whereIn('current_status', ['todo', 'in_progress'])
-                ->whereIn('project_id', $projectIds)
                 ->whereHas('taskAssignments', function($query) use ($user) {
-                    $query->where('employee_id', $user->id);
+                    $query->whereHas('employee', function($subQuery) use ($user) {
+                        $subQuery->where('user_id', $user->id);
+                    });
                 })
                 ->latest()
                 ->take(5)

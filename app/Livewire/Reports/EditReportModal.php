@@ -8,6 +8,7 @@ use Livewire\Component;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\Notification;
+use Illuminate\Support\Facades\Auth;
 
 class EditReportModal extends Component
 {
@@ -26,14 +27,36 @@ class EditReportModal extends Component
 
     public function mount($reportId)
     {
-        $this->reportId = $reportId;
-        $this->report = DailyReport::find($reportId);
+        $this->report = DailyReport::with(['user', 'project'])->findOrFail($reportId);
         
-        if ($this->report) {
-            $this->date = $this->report->date->format('Y-m-d');
-            $this->summary = $this->report->summary;
-            $this->project_id = $this->report->project_id;
+        $user = Auth::user();
+        $canEdit = false;
+
+        // Directors can edit any report
+        if ($user->hasRole('director')) {
+            $canEdit = true;
         }
+        // Supervisors can edit reports from their supervised projects
+        else if ($user->hasRole('supervisor')) {
+            $canEdit = $this->report->project && $this->report->project->supervised_by === $user->id;
+        }
+        // Users can edit their own reports
+        else {
+            $canEdit = $user->id === $this->report->user_id;
+        }
+
+        if (!$canEdit) {
+            $this->dispatch('notify', [
+                'message' => 'You are not authorized to edit this report.',
+                'type' => 'error',
+            ]);
+            $this->dispatch('closeEditModal');
+            return;
+        }
+
+        $this->date = $this->report->date;
+        $this->summary = $this->report->summary;
+        $this->project_id = $this->report->project_id;
         
         $this->loadAvailableProjects();
     }

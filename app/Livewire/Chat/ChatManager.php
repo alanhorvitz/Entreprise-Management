@@ -19,37 +19,53 @@ class ChatManager extends Component
     
     public function mount($projectId = null)
     {
-        // Get all projects for directors, or only member projects for other users
-        $user = Auth::user();
-        if ($user->hasRole('director')) {
-            $this->projects = Project::with('supervisedBy')->get()->toArray();
-        } else {
-        $this->projects = $user->projectMembers()->with('supervisedBy')->get()->toArray();
-        }
-        
-        if ($projectId) {
-            // If project ID is provided, try to find that project
-            $project = Project::find($projectId);
-            if ($project && ($user->hasRole('director') || in_array($project->id, array_column($this->projects, 'id')))) {
-                // Make sure the user has access to this project
-                $this->currentProject = $project->toArray();
-                // Also get the supervisor
-                if ($project->supervisedBy) {
-                    $this->currentProject['supervisedBy'] = $project->supervisedBy->toArray();
+        try {
+            // Get all projects for directors, supervised projects for supervisors, or member projects for other users
+            $user = Auth::user();
+            if ($user->hasRole('director')) {
+                // For directors, get ALL projects without any conditions
+                $this->projects = Project::with(['supervisedBy', 'members'])
+                    ->orderBy('created_at', 'desc')
+                    ->get()
+                    ->toArray();
+            } elseif ($user->hasRole('supervisor')) {
+                $this->projects = Project::with('supervisedBy')
+                    ->where('supervised_by', $user->id)
+                    ->get()
+                    ->toArray();
+            } else {
+                $this->projects = $user->projectMembers()->with('supervisedBy')->get()->toArray();
+            }
+            
+            if ($projectId) {
+                // If project ID is provided, try to find that project
+                $project = Project::with('supervisedBy')->find($projectId);
+                if ($project && ($user->hasRole('director') || 
+                               ($user->hasRole('supervisor') && $project->supervised_by === $user->id) ||
+                               in_array($project->id, array_column($this->projects, 'id')))) {
+                    $this->currentProject = $project->toArray();
+                    if ($project->supervisedBy) {
+                        $this->currentProject['supervisedBy'] = $project->supervisedBy->toArray();
+                    }
+                } else {
+                    // Fallback to first project if the specified project doesn't exist
+                    // or the user doesn't have access
+                    $this->currentProject = $this->projects[0] ?? null;
                 }
             } else {
-                // Fallback to first project if the specified project doesn't exist
-                // or the user doesn't have access
+                // Get the first project or null if no projects
                 $this->currentProject = $this->projects[0] ?? null;
             }
-        } else {
-            // Get the first project or null if no projects
-            $this->currentProject = $this->projects[0] ?? null;
-        }
-        
-        // If a project exists, get its chat messages
-        if ($this->currentProject) {
-            $this->loadMessages();
+            
+            // If a project exists, get its chat messages
+            if ($this->currentProject) {
+                $this->loadMessages();
+            }
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Error loading projects in ChatManager: ' . $e->getMessage());
+            $this->projects = [];
+            $this->currentProject = null;
         }
     }
     
@@ -94,23 +110,43 @@ class ChatManager extends Component
     
     public function changeProject($projectId)
     {
-        // Find the project in our cached projects list
-        foreach ($this->projects as $project) {
-            if ($project['id'] == $projectId) {
-                $this->currentProject = $project;
+        try {
+            $user = Auth::user();
+            
+            // For directors, always allow access to any project
+            if ($user->hasRole('director')) {
+                $project = Project::with('supervisedBy')->findOrFail($projectId);
+                $this->currentProject = $project->toArray();
+                if ($project->supervisedBy) {
+                    $this->currentProject['supervisedBy'] = $project->supervisedBy->toArray();
+                }
                 $this->loadMessages();
                 return;
             }
-        }
-        
-        // If not found in our list, fetch it and check permission
-        $project = Project::with('supervisedBy')->find($projectId);
-        if ($project && (Auth::user()->hasRole('director') || Auth::user()->projectMembers->contains('id', $project->id))) {
-            $this->currentProject = $project->toArray();
-            if ($project->supervisedBy) {
-                $this->currentProject['supervisedBy'] = $project->supervisedBy->toArray();
+            
+            // For other users, check permissions
+            foreach ($this->projects as $project) {
+                if ($project['id'] == $projectId) {
+                    $this->currentProject = $project;
+                    $this->loadMessages();
+                    return;
+                }
             }
-            $this->loadMessages();
+            
+            // If not found in our list, fetch it and check permission
+            $project = Project::with('supervisedBy')->find($projectId);
+            if ($project && (
+                (Auth::user()->hasRole('supervisor') && $project->supervised_by === Auth::user()->id) ||
+                Auth::user()->projectMembers->contains('id', $project->id)
+            )) {
+                $this->currentProject = $project->toArray();
+                if ($project->supervisedBy) {
+                    $this->currentProject['supervisedBy'] = $project->supervisedBy->toArray();
+                }
+                $this->loadMessages();
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error changing project in ChatManager: ' . $e->getMessage());
         }
     }
     

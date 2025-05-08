@@ -41,7 +41,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('projects', ProjectsController::class);
     Route::resource('tasks', TasksController::class);
     Route::resource('calendar', CalendarController::class);
+    
+    // Reports routes without additional middleware
     Route::resource('reports', ReportController::class);
+    
     Route::resource('chats', ChatsController::class);
     // Authentication
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

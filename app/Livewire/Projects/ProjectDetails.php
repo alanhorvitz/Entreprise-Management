@@ -109,6 +109,14 @@ class ProjectDetails extends Component
             // Get the user ID for notification
             $user = $projectMember->employee->user;
 
+            // Remove all task assignments for this employee in this project's tasks
+            \App\Models\TaskAssignment::whereIn('task_id', function($query) {
+                $query->select('id')
+                    ->from('tasks')
+                    ->where('project_id', $this->project->id);
+            })->where('employee_id', $this->memberToDelete)
+            ->delete();
+
             // Delete the project member
             $projectMember->delete();
 
@@ -298,7 +306,8 @@ class ProjectDetails extends Component
     public function render()
     {
         $user = auth()->user();
-        $isDirectorOrSupervisor = $user->hasRole('director') || $this->project->supervised_by === $user->id;
+        $isDirector = $user->hasRole('director');
+        $isDirectorOrSupervisor = $isDirector || $this->project->supervised_by === $user->id;
 
         // Get tasks query
         $tasksQuery = $this->project->tasks();
@@ -317,8 +326,8 @@ class ProjectDetails extends Component
             'project' => $this->project,
             'tasks' => $tasksQuery->paginate(5),
             'members' => $this->project->members,
-            'canEdit' => $isDirectorOrSupervisor,
-            'canDelete' => $user->hasRole('director'),
+            'canEdit' => $isDirector,
+            'canDelete' => $isDirector,
             'canCreateTasks' => $isDirectorOrSupervisor,
             'canManageMembers' => $isDirectorOrSupervisor,
         ]);

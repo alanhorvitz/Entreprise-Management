@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Mail\ReportCreatedMail;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Notification;
-use Illuminate\Support\Facades\DB;
+use App\Models\ProjectMember;
 
 class CreateReport extends Component
 {
@@ -28,7 +28,15 @@ class CreateReport extends Component
 
     public function mount()
     {
-        if (!auth()->user()->can('create daily reports')) {
+        $user = auth()->user();
+        $employeeId = $user->employee->id;
+        
+        // Check if user is director or team leader
+        $isTeamLeader = ProjectMember::where('employee_id', $employeeId)
+            ->where('role', 'team_leader')
+            ->exists();
+
+        if (!$user->hasRole('director') && !$isTeamLeader) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -45,7 +53,15 @@ class CreateReport extends Component
 
     public function save()
     {
-        if (!auth()->user()->can('create daily reports')) {
+        $user = auth()->user();
+        $employeeId = $user->employee->id;
+        
+        // Check if user is director or team leader
+        $isTeamLeader = ProjectMember::where('employee_id', $employeeId)
+            ->where('role', 'team_leader')
+            ->exists();
+
+        if (!$user->hasRole('director') && !$isTeamLeader) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -57,63 +73,58 @@ class CreateReport extends Component
             return;
         }
 
+        // Check if a report already exists for this date (regardless of project)
+        $existingReport = DailyReport::where('user_id', auth()->id())
+            ->whereDate('date', $this->date)
+            ->first();
+
+        if ($existingReport) {
+            $this->addError('date', 'You have already submitted a report for today. Only one report per day is allowed.');
+            return;
+        }
+
         try {
-            // Use transaction to ensure data consistency
-            $report = DB::transaction(function () {
-                // Check for existing report within the transaction
-                $existingReport = DailyReport::where('user_id', auth()->id())
-                    ->whereDate('date', $this->date)
-                    ->exists();
+            $report = DailyReport::create([
+                'user_id' => auth()->id(),
+                'project_id' => $this->project_id,
+                'date' => $this->date,
+                'summary' => $this->summary,
+                'submitted_at' => now()
+            ]);
 
-                if ($existingReport) {
-                    throw new \Exception('You have already submitted a report for today. Only one report per day is allowed.');
-                }
-
-                // Create the report
-                $report = DailyReport::create([
-                    'user_id' => auth()->id(),
-                    'project_id' => $this->project_id,
-                    'date' => $this->date,
-                    'summary' => $this->summary,
-                    'submitted_at' => now()
+            // Get the project and its supervisor
+            $project = Project::with('supervisedBy')->find($this->project_id);
+            
+            // Send notification to supervisor if exists
+            if ($project && $project->supervisedBy) {
+                Notification::create([
+                    'user_id' => $project->supervisedBy->id,
+                    'from_id' => auth()->id(),
+                    'title' => 'New Daily Report Submitted',
+                    'message' => auth()->user()->name . ' has submitted a daily report for project: ' . $project->name,
+                    'type' => 'reminder',
+                    'data' => [
+                        'report_id' => $report->id,
+                        'project_id' => $project->id,
+                        'project_name' => $project->name,
+                        'submitted_by' => auth()->user()->name
+                    ],
+                    'is_read' => false
                 ]);
+            }
 
-                // Get the project and its supervisor
-                $project = Project::with('supervisedBy')->find($this->project_id);
-                
-                // Send notification to supervisor if exists
-                if ($project && $project->supervisedBy) {
-                    Notification::create([
-                        'user_id' => $project->supervisedBy->id,
-                        'from_id' => auth()->id(),
-                        'title' => 'New Daily Report Submitted',
-                        'message' => auth()->user()->name . ' has submitted a daily report for project: ' . $project->name,
-                        'type' => 'reminder',
-                        'data' => [
-                            'report_id' => $report->id,
-                            'project_id' => $project->id,
-                            'project_name' => $project->name,
-                            'submitted_by' => auth()->user()->name
-                        ],
-                        'is_read' => false
-                    ]);
-                }
+            Mail::to('kniptodati@gmail.com')->send(new ReportCreatedMail($report));
+            
 
-                return $report;
-            });
-
-            // Queue the email sending
-            Mail::to('kniptodati@gmail.com')->queue(new ReportCreatedMail($report));
 
             $this->dispatch('notify', [
                 'message' => 'Report created successfully!',
                 'type' => 'success',
             ]);
             return redirect()->route('reports.index');
-
-        } catch (\Exception $e) {
+        } catch (QueryException $e) {
             $this->dispatch('notify', [
-                'message' => $e->getMessage() ?: 'Unable to create report. Please try again.',
+                'message' => 'Unable to create report. Please try again.',
                 'type' => 'error',
             ]);
             return;
@@ -122,7 +133,15 @@ class CreateReport extends Component
 
     public function render()
     {
-        if (!auth()->user()->can('create daily reports')) {
+        $user = auth()->user();
+        $employeeId = $user->employee->id;
+        
+        // Check if user is director or team leader
+        $isTeamLeader = ProjectMember::where('employee_id', $employeeId)
+            ->where('role', 'team_leader')
+            ->exists();
+
+        if (!$user->hasRole('director') && !$isTeamLeader) {
             abort(403, 'Unauthorized action.');
         }
 

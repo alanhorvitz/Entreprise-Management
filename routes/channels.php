@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Broadcast;
+use App\Models\Project;
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,5 +20,23 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('chat.project.{projectId}', function ($user, $projectId) {
-    return $user->projectMembers->contains('id', $projectId);
-}); 
+    try {
+        // Directors always have access to all project chats
+        if ($user->hasRole('director')) {
+            return true;
+        }
+
+        // For supervisors, check if they supervise the project
+        if ($user->hasRole('supervisor')) {
+            return Project::where('id', $projectId)
+                ->where('supervised_by', $user->id)
+                ->exists();
+        }
+
+        // For other users, check if they are project members
+        return $user->projectMembers->contains('id', $projectId);
+    } catch (\Exception $e) {
+        Log::error('Error in chat project channel authorization: ' . $e->getMessage());
+        return false;
+    }
+});

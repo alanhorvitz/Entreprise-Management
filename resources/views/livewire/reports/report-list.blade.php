@@ -17,12 +17,19 @@
     <!-- Header with Create Button -->
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">Daily Reports</h2>
-        @hasrole('team_leader')
-        <a href="{{ route('reports.create') }}" class="btn btn-primary">
-            <span class="iconify w-5 h-5 mr-1" data-icon="solar:add-square-bold-duotone"></span>
-            Create Report
-        </a>
-        @endhasrole
+        @php
+            $employeeId = auth()->user()->employee->id;
+            $isTeamLeader = App\Models\ProjectMember::where('employee_id', $employeeId)
+                ->where('role', 'team_leader')
+                ->exists();
+        @endphp
+        
+        @if(auth()->user()->hasRole('director') || $isTeamLeader)
+            <a href="{{ route('reports.create') }}" class="btn btn-primary">
+                <span class="iconify w-5 h-5 mr-1" data-icon="solar:add-square-bold-duotone"></span>
+                Create Report
+            </a>
+        @endif
     </div>
 
     <!-- Report Controls -->
@@ -105,7 +112,16 @@
                             <button class="btn btn-sm btn-ghost" wire:click="showAssigneeReport({{ $report->user_id }})">
                                 <span class="iconify w-4 h-4" data-icon="solar:eye-bold-duotone"></span>
                             </button>
-                            @if(auth()->id() === $report->user_id || auth()->user()->hasRole(['director', 'supervisor']))
+                            @php
+                                $isTeamLeader = App\Models\ProjectMember::where('project_id', $report->project_id)
+                                    ->whereHas('employee', function($query) {
+                                        $query->where('user_id', auth()->id());
+                                    })
+                                    ->where('role', 'team_leader')
+                                    ->exists();
+                            @endphp
+
+                            @if(auth()->user()->hasRole('director') || $isTeamLeader)
                                 <button wire:click="showEditReport({{ $report->id }})" class="btn btn-sm btn-ghost">
                                     <span class="iconify w-4 h-4" data-icon="solar:pen-2-bold-duotone"></span>
                                 </button>

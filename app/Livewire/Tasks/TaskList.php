@@ -182,7 +182,7 @@ class TaskList extends Component
     {
         $user = auth()->user();
         
-        $tasks = Task::with(['project', 'createdBy', 'repetitiveTask'])
+        $tasks = Task::with(['project', 'createdBy', 'repetitiveTask', 'taskAssignments'])
             ->when($this->search, function (Builder $query) {
                 return $query->where(function (Builder $query) {
                     $query->where('title', 'like', '%' . $this->search . '%')
@@ -221,16 +221,13 @@ class TaskList extends Component
             $tasks->whereHas('project', function($query) use ($user) {
                 $query->where('supervised_by', $user->id);
             });
-        } elseif ($user->hasRole('team_leader')) {
-            // Team leaders can see all tasks in their projects
+        } else {
+            // Both team leaders and regular employees can only see tasks assigned to them in their projects
             $tasks->whereHas('project', function($query) use ($user) {
                 $query->whereHas('members', function($subQuery) use ($user) {
                     $subQuery->where('user_id', $user->id);
                 });
-            });
-        } else {
-            // Regular employees can only see their own assigned tasks
-            $tasks->whereHas('taskAssignments', function($query) use ($user) {
+            })->whereHas('taskAssignments', function($query) use ($user) {
                 $query->whereHas('employee', function($subQuery) use ($user) {
                     $subQuery->where('user_id', $user->id);
                 });
@@ -262,15 +259,8 @@ class TaskList extends Component
                     $subQuery->whereIn('projects.id', $projects->pluck('id'));
                 });
             })->get();
-        } elseif ($user->hasRole('team_leader')) {
-            // Team leaders can see all users in their projects
-            $users = User::whereHas('employee', function($query) use ($projects) {
-                $query->whereHas('projects', function($subQuery) use ($projects) {
-                    $subQuery->whereIn('projects.id', $projects->pluck('id'));
-                });
-            })->get();
         } else {
-            // Regular employees only see themselves
+            // Both team leaders and regular employees only see themselves
             $users = User::where('id', $user->id)->get();
         }
 

@@ -46,6 +46,9 @@ class ProjectsController extends Controller
      */
     public function edit(Project $project)
     {
+        if (!auth()->user()->hasRole('director')) {
+            abort(403, 'Only directors can edit projects.');
+        }
         return view('projects.edit', compact('project'));
     }
 

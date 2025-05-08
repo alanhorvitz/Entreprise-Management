@@ -88,7 +88,14 @@
                         <img class="h-8 w-8 rounded-full border border-base-200" src="{{ asset('images/image.png') }}" alt="User avatar">
                         <div class="hidden md:block text-left">
                             <h6 class="text-sm font-medium">{{ auth()->user()->name }}</h6>
-                            <p class="text-xs text-base-content/60">{{ auth()->user()->role }}</p>
+                            <p class="text-xs text-base-content/60">
+                                @php
+                                    $roles = auth()->user()->getRoleNames();
+                                    echo $roles->map(function($role) {
+                                        return ucfirst(str_replace('_', ' ', $role));
+                                    })->join(', ');
+                                @endphp
+                            </p>
                         </div>
                         <span class="iconify w-4 h-4 text-base-content/60" data-icon="solar:alt-arrow-down-bold-duotone"></span>
                     </summary>

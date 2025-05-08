@@ -4,12 +4,17 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Active Projects Card -->
-        @if(auth()->user()->hasPermissionTo('view all projects') || auth()->user()->hasPermissionTo('view assigned projects'))
         <div class="card bg-base-100 shadow-md">
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-base-content/60 text-sm">Active Projects</p>
+                        <p class="text-base-content/60 text-sm">
+                            @if(auth()->user()->hasRole(['director', 'supervisor']))
+                                Active Projects
+                            @else
+                                My Active Projects
+                            @endif
+                        </p>
                         <div class="mt-1">
                             <p class="text-2xl font-semibold">{{ $activeProjects }}</p>
                         </div>
@@ -20,10 +25,8 @@
                 </div>
             </div>
         </div>
-        @endif
 
         <!-- Tasks Completed Card -->
-        @if(auth()->user()->hasPermissionTo('view all tasks') || auth()->user()->hasPermissionTo('view assigned tasks'))
         <div class="card bg-base-100 shadow-md">
             <div class="card-body">
                 <div class="flex items-center justify-between">
@@ -46,10 +49,8 @@
                 </div>
             </div>
         </div>
-        @endif
 
         <!-- Pending Tasks Card -->
-        @if(auth()->user()->hasPermissionTo('view all tasks') || auth()->user()->hasPermissionTo('view assigned tasks'))
         <div class="card bg-base-100 shadow-md">
             <div class="card-body">
                 <div class="flex items-center justify-between">
@@ -71,7 +72,6 @@
                 </div>
             </div>
         </div>
-        @endif
 
         <!-- Team Members / Projects Card -->
         <div class="card bg-base-100 shadow-md">
@@ -104,11 +104,16 @@
     </div>
 
     <!-- Projects Overview -->
-    @if(auth()->user()->hasPermissionTo('view all projects') || auth()->user()->hasPermissionTo('view assigned projects'))
     <div class="card bg-base-100 shadow-md">
         <div class="card-body">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="card-title">Projects Overview</h3>
+                <h3 class="card-title">
+                    @if(auth()->user()->hasRole(['director', 'supervisor']))
+                        Projects Overview
+                    @else
+                        My Projects
+                    @endif
+                </h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="table">
@@ -160,7 +165,6 @@
             </div>
         </div>
     </div>
-    @endif
 
     <!-- Pending Approvals and Tasks -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -214,11 +218,16 @@
         @endif
 
         <!-- Tasks Due Soon -->
-        @if(auth()->user()->hasPermissionTo('view all tasks') || auth()->user()->hasPermissionTo('view assigned tasks'))
         <div class="card bg-base-100 shadow-md {{ !$canApproveTask ? 'lg:col-span-2' : '' }}">
             <div class="card-body">
                 <h2 class="card-title flex justify-between">
-                    <span>Tasks Due Soon</span>
+                    <span>
+                        @if(auth()->user()->hasRole(['director', 'supervisor']))
+                            Tasks Due Soon
+                        @else
+                            My Tasks Due Soon
+                        @endif
+                    </span>
                     <div class="dropdown dropdown-end">
                         <div tabindex="0" role="button" class="btn btn-sm btn-ghost">
                             <span class="iconify w-4 h-4" data-icon="solar:alt-arrow-down-bold-duotone"></span>
@@ -265,6 +274,5 @@
                 </div>
             </div>
         </div>
-        @endif
     </div>
 </div>

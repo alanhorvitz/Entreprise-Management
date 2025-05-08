@@ -169,12 +169,6 @@ class CreateProject extends Component
                 'is_featured' => $this->is_featured
             ]);
 
-            // Assign team_leader role to the chosen team leader
-            $teamLeader = User::find($this->team_leader_id);
-            if ($teamLeader) {
-                $teamLeader->assignRole('team_leader');
-            }
-
             // Get employee IDs
             $teamLeaderEmployee = Employee::where('user_id', $this->team_leader_id)->first();
 

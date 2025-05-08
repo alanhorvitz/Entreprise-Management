@@ -27,8 +27,23 @@ class DeleteReportModal extends Component
             return;
         }
 
-        // Check if user has permission to delete this report
-        if (Auth::id() !== $this->report->user_id && !Auth::user()->hasRole(['director', 'supervisor'])) {
+        $user = Auth::user();
+        $canDelete = false;
+
+        // Directors can delete any report
+        if ($user->hasRole('director')) {
+            $canDelete = true;
+        }
+        // Supervisors can delete reports from their supervised projects
+        else if ($user->hasRole('supervisor')) {
+            $canDelete = $this->report->project && $this->report->project->supervised_by === $user->id;
+        }
+        // Users can delete their own reports
+        else {
+            $canDelete = $user->id === $this->report->user_id;
+        }
+
+        if (!$canDelete) {
             $this->dispatch('notify', [
                 'message' => 'You are not authorized to delete this report.',
                 'type' => 'error',

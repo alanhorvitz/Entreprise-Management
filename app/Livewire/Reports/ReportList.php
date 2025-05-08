@@ -5,6 +5,7 @@ namespace App\Livewire\Reports;
 use App\Models\Project;
 use App\Models\DailyReport;
 use App\Models\Department;
+use App\Models\ProjectMember;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Carbon\Carbon;
@@ -49,8 +50,32 @@ class ReportList extends Component
 
     protected function canModifyReport($report)
     {
-        return Auth::id() === $report->user_id || 
-               Auth::user()->hasRole(['director', 'supervisor']);
+        $user = Auth::user();
+        
+        // Directors can modify any report
+        if ($user->hasRole('director')) {
+            return true;
+        }
+        
+        // Supervisors can only view reports from their supervised projects
+        if ($user->hasRole('supervisor')) {
+            return false;
+        }
+
+        // Team leaders can modify their own reports
+        $isTeamLeader = ProjectMember::where('project_id', $report->project_id)
+            ->whereHas('employee', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->where('role', 'team_leader')
+            ->exists();
+
+        if ($isTeamLeader) {
+            return true;
+        }
+
+        // Regular employees cannot modify any reports
+        return false;
     }
 
     public function deleteReport($reportId)
@@ -200,15 +225,26 @@ class ReportList extends Component
         // First, get the reports with proper eager loading
         $reportsQuery = DailyReport::with(['user', 'user.employee.departments', 'project']);
 
-        // Filter reports based on user's role and project membership
-        if (!auth()->user()->hasRole('director') && !auth()->user()->hasPermissionTo('view daily reports')) {
-            $employee = auth()->user()->employee;
-            if ($employee) {
-                $userProjectIds = Project::whereHas('members', function($query) use ($employee) {
-                    $query->where('employee_id', $employee->id);
-                })->pluck('id')->toArray();
-                $reportsQuery->whereIn('project_id', $userProjectIds);
-            }
+        $user = auth()->user();
+        $employeeId = $user->employee->id;
+
+        // Filter reports based on user's role
+        if ($user->hasRole('director')) {
+            // Directors can see all reports
+            // No additional filtering needed
+        } elseif ($user->hasRole('supervisor')) {
+            // Supervisors can see reports from projects they supervise
+            $reportsQuery->whereHas('project', function($query) use ($user) {
+                $query->where('supervised_by', $user->id);
+            });
+        } else {
+            // Get user's projects where they are either team leader or member
+            $userProjects = Project::whereHas('members', function($query) use ($employeeId) {
+                $query->where('employee_id', $employeeId);
+            })->pluck('id')->toArray();
+
+            // Filter reports to only show those from user's projects
+            $reportsQuery->whereIn('project_id', $userProjects);
         }
 
         $reportsQuery->when($this->startDate && $this->endDate, function($query) {
@@ -232,19 +268,15 @@ class ReportList extends Component
             })
             ->orderBy('date', 'desc');
 
-        // Initialize $projects variable
-        $projects = collect();
-
-        // Filter project dropdown to only show projects user is a member of
-        if (auth()->user()->hasPermissionTo('view reports')) {
+        // Get available projects for filter based on user role
+        if ($user->hasRole('director')) {
             $projects = Project::all();
+        } elseif ($user->hasRole('supervisor')) {
+            $projects = Project::where('supervised_by', $user->id)->get();
         } else {
-            $employee = auth()->user()->employee;
-            if ($employee) {
-                $projects = Project::whereHas('members', function($query) use ($employee) {
-                    $query->where('employee_id', $employee->id);
-                })->get();
-            }
+            $projects = Project::whereHas('members', function($query) use ($employeeId) {
+                $query->where('employee_id', $employeeId);
+            })->get();
         }
 
         return view('livewire.reports.report-list', [
