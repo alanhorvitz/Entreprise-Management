@@ -145,9 +145,18 @@
                 <!-- Assignees -->
                 <div>
                     <h4 class="text-base font-semibold mb-3">Assigned To</h4>
-                    @if($task->assignedUsers->count() > 0)
+                    @php
+                        $assignees = $task->assignedUsers;
+                        if ($assignees->isEmpty() && $task->taskAssignments->count() > 0) {
+                            // Fallback: get users via taskAssignments
+                            $assignees = $task->taskAssignments->map(function($assignment) {
+                                return $assignment->employee && $assignment->employee->user ? $assignment->employee->user : null;
+                            })->filter();
+                        }
+                    @endphp
+                    @if($assignees->count() > 0)
                         <div class="flex flex-col gap-2">
-                            @foreach($task->assignedUsers as $user)
+                            @foreach($assignees as $user)
                                 <div class="flex items-center p-2 bg-base-200 rounded-lg">
                                     <div class="avatar mr-2">
                                         <div class="w-6 rounded-full">

@@ -20,10 +20,9 @@ class ChatManager extends Component
     public function mount($projectId = null)
     {
         try {
-            // Get all projects for directors, supervised projects for supervisors, or member projects for other users
             $user = Auth::user();
             if ($user->hasRole('director')) {
-                // For directors, get ALL projects without any conditions
+                // For directors, get ALL projects
                 $this->projects = Project::with(['supervisedBy', 'members'])
                     ->orderBy('created_at', 'desc')
                     ->get()
@@ -34,7 +33,9 @@ class ChatManager extends Component
                     ->get()
                     ->toArray();
             } else {
-                $this->projects = $user->projectMembers()->with('supervisedBy')->get()->toArray();
+                // For employees and other users, get all projects where they are a member
+                $employee = $user->employee;
+                $this->projects = $employee ? $employee->projects()->with('supervisedBy')->get()->toArray() : [];
             }
             
             if ($projectId) {
@@ -156,7 +157,21 @@ class ChatManager extends Component
         $this->validate([
             'newMessage' => 'required|string'
         ]);
-        
+
+        $user = Auth::user();
+        $canSend = false;
+        if ($user->hasRole('director')) {
+            $canSend = true;
+        } elseif ($user->hasRole('supervisor')) {
+            $canSend = $this->currentProject && $this->currentProject['supervised_by'] == $user->id;
+        } else {
+            $employee = $user->employee;
+            $canSend = $employee && collect($employee->projects()->pluck('projects.id'))->contains($this->currentProject['id']);
+        }
+        if (!$canSend) {
+            abort(403, 'You are not allowed to chat in this project.');
+        }
+
         // Create the message
         $chatMessage = ProjectsChatMessage::create([
             'project_id' => $this->currentProject['id'],

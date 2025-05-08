@@ -135,12 +135,14 @@ class EditProject extends Component
     private function loadDepartmentMembers()
     {
         $this->departmentMembers = User::role('employee')
+            ->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'supervisor');
+            })
             ->whereHas('employee', function($query) {
                 $query->whereHas('departments', function($query) {
                     $query->where('department_id', $this->department_id);
                 });
             })
-            ->where('is_active', true)
             ->get();
     }
 
@@ -153,7 +155,6 @@ class EditProject extends Component
         $this->availableSupervisors = User::whereHas('roles', function($query) {
                 $query->where('name', 'supervisor');
             })
-            ->where('is_active', true)
             ->orderByRaw("CASE 
                 WHEN EXISTS (
                     SELECT 1 FROM employees e 

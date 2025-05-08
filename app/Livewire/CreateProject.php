@@ -95,14 +95,16 @@ class CreateProject extends Component
     public function loadDepartmentMembers()
     {
         if ($this->department_id) {
-            // Get all employees assigned to this department through employee_departments table
+            // Get all employees assigned to this department through employee_departments table, excluding supervisors
             $this->departmentMembers = User::role('employee')
+                ->whereDoesntHave('roles', function($query) {
+                    $query->where('name', 'supervisor');
+                })
                 ->whereHas('employee', function($query) {
                     $query->whereHas('departments', function($query) {
                         $query->where('department_id', $this->department_id);
                     });
                 })
-                ->where('is_active', true)
                 ->get();
 
             // Reset team members and manager when department changes

@@ -93,7 +93,7 @@ class ProjectList extends Component
             ->with(['createdBy', 'supervisedBy', 'members.user']);
 
         // Apply role-based filtering
-        if ($user->hasRole('director')) {
+        if ($user->hasRole(['director', 'super_admin'])) {
             // Director can see all projects
             $query->when($this->search, function ($query) {
                 $query->where(function ($query) {

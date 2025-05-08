@@ -191,21 +191,29 @@
                         </td>
                         <td>{{ $task->due_date ? $task->due_date->format('M d, Y') : 'No due date' }}</td>
                         <td>
-                            @if($task->assignedUsers->count() > 0)
+                            @php
+                                $assignees = $task->assignedUsers;
+                                if ($assignees->isEmpty() && $task->taskAssignments->count() > 0) {
+                                    // Fallback: get users via taskAssignments
+                                    $assignees = $task->taskAssignments->map(function($assignment) {
+                                        return $assignment->employee && $assignment->employee->user ? $assignment->employee->user : null;
+                                    })->filter();
+                                }
+                            @endphp
+                            @if($assignees->count() > 0)
                                 <div class="flex items-center gap-2">
                                     <div class="avatar-group -space-x-6">
-                                        @foreach($task->assignedUsers->take(3) as $user)
+                                        @foreach($assignees->take(3) as $user)
                                             <div class="avatar">
                                                 <div class="w-8 rounded-full">
                                                     <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=random" alt="{{ $user->name }}" />
                                                 </div>
                                             </div>
                                         @endforeach
-                                        
-                                        @if($task->assignedUsers->count() > 3)
+                                        @if($assignees->count() > 3)
                                             <div class="avatar placeholder">
                                                 <div class="w-8 rounded-full bg-neutral-focus text-neutral-content">
-                                                    <span>+{{ $task->assignedUsers->count() - 3 }}</span>
+                                                    <span>+{{ $assignees->count() - 3 }}</span>
                                                 </div>
                                             </div>
                                         @endif

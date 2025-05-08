@@ -26,15 +26,17 @@ class AddMemberModal extends Component
 
     public function loadAvailableMembers()
     {
-        // Get all employees in the department
+        // Get all employees in the department, excluding supervisors
         $departmentEmployees = \App\Models\Employee::whereHas('departments', function($query) {
                 $query->where('department_id', $this->project->department_id);
             })
             ->whereHas('user', function($query) {
                 $query->whereHas('roles', function($query) {
                     $query->where('name', 'employee');
-                })
-                ->where('is_active', true);
+                });
+                $query->whereDoesntHave('roles', function($query) {
+                    $query->where('name', 'supervisor');
+                });
             })
             ->whereNotIn('id', function($query) {
                 $query->select('employee_id')
