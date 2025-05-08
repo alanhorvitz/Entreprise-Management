@@ -8,6 +8,7 @@ use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Notification;
 
 class Dashboard extends Component
 {
@@ -21,7 +22,7 @@ class Dashboard extends Component
             $completedTasks = Task::where('current_status', 'completed')->count();
             $pendingTasks = Task::whereIn('current_status', ['todo', 'in_progress'])->count();
             $teamMembers = User::count();
-            $recentProjects = Project::with(['members'])
+            $recentProjects = Project::with(['members.user'])
                 ->latest()
                 ->take(5)
                 ->get();
@@ -36,7 +37,7 @@ class Dashboard extends Component
                 $query->select('id')->from('projects')->where('supervised_by', $user->id);
             })->whereIn('current_status', ['todo', 'in_progress'])->count();
             $teamMembers = Project::where('supervised_by', $user->id)->count();
-            $recentProjects = Project::with(['members'])
+            $recentProjects = Project::with(['members.user'])
                 ->where('supervised_by', $user->id)
                 ->latest()
                 ->take(5)
@@ -69,7 +70,7 @@ class Dashboard extends Component
 
                 $teamMembers = $projectIds->count();
                 
-                $recentProjects = Project::with(['members'])
+                $recentProjects = Project::with(['members.user'])
                     ->whereIn('id', $projectIds)
                     ->latest()
                     ->take(5)
@@ -164,7 +165,32 @@ class Dashboard extends Component
     {
         $task = Task::find($taskId);
         if ($task) {
-            $task->update(['status' => 'rejected']);
+            $task->update([
+                'status' => 'rejected',
+                'current_status' => 'in_progress'  // Set the task back to in_progress
+            ]);
+
+            // Create notification for task members
+            foreach ($task->taskAssignments as $assignment) {
+                if ($assignment->employee && $assignment->employee->user_id !== auth()->id()) {
+                    Notification::create([
+                        'user_id' => $assignment->employee->user_id,
+                        'from_id' => auth()->id(),
+                        'title' => 'Task Rejected',
+                        'message' => "Task '{$task->title}' has been rejected and returned to progress",
+                        'type' => 'status_change',
+                        'data' => [
+                            'task_id' => $task->id,
+                            'task_title' => $task->title,
+                            'project_id' => $task->project_id,
+                            'old_status' => 'pending_approval',
+                            'new_status' => 'rejected',
+                            'updated_by' => auth()->user()->name
+                        ],
+                        'is_read' => false
+                    ]);
+                }
+            }
         }
     }
 }

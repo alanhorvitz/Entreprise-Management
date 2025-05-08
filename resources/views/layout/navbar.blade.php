@@ -1,4 +1,4 @@
-<nav class="bg-base-100 border-b border-base-200 fixed right-0 top-0 transition-all duration-300 left-64 z-[40]" id="main-navbar">
+<nav class="bg-base-100 border-b border-base-200 fixed right-0 top-0 left-64 z-[40] transition-[left] duration-300" id="main-navbar">
     <div class="px-4 py-3">
         <div class="flex items-center justify-between">
             <!-- Left side -->

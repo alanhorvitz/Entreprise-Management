@@ -142,9 +142,13 @@
                                 <td>
                                     <div class="flex -space-x-4">
                                         @foreach($project->members->take(3) as $member)
-                                            <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-base-100">
-                                                <img src="https://ui-avatars.com/api/?name={{ urlencode($member->name) }}&background=random" alt="{{ $member->name }}" class="w-full h-full object-cover" />
-                                            </div>
+                                            @if($member->user)
+                                                <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-base-100">
+                                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($member->user->first_name . ' ' . $member->user->last_name) }}&background=random" 
+                                                         alt="{{ $member->user->first_name . ' ' . $member->user->last_name }}" 
+                                                         class="w-full h-full object-cover" />
+                                                </div>
+                                            @endif
                                         @endforeach
                                         @if($project->members->count() > 3)
                                             <div class="w-8 h-8 rounded-full bg-base-300 border-2 border-base-100 flex items-center justify-center text-xs font-medium">
@@ -234,9 +238,6 @@
                         </div>
                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                             <li><a href="{{ route('tasks.index') }}">View All Tasks</a></li>
-                            @if(auth()->user()->hasPermissionTo('create tasks'))
-                            <li><a href="{{ route('tasks.create') }}">Add New Task</a></li>
-                            @endif
                         </ul>
                     </div>
                 </h2>

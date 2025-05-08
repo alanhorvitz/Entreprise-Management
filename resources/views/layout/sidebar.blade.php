@@ -50,15 +50,4 @@
         </nav>
     </div>
 
-    <div class="p-4 border-t border-base-200">
-        <div class="flex items-center space-x-3">
-            <div class="flex-shrink-0">
-                <img class="h-8 w-8 rounded-full" src="{{ asset('images/image.png') }}" alt="User avatar" />
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-base-content truncate">{{ auth()->user()->name }}</p>
-                <p class="text-xs text-base-content/60 truncate">{{ auth()->user()->role }}</p>
-            </div>
-        </div>
-    </div>
 </div>

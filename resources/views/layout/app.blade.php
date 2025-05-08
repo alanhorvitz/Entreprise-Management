@@ -17,6 +17,71 @@
     {{-- Load assets using Laravel Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <style>
+        :where(:root),:root:has(input.theme-controller[value=light]:checked),[data-theme=light] {
+            color-scheme: light;
+            --color-base-100: oklch(100% 0 0);
+            --color-base-200: oklch(98% 0 0);
+            --color-base-300: oklch(95% 0 0);
+            --color-base-content: oklch(21% 0.006 285.885);
+            --color-primary: oklch(85% 0.22 91.936);
+            --color-primary-content: oklch(98% 0.001 106.423);
+            --color-secondary: oklch(25% 0.12 264.92);
+            --color-secondary-content: oklch(94% 0.028 342.258);
+            --color-accent: oklch(55% 0.18 302.57);
+            --color-accent-content: oklch(98% 0.001 106.423);
+            --color-neutral: #343131;
+            --color-neutral-content: oklch(92% 0.004 286.32);
+            --color-info: oklch(74% 0.16 232.661);
+            --color-info-content: oklch(29% 0.066 243.157);
+            --color-success: oklch(76% 0.177 163.223);
+            --color-success-content: oklch(37% 0.077 168.94);
+            --color-warning: oklch(82% 0.189 84.429);
+            --color-warning-content: oklch(41% 0.112 45.904);
+            --color-error: oklch(71% 0.194 13.428);
+            --color-error-content: oklch(27% 0.105 12.094);
+            --radius-selector: 0.5rem;
+            --radius-field: 0.25rem;
+            --radius-box: 0.5rem;
+            --size-selector: 0.25rem;
+            --size-field: 0.25rem;
+            --border: 1px;
+            --depth: 1;
+            --noise: 0;
+        }
+
+        [data-theme=dark] {
+            color-scheme: dark;
+            --color-base-100: oklch(20% 0 0);
+            --color-base-200: oklch(15% 0 0); 
+            --color-base-300: oklch(10% 0 0);
+            --color-base-content: oklch(98% 0.003 285.885);
+            --color-primary: oklch(65% 0.22 91.936);
+            --color-primary-content: oklch(15% 0.001 106.423);
+            --color-secondary: oklch(70% 0.12 264.92);
+            --color-secondary-content: oklch(15% 0.028 342.258);
+            --color-accent: oklch(70% 0.18 302.57);
+            --color-accent-content: oklch(15% 0.001 106.423);
+            --color-neutral: #CFCFCF;
+            --color-neutral-content: oklch(15% 0.004 286.32);
+            --color-info: oklch(55% 0.16 232.661);
+            --color-info-content: oklch(85% 0.066 243.157);
+            --color-success: oklch(55% 0.177 163.223);
+            --color-success-content: oklch(85% 0.077 168.94);
+            --color-warning: oklch(65% 0.189 84.429);
+            --color-warning-content: oklch(85% 0.112 45.904);
+            --color-error: oklch(55% 0.194 13.428);
+            --color-error-content: oklch(85% 0.105 12.094);
+            --radius-selector: 0.5rem;
+            --radius-field: 0.25rem;
+            --radius-box: 0.5rem;
+            --size-selector: 0.25rem;
+            --size-field: 0.25rem;
+            --border: 1px;
+            --depth: 1;
+            --noise: 0;
+        }
+    </style>
 </head>
 
 <body class="font-sans antialiased bg-base-100/50">
