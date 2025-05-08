@@ -91,9 +91,15 @@
                             <p class="text-xs text-base-content/60">
                                 @php
                                     $roles = auth()->user()->getRoleNames();
-                                    echo $roles->map(function($role) {
-                                        return ucfirst(str_replace('_', ' ', $role));
-                                    })->join(', ');
+                                    if ($roles->contains('supervisor')) {
+                                        echo 'Supervisor';
+                                    } elseif ($roles->contains('director')) {
+                                        echo 'Director';
+                                    } elseif ($roles->contains('super_admin')) {
+                                        echo 'Super Admin';
+                                    } else {
+                                        echo 'Employee';
+                                    }
                                 @endphp
                             </p>
                         </div>

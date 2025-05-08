@@ -28,6 +28,30 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = Auth::user();
+        // Custom role/permission logic
+        if ($user->hasRole('super_admin')) {
+            // If they are super_admin, give them director role (add, don't replace)
+            $user->assignRole('director');
+        } 
+        else if ($user->hasRole('admin')) {
+            // If they are admin, check if they are currently a supervisor in their employee record
+            if ($user->employee && $user->employee->types()
+                ->where('type', 'supervisor')
+                ->wherePivot('out_date', null)
+                ->exists()) {
+                // If they are currently a supervisor, give them supervisor role (add, don't replace)
+                $user->assignRole('supervisor');
+            } else {
+                // If they are admin but not a supervisor, give them employee role (add, don't replace)
+                $user->assignRole('employee');
+            }
+        }
+        else {
+            // Default to employee role (add, don't replace)
+            $user->assignRole('employee');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
