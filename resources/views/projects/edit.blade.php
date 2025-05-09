@@ -3,7 +3,5 @@
 @section('title', 'Edit Project')
 
 @section('content')
-    <div class="max-w-7xl mx-auto">
-        <livewire:edit-project :project="$project" />
-    </div>
+    @livewire('projects.edit', ['project' => $project])
 @endsection 

@@ -45,7 +45,7 @@
                             @endforeach
                         </div>
 
-                        <div class="flex justify-end gap-2 mt-6">
+                        <div class="flex justify-between gap-2 mt-6">
                             <button wire:click="close" class="btn">Cancel</button>
                             <button wire:click="addMembers" class="btn btn-primary">Add Selected Members</button>
                         </div>

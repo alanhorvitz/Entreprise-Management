@@ -40,9 +40,7 @@
             
             @if($currentProject)
             <div class="mt-2 text-sm">
-                @if(isset($currentProject['supervisedBy']))
-                    <span class="text-primary font-medium">Supervisor: {{ $currentProject['supervisedBy']['name'] }}</span>
-                @endif
+
                 <span class="text-sm text-gray-500">{{ $currentProject['description'] }}</span>
             </div>
             @endif
@@ -65,7 +63,7 @@
                                 <span class="font-bold">{{ $message['user']['first_name'] }} {{ $message['user']['last_name'] }}</span>
                                 <time class="text-xs opacity-50">{{ \Carbon\Carbon::parse($message['created_at'])->format('M j, H:i') }}</time>
                             </div>
-                            <div class="chat-bubble {{ $message['user_id'] === Auth::id() ? 'chat-bubble-primary' : 'chat-bubble-secondary' }}">
+                            <div class="chat-bubble {{ $message['user_id'] === Auth::id() ? 'chat-bubble-primary' : 'chat-bubble-neutral' }}">
                                 {{ $message['message'] }}
                             </div>
                         </div>

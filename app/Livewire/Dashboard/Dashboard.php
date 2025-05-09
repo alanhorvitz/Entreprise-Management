@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Dashboard;
 
 use Livewire\Component;
 use App\Models\Project;
@@ -141,7 +141,7 @@ class Dashboard extends Component
                 ->get();
         }
         
-        return view('livewire.dashboard', [
+        return view('livewire.dashboard.index', [
             'activeProjects' => $activeProjects,
             'completedTasks' => $completedTasks,
             'pendingTasks' => $pendingTasks,

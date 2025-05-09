@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="max-w-7xl">     
-        <livewire:create-project />
+        @livewire('projects.create')
     </div>
 @endsection
   

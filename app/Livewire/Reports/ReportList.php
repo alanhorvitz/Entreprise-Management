@@ -99,12 +99,10 @@ class ReportList extends Component
         }
         
         $report->delete();
+
         
-        $this->dispatch('notify', [
-            'message' => 'Report deleted successfully!',
-            'type' => 'success',
-        ]);
     }
+
 
     public function setDateRange($range)
     {

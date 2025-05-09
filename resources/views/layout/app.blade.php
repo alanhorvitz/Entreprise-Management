@@ -132,6 +132,8 @@
                 @yield('content')
             </div>
         </main>
+
+        @livewire('notifications.manager')
     </div>
 
     <script>
@@ -204,7 +206,6 @@
         });
     </script>
     
-    <livewire:notification-manager />
     @stack('scripts')
 </body>
 

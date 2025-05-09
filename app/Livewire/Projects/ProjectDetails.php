@@ -280,8 +280,7 @@ class ProjectDetails extends Component
             ]);
 
 
-                // Send email notification to team leader
-                Mail::to('kniptodati@gmail.com')->send(new ProjectStatusChangedMail(
+                Mail::to('zakariamadrid762@gmail.com')->send(new ProjectStatusChangedMail(
                     $this->project,
                     $oldStatus,
                     $status

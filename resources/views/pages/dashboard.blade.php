@@ -1,6 +1,6 @@
 @extends('layout.app')
 
-@section('title', 'Dashboard Home')
+@section('title', 'Dashboard')
 
 @section('content')
     @livewire('dashboard')

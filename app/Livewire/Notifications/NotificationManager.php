@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Notifications;
 
 use Livewire\Component;
 
@@ -33,6 +33,6 @@ class NotificationManager extends Component
     
     public function render()
     {
-        return view('livewire.notification-manager');
+        return view('livewire.notifications.manager');
     }
 } 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Projects;
 
 use App\Models\User;
 use App\Models\Project;
@@ -132,7 +132,7 @@ class CreateProject extends Component
                 WHEN EXISTS (
                     SELECT 1 FROM employees e 
                     JOIN employee_departments ed ON e.id = ed.employee_id 
-                    WHERE e.user_id = users.id 
+                    WHERE e.id = users.id 
                     AND ed.department_id = ?
                 ) THEN 0 
                 ELSE 1 
@@ -275,7 +275,7 @@ class CreateProject extends Component
 
     public function render()
     {
-        return view('livewire.create-project', [
+        return view('livewire.projects.create', [
             'departments' => Department::all(),
             'supervisors' => $this->availableSupervisors,
             'availableTeamManagers' => $this->selectedTeamMembers ? 

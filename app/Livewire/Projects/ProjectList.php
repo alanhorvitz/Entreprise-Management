@@ -130,7 +130,7 @@ class ProjectList extends Component
         $projects = $query->orderBy($this->sortField, $this->sortDirection)
             ->paginate(10);
 
-        return view('livewire.projects.project-list', [
+        return view('livewire.projects.list', [
             'projects' => $projects,
             'canCreate' => auth()->user()->hasPermissionTo('create projects'),
             'canEdit' => auth()->user()->hasPermissionTo('edit projects'),

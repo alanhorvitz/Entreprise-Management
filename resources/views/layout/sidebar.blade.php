@@ -1,8 +1,8 @@
 <div id="layout-sidebar" class="bg-base-100 border-r border-base-200 flex flex-col h-screen w-64 fixed left-0 top-0">
     <div class="p-4 border-b border-base-200">
         <a class="flex items-center justify-center" href="/" data-discover="true">
-            <img alt="logo-dark" class="hidden h-8 dark:inline" src="/images/logo/logo-dark.svg" />
-            <img alt="logo-light" class="h-8 dark:hidden" src="/images/logo/logo-light.svg" />
+            <img alt="logo-dark" class="hidden h-12  dark:inline" src="{{ asset('images/logo.png') }}" />
+            <img alt="logo-light" class="h-12  dark:hidden" src="{{ asset('images/logo.png') }}" />
         </a>
     </div>
 

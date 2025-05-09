@@ -68,7 +68,7 @@
                 <div class="flex items-center gap-2">
                     <div class="form-control ml-2">
                         <label class="cursor-pointer label p-0">
-                            <input type="checkbox" id="show-holidays" class="checkbox checkbox-sm checkbox-secondary" checked />
+                            <input type="checkbox" id="show-holidays" class="checkbox checkbox-sm checkbox-primary" checked />
                             <span class="label-text ml-2">Show Moroccan Holidays</span>
                         </label>
                     </div>
@@ -1290,13 +1290,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         switch(normalizedStatus) {
             case 'in_progress':
-                return 'badge-warning';
-            case 'todo':
-                return 'badge-info';
-            case 'pending_approval':
-                return 'badge-secondary';
-            case 'approved':
                 return 'badge-accent';
+            case 'todo':
+                return 'badge-secondary';
+            case 'pending_approval':
+                return 'badge-warning';
+            case 'approved':
+                return 'badge-success';
             default:
                 return 'badge-ghost';
         }

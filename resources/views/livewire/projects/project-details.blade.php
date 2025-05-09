@@ -343,7 +343,7 @@
                         <p class="py-4 text-base-content/70">Are you sure you want to remove this member from the project?</p>
                     </div>
 
-                    <div class="flex justify-end gap-2 mt-6">
+                    <div class="flex justify-between gap-2 mt-6">
                         <button wire:click="closeDeleteModal" class="btn">Cancel</button>
                         <button wire:click="deleteMember" class="btn btn-error">Remove Member</button>
                     </div>
@@ -367,7 +367,7 @@
                         <p class="py-4 text-base-content/70">Are you sure you want to delete this project? This action will remove all associated data and cannot be undone.</p>
                     </div>
 
-                    <div class="flex justify-end gap-2 mt-6">
+                    <div class="flex justify-between gap-2 mt-6">
                         <button wire:click="closeProjectDeleteModal" class="btn">Cancel</button>
                         <button wire:click="deleteProject" class="btn btn-error">Delete Project</button>
                     </div>
