@@ -3,7 +3,7 @@
 @section('title', 'Calendar')
 
 @section('content')
-<div class="card shadow-lg bg-base-100">
+<div class="card shadow-lg bg-base-200">
     <div class="card-body">
         <!-- Calendar Controls and Filters - Jira Style -->
         <div class="mb-6">
@@ -40,7 +40,7 @@
             </div>
 
             <!-- Filters - Jira Style -->
-            <div class="flex flex-col md:flex-row gap-3 justify-between bg-base-200 p-3 rounded-lg">
+            <div class="flex flex-col md:flex-row gap-3 justify-between bg-base-300 p-3 rounded-lg">
                 <div class="flex flex-wrap gap-2 items-center">
                     <span class="font-medium text-sm">Filters:</span>
                     
@@ -80,13 +80,13 @@
         <div class="overflow-x-auto">
             <div class="calendar-container">
                 <div id="calendar-header" class="grid grid-cols-7 gap-px mb-px bg-base-300">
-                    <div class="text-center font-medium p-2 bg-base-100">Sun</div>
-                    <div class="text-center font-medium p-2 bg-base-100">Mon</div>
-                    <div class="text-center font-medium p-2 bg-base-100">Tue</div>
-                    <div class="text-center font-medium p-2 bg-base-100">Wed</div>
-                    <div class="text-center font-medium p-2 bg-base-100">Thu</div>
-                    <div class="text-center font-medium p-2 bg-base-100">Fri</div>
-                    <div class="text-center font-medium p-2 bg-base-100">Sat</div>
+                    <div class="text-center font-medium p-2 bg-base-200">Sun</div>
+                    <div class="text-center font-medium p-2 bg-base-200">Mon</div>
+                    <div class="text-center font-medium p-2 bg-base-200">Tue</div>
+                    <div class="text-center font-medium p-2 bg-base-200">Wed</div>
+                    <div class="text-center font-medium p-2 bg-base-200">Thu</div>
+                    <div class="text-center font-medium p-2 bg-base-200">Fri</div>
+                    <div class="text-center font-medium p-2 bg-base-200">Sat</div>
                 </div>
                 <div id="calendar-days" class="grid grid-cols-7 gap-px bg-base-300">
                     <!-- Calendar days will be inserted here via JavaScript -->
@@ -98,7 +98,7 @@
 
 <!-- Task Modal -->
 <dialog id="task-modal" class="modal">
-    <div class="modal-box max-w-4xl  bg-base-100 shadow-xl">
+    <div class="modal-box max-w-4xl  bg-base-200 shadow-xl">
         <div class="flex justify-between items-center mb-6">
             <h3 class="font-bold text-2xl text-primary" id="modal-date"></h3>
             <form method="dialog">
@@ -570,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Create day element
                 const dayElement = document.createElement('div');
-                dayElement.className = `day p-2 bg-base-100 ${isCurrentMonth ? '' : 'opacity-40'} ${isToday ? 'ring-2 ring-primary ring-inset' : ''}`;
+                dayElement.className = `day p-2 bg-base-200 ${isCurrentMonth ? '' : 'opacity-40'} ${isToday ? 'ring-2 ring-primary ring-inset' : ''}`;
                 if (isHolidayDay) {
                     dayElement.classList.add('bg-error/10');
                     dayElement.classList.add('holiday-cell');
@@ -675,7 +675,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Create day element
             const dayElement = document.createElement('div');
-            dayElement.className = `week-day p-3 bg-base-100 min-h-[300px] ${isToday ? 'is-today' : ''}`;
+            dayElement.className = `week-day p-3 bg-base-200 min-h-[300px] ${isToday ? 'is-today' : ''}`;
             if (isHolidayDay) {
                 dayElement.classList.add('bg-error/10');
                 dayElement.classList.add('holiday-cell');
@@ -767,12 +767,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create day view container
         const dayViewContainer = document.createElement('div');
-        dayViewContainer.className = `day-view-container bg-base-100 rounded-lg overflow-hidden shadow-md ${isToday ? 'is-today' : ''}`;
+        dayViewContainer.className = `day-view-container bg-base-200 rounded-lg overflow-hidden shadow-md ${isToday ? 'is-today' : ''}`;
         dayViewContainer.dataset.date = dateStr;
         
         // Create day header
         const header = document.createElement('div');
-        header.className = `day-view-header p-6 ${isToday ? 'bg-primary/10' : 'bg-base-200'}`;
+        header.className = `day-view-header p-6 ${isToday ? 'bg-primary/10' : 'bg-base-300'}`;
         
         const dateElement = document.createElement('h2');
         dateElement.className = 'day-view-title mb-2';
@@ -843,7 +843,7 @@ document.addEventListener('DOMContentLoaded', function() {
             emptyState.className = 'flex flex-col items-center justify-center py-10 text-base-content/60';
             
             const iconContainer = document.createElement('div');
-            iconContainer.className = 'w-16 h-16 rounded-full bg-base-200 flex items-center justify-center mb-4';
+            iconContainer.className = 'w-16 h-16 rounded-full bg-base-300 flex items-center justify-center mb-4';
             iconContainer.innerHTML = '<iconify-icon icon="solar:calendar-minimalistic-bold-duotone" style="font-size: 1.75rem"></iconify-icon>';
             
             const emptyMessage = document.createElement('h4');
@@ -865,7 +865,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create detailed task cards for day view
             dayTasks.forEach(task => {
                 const taskCard = document.createElement('div');
-                taskCard.className = 'card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-shadow';
+                taskCard.className = 'card bg-base-200 shadow-sm border border-base-300 hover:shadow-md transition-shadow';
                 
                 const cardBody = document.createElement('div');
                 cardBody.className = 'card-body p-4';
@@ -895,7 +895,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Status information
                 if (task.status) {
                     const statusInfo = document.createElement('div');
-                    statusInfo.className = 'flex items-center justify-between bg-base-200/50 p-3 rounded mb-2';
+                    statusInfo.className = 'flex items-center justify-between bg-base-300/50 p-3 rounded mb-2';
                     
                     const statusLabel = document.createElement('span');
                     statusLabel.className = 'font-medium';
@@ -1053,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function createTaskCard(task) {
         // Create task card for the modal view
         const taskCard = document.createElement('div');
-        taskCard.className = 'card bg-base-100 shadow-md rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-all border border-transparent hover:border-primary/20';
+        taskCard.className = 'card bg-base-200 shadow-md rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-all border border-transparent hover:border-primary/20';
         taskCard.dataset.taskId = task.id;
         
         // Make the entire card clickable to navigate to task details
@@ -1124,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Status information
         if (task.status) {
             const statusInfo = document.createElement('div');
-            statusInfo.className = 'flex items-center justify-between bg-base-200/50 p-3 rounded mb-2';
+            statusInfo.className = 'flex items-center justify-between bg-base-300/50 p-3 rounded mb-2';
             
             const statusLabel = document.createElement('span');
             statusLabel.className = 'font-medium';
@@ -1142,7 +1142,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Due date with clear labeling
         if (task.due_date) {
             const dueInfo = document.createElement('div');
-            dueInfo.className = 'flex items-center justify-between bg-base-200/50 p-3 rounded';
+            dueInfo.className = 'flex items-center justify-between bg-base-300/50 p-3 rounded';
             
             const dueLabel = document.createElement('span');
             dueLabel.className = 'font-medium';
@@ -1397,7 +1397,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Icon container with theme-aware styling
             const iconContainer = document.createElement('div');
-            iconContainer.className = 'w-16 h-16 rounded-full bg-base-200 flex items-center justify-center mb-4';
+            iconContainer.className = 'w-16 h-16 rounded-full bg-base-300 flex items-center justify-center mb-4';
             iconContainer.innerHTML = '<iconify-icon icon="solar:calendar-minimalistic-bold-duotone" style="font-size: 1.75rem"></iconify-icon>';
             
             // Empty message

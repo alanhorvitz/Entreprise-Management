@@ -4,7 +4,7 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Active Projects Card -->
-        <div class="card bg-base-100 shadow-md">
+        <div class="card bg-base-200 shadow-md">
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <div>
@@ -27,7 +27,7 @@
         </div>
 
         <!-- Tasks Completed Card -->
-        <div class="card bg-base-100 shadow-md">
+        <div class="card bg-base-200 shadow-md">
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <div>
@@ -51,7 +51,7 @@
         </div>
 
         <!-- Pending Tasks Card -->
-        <div class="card bg-base-100 shadow-md">
+        <div class="card bg-base-200 shadow-md">
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <div>
@@ -74,7 +74,7 @@
         </div>
 
         <!-- Team Members / Projects Card -->
-        <div class="card bg-base-100 shadow-md">
+        <div class="card bg-base-200 shadow-md">
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <div>
@@ -104,7 +104,7 @@
     </div>
 
     <!-- Projects Overview -->
-    <div class="card bg-base-100 shadow-md">
+    <div class="card bg-base-200 shadow-md">
         <div class="card-body">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="card-title">
@@ -174,7 +174,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Pending Approvals -->
         @if($canApproveTask)
-        <div class="card bg-base-100 shadow-md">
+        <div class="card bg-base-200 shadow-md">
             <div class="card-body">
                 <h2 class="card-title flex justify-between">
                     <span>Pending Approvals</span>
@@ -182,7 +182,7 @@
                         <div tabindex="0" role="button" class="btn btn-sm btn-ghost">
                             <span class="iconify w-4 h-4" data-icon="solar:alt-arrow-down-bold-duotone"></span>
                         </div>
-                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
                             <li><a href="{{ route('tasks.index') }}">View All Tasks</a></li>
                         </ul>
                     </div>
@@ -222,7 +222,7 @@
         @endif
 
         <!-- Tasks Due Soon -->
-        <div class="card bg-base-100 shadow-md {{ !$canApproveTask ? 'lg:col-span-2' : '' }}">
+        <div class="card bg-base-200 shadow-md {{ !$canApproveTask ? 'lg:col-span-2' : '' }}">
             <div class="card-body">
                 <h2 class="card-title flex justify-between">
                     <span>
@@ -236,7 +236,7 @@
                         <div tabindex="0" role="button" class="btn btn-sm btn-ghost">
                             <span class="iconify w-4 h-4" data-icon="solar:alt-arrow-down-bold-duotone"></span>
                         </div>
-                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
                             <li><a href="{{ route('tasks.index') }}">View All Tasks</a></li>
                         </ul>
                     </div>

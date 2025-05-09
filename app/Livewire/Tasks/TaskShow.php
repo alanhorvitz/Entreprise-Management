@@ -64,47 +64,52 @@ class TaskShow extends Component
     
     public function updateStatus($status)
     {
+        // Find the task and update immediately for responsive UI
         $task = Task::findOrFail($this->taskId);
         $task->update(['current_status' => $status]);
         
-        // Send email when task is marked as completed
-        if ($status === 'completed') {
-            Mail::to('kniptodati@gmail.com')->send(new TaskCompletedMail($task));
-
-            // Get the project supervisor ID from supervised_by column
-            $supervisorId = $task->project->supervised_by;
-            if ($supervisorId) {
-                try {
-                    Notification::create([
-                        'user_id' => $supervisorId,
-                        'from_id' => auth()->id(),
-                        'title' => 'Task Completed',
-                        'message' => "Task '{$task->title}' has been marked as completed and requires your approval",
-                        'type' => 'status_change',
-                        'data' => [
-                            'task_id' => $task->id,
-                            'task_title' => $task->title,
-                            'project_id' => $task->project_id,
-                            'completed_by' => auth()->user()->name
-                        ],
-                        'is_read' => false
-                    ]);
-                } catch (\Exception $e) {
-                    \Log::error('Failed to create notification: ' . $e->getMessage());
-                    $this->dispatch('notify', [
-                        'type' => 'error',
-                        'message' => 'Failed to send notification to supervisor'
-                    ]);
-                }
-            }
-        }
-        
-        $this->loadTask();
-        $this->dispatch('taskUpdated');
+        // Immediately dispatch success notification
         $this->dispatch('notify', [
             'message' => 'Task status updated successfully!',
             'type' => 'success',
         ]);
+        
+        // Run resource-intensive operations in the background
+        dispatch(function() use ($task, $status) {
+            // Send email when task is marked as completed
+            if ($status === 'completed') {
+                // Queue the email sending instead of waiting for it
+                Mail::to('kniptodati@gmail.com')->queue(new TaskCompletedMail($task));
+                
+                // Get the project supervisor ID from supervised_by column
+                $supervisorId = $task->project->supervised_by;
+                
+                if ($supervisorId) {
+                    try {
+                        Notification::create([
+                            'user_id' => $supervisorId,
+                            'from_id' => auth()->id(),
+                            'title' => 'Task Completed',
+                            'message' => "Task '{$task->title}' has been marked as completed and requires your approval",
+                            'type' => 'status_change',
+                            'data' => [
+                                'task_id' => $task->id,
+                                'task_title' => $task->title,
+                                'project_id' => $task->project_id,
+                                'completed_by' => auth()->user()->name
+                            ],
+                            'is_read' => false
+                        ]);
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to create notification: ' . $e->getMessage());
+                    }
+                }
+            }
+        });
+        
+        // Refresh the task and emit events
+        $this->loadTask();
+        $this->dispatch('taskUpdated');
     }
     
     public function openEditModal()
@@ -155,27 +160,39 @@ class TaskShow extends Component
                 $statusMessage = $status === 'approved' ? 'Task has been approved.' : 'Task is pending approval.';
             }
 
+            // Refresh task to ensure we have all related data
+            $this->task->refresh();
+            
+            // Get current user ID to exclude from notifications
+            $currentUserId = auth()->id();
+            
             // Notify all assigned members about the status change
             foreach ($this->task->taskAssignments as $assignment) {
-                if ($assignment->user_id != auth()->id()) { // Don't notify the supervisor making the change
-                    Notification::create([
-                        'user_id' => $assignment->user_id,
-                        'from_id' => auth()->id(),
-                        'title' => 'Task Status Updated',
-                        'message' => "Task '{$this->task->title}' has been " . 
-                            ($status === 'approved' ? 'approved' : 
-                            ($status === 'in_progress' ? 'returned to progress' : 'marked as pending approval')),
-                        'type' => 'status_change',
-                        'data' => [
-                            'task_id' => $this->task->id,
-                            'task_title' => $this->task->title,
-                            'project_id' => $this->task->project_id,
-                            'old_status' => $oldStatus,
-                            'new_status' => $status,
-                            'updated_by' => auth()->user()->name
-                        ],
-                        'is_read' => false
-                    ]);
+                // Get the user ID correctly through the employee relationship
+                if ($assignment->employee && $assignment->employee->user) {
+                    $userId = $assignment->employee->user->id;
+                    
+                    // Skip notification for the current user
+                    if ($userId && $userId != $currentUserId) {
+                        Notification::create([
+                            'user_id' => $userId,
+                            'from_id' => $currentUserId,
+                            'title' => 'Task Status Updated',
+                            'message' => "Task '{$this->task->title}' has been " . 
+                                ($status === 'approved' ? 'approved' : 
+                                ($status === 'in_progress' ? 'returned to progress' : 'marked as pending approval')),
+                            'type' => 'status_change',
+                            'data' => [
+                                'task_id' => $this->task->id,
+                                'task_title' => $this->task->title,
+                                'project_id' => $this->task->project_id,
+                                'old_status' => $oldStatus,
+                                'new_status' => $status,
+                                'updated_by' => auth()->user()->name
+                            ],
+                            'is_read' => false
+                        ]);
+                    }
                 }
             }
 
@@ -183,9 +200,6 @@ class TaskShow extends Component
                 'type' => 'success',
                 'message' => $statusMessage
             ]);
-
-            // Refresh the task data
-            $this->task->refresh();
             
             // Emit event for task update
             $this->dispatch('taskUpdated');

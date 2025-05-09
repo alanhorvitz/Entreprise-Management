@@ -1,6 +1,6 @@
 <div>
     <!-- Filters Section -->
-    <div class="card bg-base-100 shadow-md mb-6">
+    <div class="card bg-base-200 shadow-md mb-6">
         <div class="card-body">
             <div class="flex justify-between items-center mb-5">
                 <h2 class="card-title">Tasks</h2>
@@ -90,7 +90,7 @@
                         <div tabindex="0" role="button" class="btn btn-outline btn-sm">
                             <span class="iconify w-5 h-5 mr-1" data-icon="solar:sort-from-bottom-to-top-bold-duotone"></span> Sort By
                         </div>
-                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
                             <li><a wire:click="sortBy('due_date')" class="cursor-pointer {{ $sortField === 'due_date' && $sortDirection === 'asc' ? 'active' : '' }}">Due Date (Earliest)</a></li>
                             <li><a wire:click="sortBy('due_date')" class="cursor-pointer {{ $sortField === 'due_date' && $sortDirection === 'desc' ? 'active' : '' }}">Due Date (Latest)</a></li>
                             <li><a wire:click="sortBy('priority')" class="cursor-pointer {{ $sortField === 'priority' && $sortDirection === 'desc' ? 'active' : '' }}">Priority (Highest)</a></li>
@@ -105,7 +105,7 @@
     </div>
 
     <!-- Tasks Table -->
-    <div class="overflow-x-auto bg-base-100 rounded-lg shadow-md h-[500px] overflow-y-auto">
+    <div class="overflow-x-auto bg-base-200 rounded-lg shadow-md h-[500px] overflow-y-auto">
         <table class="table table-zebra w-full">
             <thead>
                 <tr>
@@ -228,7 +228,7 @@
                                 <div tabindex="0" role="button" class="btn btn-ghost btn-xs">
                                     <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
                                 </div>
-                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
                                     <li><a wire:click="openViewModal({{ $task->id }})" @click="document.activeElement.blur()">
                                         <span class="iconify w-5 h-5 mr-2" data-icon="solar:eye-bold-duotone"></span> View Details
                                     </a></li>

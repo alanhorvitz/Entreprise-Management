@@ -1,6 +1,6 @@
 <div>
     <!-- Filters Section -->
-    <div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card bg-base-200 shadow-md mb-6">
         <div class="card-body">
             <div class="flex justify-between items-center mb-5">
                 <h2 class="card-title">Projects</h2>
@@ -38,7 +38,7 @@
     <!-- Projects Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse($projects as $project)
-            <div class="card bg-base-100 shadow-xl">
+            <div class="card bg-base-200 shadow-md">
                 <div class="card-body">
                     <div class="flex justify-between items-start">
                         <div class="w-12 h-12 bg-neutral text-neutral-content rounded-lg inline-flex items-center justify-center">
@@ -49,7 +49,7 @@
                                 <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle">
                                     <span class="iconify w-5 h-5" data-icon="solar:menu-dots-bold-duotone"></span>
                                 </div>
-                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
                                     @if($canEdit)
                                         <li><a href="{{ route('projects.edit', $project) }}">
                                             <span class="iconify w-5 h-5 mr-2" data-icon="solar:pen-bold-duotone"></span> Edit
@@ -150,7 +150,7 @@
             <div class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0">
                 <div class="fixed inset-0 transition-opacity bg-base-200 opacity-40" aria-hidden="true"></div>
 
-                <div class="relative w-full max-w-lg p-6 my-8 overflow-hidden text-left transition-all transform bg-base-100 rounded-lg shadow-xl">
+                <div class="relative w-full max-w-lg p-6 my-8 overflow-hidden text-left transition-all transform bg-base-200 rounded-lg shadow-md">
                     <div class="flex flex-col items-center justify-center text-center">
                         <div class="w-16 h-16 bg-error text-error-content rounded-full inline-flex items-center justify-center mb-4">
                             <span class="iconify w-8 h-8" data-icon="solar:trash-bin-trash-bold-duotone"></span>

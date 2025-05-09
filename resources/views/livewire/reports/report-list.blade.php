@@ -33,7 +33,7 @@
     </div>
 
     <!-- Report Controls -->
-    <div class="card bg-base-100 shadow-md mb-6">
+    <div class="card bg-base-200 shadow-md mb-6">
         <div class="card-body p-4">
             <div class="flex flex-col lg:flex-row justify-between gap-4">
                 <div class="flex flex-col sm:flex-row gap-4">

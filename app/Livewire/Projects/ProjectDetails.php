@@ -244,55 +244,59 @@ class ProjectDetails extends Component
         try {
             $oldStatus = $this->project->status;
             
+            // Immediately update the status and display notification
             $this->project->update([
                 'status' => $status
             ]);
-
-            // Get all directors except current user
-            $directors = User::role('director')
-                ->where('id', '!=', auth()->id())
-                ->get();
             
-            // Send notification to each director
-            foreach ($directors as $director) {
-                Notification::create([
-                    'user_id' => $director->id,
-                    'from_id' => auth()->id(),
-                    'title' => 'Project Status Updated',
-                    'message' => 'Project status has been updated to ' . $status . ' for project: ' . $this->project->name,
-                    'type' => 'status_change',
-                    'data' => [
-                        'project_id' => $this->project->id,
-                        'project_name' => $this->project->name,
-                        'new_status' => $status,
-                        'updated_by' => auth()->user()->name
-                    ],
-                    'is_read' => false
-                ]);
-            }
-
-            // Load the project with its relationships
-            $this->project->load([
-                'members' => function($query) {
-                    $query->where('role', 'team_leader');
-                },
-                'members.user'  // Load the user relationship directly from ProjectMember
-            ]);
-
-
-                Mail::to('zakariamadrid762@gmail.com')->send(new ProjectStatusChangedMail(
-                    $this->project,
-                    $oldStatus,
-                    $status
-                ));
-            
-
+            // Send immediate success notification to user
             $this->dispatch('notify', [
                 'type' => 'success',
                 'message' => 'Project status updated successfully!'
             ]);
-
+            
+            // Dispatch status updated event
             $this->dispatch('statusUpdated');
+            
+            // Perform background tasks that don't need to block UI response
+            dispatch(function() use ($status, $oldStatus, $user) {
+                // Get all directors except current user
+                $directors = User::role('director')
+                    ->where('id', '!=', $user->id)
+                    ->pluck('id');
+                
+                // Bulk create notifications (more efficient than looping)
+                $notifications = [];
+                foreach ($directors as $directorId) {
+                    $notifications[] = [
+                        'user_id' => $directorId,
+                        'from_id' => $user->id,
+                        'title' => 'Project Status Updated',
+                        'message' => 'Project status has been updated to ' . $status . ' for project: ' . $this->project->name,
+                        'type' => 'status_change',
+                        'data' => json_encode([
+                            'project_id' => $this->project->id,
+                            'project_name' => $this->project->name,
+                            'new_status' => $status,
+                            'updated_by' => $user->name
+                        ]),
+                        'is_read' => false,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+                
+                if (!empty($notifications)) {
+                    Notification::insert($notifications);
+                }
+                
+                // Send email asynchronously
+                Mail::to('kniptodati@gmail.com')->queue(new ProjectStatusChangedMail(
+                    $this->project,
+                    $oldStatus,
+                    $status
+                ));
+            });
             
         } catch (\Exception $e) {
             $this->dispatch('notify', [

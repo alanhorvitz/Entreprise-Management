@@ -1,7 +1,7 @@
 <div>
-    <div class="flex flex-col h-[calc(100vh-130px)] bg-base-100 gap-4">
+    <div class="flex flex-col h-[calc(100vh-130px)] bg-base-200 gap-4">
         <!-- Chat header with project selector -->
-        <div class="bg-base-200 rounded-lg shadow-md p-4 flex-shrink-0">
+        <div class="bg-base-300 rounded-lg shadow-md p-4 flex-shrink-0">
             <div class="flex justify-between items-center">
                 <h2 class="text-xl font-bold">Project Chat</h2>
                 
@@ -11,7 +11,7 @@
                         <span class="truncate">{{ $currentProject ? $currentProject['name'] : 'No Projects' }}</span>
                         <span class="iconify" data-icon="heroicons:chevron-down"></span>
                     </label>
-                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-64 max-h-[300px] overflow-y-auto overflow-x-hidden">
+                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-64 max-h-[300px] overflow-y-auto overflow-x-hidden">
                         <li class="menu-title px-4 py-2 font-medium text-sm">Your Projects</li>
                         @forelse($projects as $project)
                             <li class="w-full">
@@ -47,7 +47,7 @@
         </div>
         
         <!-- Chat messages area - with flex-grow and overflow handling -->
-        <div class="flex-grow overflow-hidden bg-base-100 rounded-lg shadow-md p-4 flex flex-col" wire:poll.10s="refreshChat">
+        <div class="flex-grow overflow-hidden bg-base-200 rounded-lg shadow-md p-4 flex flex-col" wire:poll.10s="refreshChat">
             <div id="chat-messages" class="overflow-y-auto flex-grow flex flex-col gap-4 min-h-[300px]">
                 @if($currentProject)
                     @forelse($messages as $message)
@@ -91,7 +91,7 @@
             @if(auth()->user()->hasRole('director') || 
                 (auth()->user()->hasRole('supervisor') && $currentProject['supervised_by'] == auth()->id()) || 
                 auth()->user()->hasPermissionTo('send messages'))
-                <div class="bg-base-200 rounded-lg shadow-md p-4 flex-shrink-0">
+                <div class="bg-base-300 rounded-lg shadow-md p-4 flex-shrink-0">
                     <form wire:submit.prevent="sendMessage" class="flex gap-2">
                         <input 
                             type="text" 
