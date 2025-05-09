@@ -88,12 +88,11 @@ class ProjectList extends Component
 
     public function render()
     {
-        $user = auth()->user();
         $query = Project::query()
-            ->with(['createdBy', 'supervisedBy', 'members.user']);
+            ->with(['createdBy', 'supervisedBy', 'members']);
 
-        // Apply role-based filtering
-        if ($user->hasRole(['director', 'super_admin'])) {
+        // Apply permission-based filtering
+        if (auth()->user()->hasPermissionTo('view all projects')) {
             // Director can see all projects
             $query->when($this->search, function ($query) {
                 $query->where(function ($query) {
@@ -101,25 +100,21 @@ class ProjectList extends Component
                         ->orWhere('description', 'like', '%' . $this->search . '%');
                 });
             });
-        } elseif ($user->hasRole('supervisor')) {
-            // Supervisors see projects they supervise
-            $query->where('supervised_by', $user->id)
-                ->when($this->search, function ($query) {
-                    $query->where(function ($query) {
-                        $query->where('name', 'like', '%' . $this->search . '%')
-                            ->orWhere('description', 'like', '%' . $this->search . '%');
-                    });
-                });
-        } else {
-            // Team leaders and employees see projects they are members of
-            $query->whereHas('members', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
+        } else if (auth()->user()->hasPermissionTo('view assigned projects')) {
+            // For supervisors and employees, show only their assigned projects
+            $query->where(function($query) {
+                $query->whereHas('members', function ($query) {
+                    $query->where('user_id', auth()->id());
+                })->orWhere('supervised_by', auth()->id());
             })->when($this->search, function ($query) {
                 $query->where(function ($query) {
                     $query->where('name', 'like', '%' . $this->search . '%')
                         ->orWhere('description', 'like', '%' . $this->search . '%');
                 });
             });
+        } else {
+            // No permission to view projects
+            $query->where('id', 0); // Return empty result
         }
 
         // Apply status filter if selected
@@ -130,7 +125,7 @@ class ProjectList extends Component
         $projects = $query->orderBy($this->sortField, $this->sortDirection)
             ->paginate(10);
 
-        return view('livewire.projects.list', [
+        return view('livewire.projects.projects-list', [
             'projects' => $projects,
             'canCreate' => auth()->user()->hasPermissionTo('create projects'),
             'canEdit' => auth()->user()->hasPermissionTo('edit projects'),

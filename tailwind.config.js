@@ -10,11 +10,27 @@ export default {
         fontFamily: {
           sans: ['Instrument Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         },
+        colors: {
+          primary: "#dab540",
+        },
       },
     },
     plugins: [require("daisyui")],
     daisyui: {
-      themes: ["light", "dark"],
+      themes: [
+        {
+          light: {
+            "primary": "#dab540",
+            "primary-focus": "#c2a030",
+            "primary-content": "#ffffff",
+          },
+          dark: {
+            "primary": "#dab540",
+            "primary-focus": "#c2a030",
+            "primary-content": "#000000",
+          },
+        },
+      ],
       darkTheme: "dark",
       base: true,
       styled: true,

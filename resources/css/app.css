@@ -7,6 +7,18 @@
         --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
             'Segoe UI Symbol', 'Noto Color Emoji';
     }
+
+    /* Custom primary color override for all themes */
+    [data-theme="light"], 
+    [data-theme="dark"] {
+        --p: 45 60% 55%; /* hsl value for #dab540 */
+        --pf: 45 65% 48%; /* darker for focus/hover */
+        --pc: 0 0% 100%; /* for light theme button text */
+    }
+
+    [data-theme="dark"] {
+        --pc: 0 0% 10%; /* for dark theme button text */
+    }
 }
 
 /* Source paths */
@@ -19,3 +31,26 @@
 @import "daisyui/dist/full.css";
 
 @plugin "daisyui";
+
+/* Custom styles for primary color */
+.text-primary {
+    color: #dab540 !important;
+}
+
+.bg-primary {
+    background-color: #dab540 !important;
+}
+
+.btn-primary {
+    background-color: #dab540 !important;
+    border-color: #dab540 !important;
+}
+
+.btn-primary:hover {
+    background-color: #c2a030 !important;
+    border-color: #c2a030 !important;
+}
+
+.border-primary {
+    border-color: #dab540 !important;
+}

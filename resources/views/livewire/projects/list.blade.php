@@ -92,8 +92,3 @@
     @endif
 </div>
 
-@section('content')
-    <div>
-        @livewire('projects.list')
-    </div>
-@endsection
