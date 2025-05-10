@@ -81,10 +81,62 @@
             --depth: 1;
             --noise: 0;
         }
+
+        /* Loader Styles */
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-base-100);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--color-base-200);
+            border-radius: 50%;
+            border-top-color: var(--color-primary);
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 1rem;
+        }
+
+        .loader-text {
+            color: var(--color-base-content);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loader-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 
 <body class="font-sans antialiased bg-base-100/50">
+    <!-- Page Loader -->
+    <div id="page-loader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">Loading...</div>
+        </div>
+    </div>
+
     <div class="min-h-screen">
         @include('layout.sidebar')
         @include('layout.navbar')
@@ -203,6 +255,51 @@
             
             mediaQuery.addListener(handleResponsive);
             handleResponsive(mediaQuery);
+        });
+
+        // Page Loader
+        document.addEventListener('DOMContentLoaded', () => {
+            const loader = document.getElementById('page-loader');
+            
+            // Hide loader when page is fully loaded
+            window.addEventListener('load', () => {
+                loader.classList.add('loader-hidden');
+            });
+
+            // Show loader during page transitions
+            document.addEventListener('livewire:navigating', () => {
+                loader.classList.remove('loader-hidden');
+            });
+
+            // Handle Livewire navigation events
+            document.addEventListener('livewire:navigated', () => {
+                // Keep loader visible for a minimum time to ensure smooth transition
+                setTimeout(() => {
+                    loader.classList.add('loader-hidden');
+                }, 500);
+            });
+
+            // Handle Livewire loading states
+            document.addEventListener('livewire:load', () => {
+                loader.classList.remove('loader-hidden');
+            });
+
+            document.addEventListener('livewire:initialized', () => {
+                setTimeout(() => {
+                    loader.classList.add('loader-hidden');
+                }, 500);
+            });
+
+            // Handle Livewire updates
+            document.addEventListener('livewire:update', () => {
+                loader.classList.remove('loader-hidden');
+            });
+
+            document.addEventListener('livewire:updated', () => {
+                setTimeout(() => {
+                    loader.classList.add('loader-hidden');
+                }, 500);
+            });
         });
     </script>
     
