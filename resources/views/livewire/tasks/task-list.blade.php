@@ -202,19 +202,19 @@
                             @endphp
                             @if($assignees->count() > 0)
                                 <div class="flex items-center gap-2">
-                                    <div class="avatar-group -space-x-6">
+                                    <div class="avatar-group -space-x-5">
                                         @foreach($assignees->take(3) as $user)
-                                            <div class="avatar">
-                                                <div class="w-8 rounded-full">
-                                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=random" alt="{{ $user->name }}" />
+     
+                                                <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-base-100">
+                                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=random" 
+                                                         alt="{{ urlencode($user->name) }}" 
+                                                         class="w-full h-full object-cover" />
                                                 </div>
-                                            </div>
                                         @endforeach
                                         @if($assignees->count() > 3)
-                                            <div class="avatar placeholder">
-                                                <div class="w-8 rounded-full bg-neutral-focus text-neutral-content">
-                                                    <span>+{{ $assignees->count() - 3 }}</span>
-                                                </div>
+
+                                            <div class="w-8 h-8 rounded-full bg-base-300 border-2 border-base-100 flex items-center justify-center text-xs font-medium">
+                                                +{{ $assignees->count() - 3 }}
                                             </div>
                                         @endif
                                     </div>

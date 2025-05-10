@@ -135,8 +135,12 @@
                                     <span>{{ $project->name }}</span>
                                 </td>
                                 <td>
-                                    <div class="badge badge-{{ $project->status === 'completed' ? 'success' : ($project->status === 'active' ? 'primary' : 'ghost') }} badge-sm">
-                                        {{ $project->status }}
+                                    <div class="badge badge-{{ 
+                                        $project->status === 'completed' ? 'success' : 
+                                        ($project->status === 'in_progress' ? 'primary' : 
+                                        ($project->status === 'on_hold' ? 'warning' : 'info')) 
+                                    }} badge-sm">
+                                        {{ str_replace('_', ' ', ucfirst($project->status)) }}
                                     </div>
                                 </td>
                                 <td>
@@ -198,8 +202,12 @@
                                         <p class="text-sm text-base-content/70">{{ $task->project->name ?? 'No Project' }}</p>
                                         <p class="text-sm mt-2">{{ Str::limit($task->description, 100) }}</p>
                                         <div class="flex items-center gap-2 mt-1">
-                                            <div class="w-6 h-6 bg-accent text-accent-content rounded-full inline-flex items-center justify-center">
-                                                <span class="text-xs font-medium">{{ $task->createdBy ? substr($task->createdBy->name, 0, 2) : 'NA' }}</span>
+                                            <div class="flex -space-x-4">
+                                                <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-base-100">
+                                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($task->createdBy->name) }}&background=random" 
+                                                         alt="{{ $task->createdBy->name }}" 
+                                                         class="w-full h-full object-cover" />
+                                                </div>
                                             </div>
                                             <span class="text-xs">Requested by {{ $task->createdBy?->name ?? 'Unknown' }}</span>
                                         </div>
@@ -253,15 +261,17 @@
                                 <div class="badge badge-{{ Carbon\Carbon::parse($task->due_date)->isToday() ? 'error' : 'warning' }}">
                                     {{ Carbon\Carbon::parse($task->due_date)->diffForHumans() }}
                                 </div>
-                                <div class="mt-1 flex justify-end -space-x-2">
-                                    @foreach($task->assignedUsers->take(2) as $user)
+                                <div class="mt-1 flex justify-end -space-x-4">
+                                    @foreach($task->assignedUsers->take(3) as $user)
                                         <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-base-100">
-                                            <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=random" alt="{{ $user->name }}" class="w-full h-full object-cover" />
+                                            <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=random" 
+                                                 alt="{{ $user->name }}" 
+                                                 class="w-full h-full object-cover" />
                                         </div>
                                     @endforeach
-                                    @if($task->assignedUsers->count() > 2)
+                                    @if($task->assignedUsers->count() > 3)
                                         <div class="w-8 h-8 rounded-full bg-base-300 border-2 border-base-100 flex items-center justify-center text-xs font-medium">
-                                            +{{ $task->assignedUsers->count() - 2 }}
+                                            +{{ $task->assignedUsers->count() - 3 }}
                                         </div>
                                     @endif
                                 </div>

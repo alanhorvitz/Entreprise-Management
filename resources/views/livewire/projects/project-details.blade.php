@@ -208,7 +208,9 @@
                                             <td>
                                                 <span class="badge {{ 
                                                     $task->status === 'completed' ? 'badge-success' : 
-                                                    ($task->status === 'in_progress' ? 'badge-primary' : 'badge-secondary') 
+                                                    ($task->status === 'pending_approval' ? 'badge-warning' :
+                                                    ($task->status === 'approved' ? 'badge-success' :
+                                                    ($task->status === 'in_progress' ? 'badge-primary' : 'badge-secondary')))
                                                 }}">
                                                     {{ str_replace('_', ' ', ucfirst($task->status)) }}
                                                 </span>
