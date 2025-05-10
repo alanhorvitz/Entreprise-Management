@@ -135,11 +135,11 @@
                                     <span>{{ $project->name }}</span>
                                 </td>
                                 <td>
-                                    <div class="badge badge-{{ 
-                                        $project->status === 'completed' ? 'success' : 
-                                        ($project->status === 'in_progress' ? 'primary' : 
-                                        ($project->status === 'on_hold' ? 'warning' : 'info')) 
-                                    }} badge-sm">
+                                    <div class="badge {{ 
+                                        $project->status === 'completed' ? 'badge-success' : 
+                                        ($project->status === 'in_progress' ? 'badge-primary' : 
+                                        ($project->status === 'on_hold' ? 'badge-warning' : 'badge-secondary')) 
+                                    }} badge-sm whitespace-nowrap !px-2 min-w-[60px] text-center">
                                         {{ str_replace('_', ' ', ucfirst($project->status)) }}
                                     </div>
                                 </td>
