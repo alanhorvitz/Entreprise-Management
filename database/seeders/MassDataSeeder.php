@@ -284,6 +284,7 @@ class MassDataSeeder extends Seeder
         }
 
         // Create tasks
+        $repetitiveTaskCount = 0;
         foreach ($projects as $project) {
             $taskCount = rand(10, 30);
             for ($i = 0; $i < $taskCount; $i++) {
@@ -297,7 +298,7 @@ class MassDataSeeder extends Seeder
                     'current_status' => ['todo', 'in_progress', 'completed'][array_rand(['todo', 'in_progress', 'completed'])],
                     'start_date' => Carbon::now()->subDays(rand(1, 15)),
                     'status' => ['pending_approval', 'approved'][array_rand(['pending_approval', 'approved'])],
-                    'is_repetitive' => rand(0, 1)
+                    'is_repetitive' => $repetitiveTaskCount < 100 ? rand(0, 1) : 0
                 ]);
 
                 // Add task assignments
@@ -333,18 +334,8 @@ class MassDataSeeder extends Seeder
                     'notes' => 'Initial status'
                 ]);
 
-                // Add task reminders
-                // if (rand(0, 1)) {
-                //     TaskReminder::create([
-                //         'task_id' => $task->id,
-                //         'user_id' => $users[array_rand($users)]->id,
-                //         'reminder_date' => Carbon::now()->addDays(rand(1, 7)),
-                //         'is_sent' => rand(0, 1)
-                //     ]);
-                // }
-
                 // Add repetitive tasks
-                if ($task->is_repetitive) {
+                if ($task->is_repetitive && $repetitiveTaskCount < 100) {
                     RepetitiveTask::create([
                         'task_id' => $task->id,
                         'project_id' => $project->id,
@@ -357,6 +348,7 @@ class MassDataSeeder extends Seeder
                         'end_date' => Carbon::now()->addDays(rand(30, 90))->timestamp,
                         'next_occurrence' => Carbon::now()->addDays(rand(1, 7))->timestamp
                     ]);
+                    $repetitiveTaskCount++;
                 }
             }
         }
