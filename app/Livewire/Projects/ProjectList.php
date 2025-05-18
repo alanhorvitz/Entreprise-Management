@@ -101,17 +101,17 @@ class ProjectList extends Component
                 });
             });
         } else if (auth()->user()->hasPermissionTo('view assigned projects')) {
-            // For supervisors and employees, show only their assigned projects
-            $query->where(function($query) {
-                $query->whereHas('members', function ($query) {
-                    $query->where('user_id', auth()->id());
-                })->orWhere('supervised_by', auth()->id());
-            })->when($this->search, function ($query) {
+            // For supervisors, team leaders and employees, show only their assigned projects
+            $query->whereHas('members', function ($query) {
+                $query->where('user_id', auth()->id());
+            });
+
+            if ($this->search) {
                 $query->where(function ($query) {
                     $query->where('name', 'like', '%' . $this->search . '%')
                         ->orWhere('description', 'like', '%' . $this->search . '%');
                 });
-            });
+            }
         } else {
             // No permission to view projects
             $query->where('id', 0); // Return empty result

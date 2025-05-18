@@ -132,8 +132,11 @@ class RoleAndPermissionSeeder extends Seeder
         $teamLeaderRole->syncPermissions($teamLeaderPermissions);
 
         $employeePermissions = [
+            'view assigned projects',
             'view chat',
             'send messages',
+            'view daily reports',
+            'view notifications'
         ];
         $employeeRole->syncPermissions($employeePermissions);
     }
