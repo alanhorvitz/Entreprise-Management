@@ -41,7 +41,7 @@
 
             <!-- Filters - Jira Style -->
             <div class="flex flex-col md:flex-row gap-3 justify-between bg-base-300 p-3 rounded-lg">
-                <div class="flex flex-wrap gap-2 items-center">
+                <div class="flex gap-2 items-center">
                     <span class="font-medium text-sm">Filters:</span>
                     
                     <select id="project-filter" class="select select-sm select-bordered">
