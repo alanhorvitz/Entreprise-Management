@@ -1,6 +1,6 @@
 # Enterprise Management System
 
-A robust enterprise management system built with Laravel and Vue.js, designed to streamline task management, project collaboration, and departmental organization within your company.
+A robust enterprise management system built with Laravel and Alpine.js, designed to streamline task management, project collaboration, and departmental organization within your company.
 
 ## 🚀 Features
 
@@ -48,9 +48,9 @@ A robust enterprise management system built with Laravel and Vue.js, designed to
   - Laravel Livewire for dynamic interfaces
 
 - **Frontend**
-  - Vue.js
-  - Tailwind CSS
-  - PostCSS
+  - Alpine.js for JavaScript interactivity
+  - Tailwind CSS with DaisyUI components
+  - Laravel Blade templating
 
 - **Development Tools**
   - Vite for asset bundling
@@ -152,8 +152,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Authors
 
-- Alan Horvitz - Initial work
-- Zakaria Ait Ali - Core Developer 
+- Alan Horvitz - Lead Developer
+- Zakaria Ait Ali - Junior Developer
 
 ## 🙏 Acknowledgments
 
