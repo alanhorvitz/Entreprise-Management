@@ -13,6 +13,9 @@ PAIL_PID=$!
 npm run dev &
 NPM_PID=$!
 
+
+
+
 # Function to kill all processes
 cleanup() {
     echo "Stopping all processes..."
