@@ -8,6 +8,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TasksController;
+use App\Http\Controllers\OrderConfirmationController;
+use App\Livewire\OrderConfirmations\OrderConfirmationList;
 use App\Mail\TestMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +43,14 @@ Route::middleware('auth')->group(function () {
     Route::resource('projects', ProjectsController::class);
     Route::resource('tasks', TasksController::class);
     Route::resource('calendar', CalendarController::class);
+    
+    // Order Confirmations
+    Route::get('order-confirmations/users-report', [OrderConfirmationController::class, 'usersReport'])
+        ->name('order-confirmations.users-report')
+        ->middleware(['auth', 'role:admin|director']);
+    Route::resource('order-confirmations', OrderConfirmationController::class);
+    Route::patch('/order-confirmations/{orderConfirmation}/status', [OrderConfirmationController::class, 'updateStatus'])
+        ->name('order-confirmations.update-status');
     
     // Reports routes without additional middleware
     Route::resource('reports', ReportController::class);

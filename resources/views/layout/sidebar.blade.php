@@ -27,6 +27,25 @@
                         <span class="iconify w-5 h-5 mr-3" data-icon="solar:calendar-bold-duotone"></span>
                         <span>Calendar</span>
                     </a>
+                    <!-- Projects with confirmations check -->
+                    @php
+                        $isAdminOrDirector = auth()->user()->hasRole('admin') || auth()->user()->hasRole('director');
+                        $userProjects = $isAdminOrDirector
+                            ? App\Models\Project::where('has_confirmations', true)->get()
+                            : (auth()->user()->employee 
+                                ? auth()->user()->employee->projects()->where('has_confirmations', true)->get() 
+                                : collect([]));
+                        
+                        $hasConfirmationProjects = $userProjects->isNotEmpty();
+                    @endphp
+
+                    <!-- Show confirmations menu only if user has access to projects with confirmations -->
+                    @if($hasConfirmationProjects)
+                        <a href="{{ route('order-confirmations.index') }}" class="flex items-center px-3 py-2 text-sm font-medium rounded-lg hover:bg-base-200 transition-colors group {{ request()->routeIs('order-confirmations.*') ? 'bg-primary/10 text-primary' : 'text-base-content/80' }}">
+                            <span class="iconify w-5 h-5 mr-3" data-icon="solar:document-text-bold-duotone"></span>
+                            <span>Order Confirmations</span>
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -49,5 +68,4 @@
             </div>
         </nav>
     </div>
-
 </div>

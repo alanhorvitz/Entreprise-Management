@@ -19,6 +19,7 @@ return new class extends Migration
             $table->enum('status', ['planning', 'in_progress', 'completed', 'on_hold']);
             $table->foreignId('supervised_by')->constrained('users')->cascadeOnDelete();
             $table->decimal('budget', 10, 2);
+            $table->boolean('has_confirmations')->default(false);
             $table->timestamps();
         });
     }

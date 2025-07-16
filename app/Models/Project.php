@@ -26,7 +26,8 @@ class Project extends Model
         'end_date',
         'status',
         'supervised_by',
-        'budget'
+        'budget',
+        'has_confirmations'
     ];
 
     /**
@@ -56,7 +57,8 @@ class Project extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'budget' => 'decimal:2',
-        'status' => 'string'
+        'status' => 'string',
+        'has_confirmations' => 'boolean'
     ];
 
     /**
@@ -132,5 +134,13 @@ class Project extends Model
     public function attachments(): HasMany
     {
         return $this->hasMany(ProjectAttachment::class);
+    }
+
+    /**
+     * Get the order confirmations associated with the project.
+     */
+    public function orderConfirmations(): HasMany
+    {
+        return $this->hasMany(OrderConfirmation::class);
     }
 }

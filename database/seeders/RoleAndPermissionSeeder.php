@@ -24,6 +24,7 @@ class RoleAndPermissionSeeder extends Seeder
             'operators',
             'statuses',
             'reasons',
+            'materials',  // Add materials to the tables array
         ];
 
         foreach ($tables as $table) {
@@ -77,7 +78,14 @@ class RoleAndPermissionSeeder extends Seeder
             
             // Notifications
             'view notifications',
-            'manage notifications'
+            'manage notifications',
+
+            // Material Management
+            'manage materials',
+            'approve material reservations',
+            'view material history',
+            'create material reservations',
+            'manage material reservations'
         ];
 
         foreach ($projectPermissions as $permission) {
@@ -131,6 +139,27 @@ class RoleAndPermissionSeeder extends Seeder
         ];
         $teamLeaderRole->syncPermissions($teamLeaderPermissions);
 
+        // Admin Role Permissions
+        $adminPermissions = [
+            // Material Management
+            'view materials',
+            'create materials',
+            'edit materials',
+            'delete materials',
+            'manage materials',
+            'approve material reservations',
+            'view material history',
+            'create material reservations',
+            'manage material reservations',
+            // Add other admin permissions as needed
+            'view users',
+            'view reports',
+            'view notifications',
+            'manage notifications'
+        ];
+        $adminRole->syncPermissions($adminPermissions);
+
+        // Employee Role gets basic material viewing permissions
         $employeePermissions = [
             'view assigned projects',
             'view chat',

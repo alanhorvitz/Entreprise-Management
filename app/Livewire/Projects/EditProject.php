@@ -29,6 +29,7 @@ class EditProject extends Component
     public $departmentMembers = [];
     public $availableSupervisors = [];
     public $is_featured;
+    public $has_confirmations;
 
     // Add message properties
     public $showMessage = false;
@@ -46,7 +47,8 @@ class EditProject extends Component
         'team_leader_id' => 'required|exists:users,id',
         'budget' => 'nullable|numeric|min:0',
         'selectedTeamMembers' => 'required|array|min:1',
-        'selectedTeamMembers.*' => 'exists:users,id'
+        'selectedTeamMembers.*' => 'exists:users,id',
+        'has_confirmations' => 'boolean'
     ];
 
     public function mount(Project $project)
@@ -64,6 +66,7 @@ class EditProject extends Component
         $this->status = $project->status;
         $this->budget = $project->budget;
         $this->supervised_by = $project->supervised_by;
+        $this->has_confirmations = $project->has_confirmations;
 
         // Load all project members including team leader
         $projectMembers = DB::table('project_members')
@@ -196,6 +199,7 @@ class EditProject extends Component
                 'status' => $this->status,
                 'budget' => $this->budget,
                 'supervised_by' => $this->supervised_by,
+                'has_confirmations' => $this->has_confirmations,
             ]);
 
             // Get employee IDs for selected users

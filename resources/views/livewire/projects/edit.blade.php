@@ -212,6 +212,15 @@
                         <span class="label-text">Send notifications to team members about the updates</span>
                     </label>
                 </div>
+                <div class="form-control w-full mt-4">
+                    <label class="label cursor-pointer justify-start gap-2">
+                        <input type="checkbox" wire:model="has_confirmations" class="checkbox checkbox-primary" />
+                        <span class="label-text">Enable Order Confirmations</span>
+                    </label>
+                    <p class="text-sm text-base-content/70 mt-1 ml-8">
+                        Allow project members to create and manage order confirmations for this project.
+                    </p>
+                </div>
             </div>
         </div>
         

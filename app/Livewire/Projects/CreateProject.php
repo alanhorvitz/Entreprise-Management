@@ -26,6 +26,7 @@ class CreateProject extends Component
     public $selectedTeamMembers = [];
     public $send_notifications = false;
     public $is_featured = false;
+    public $has_confirmations = false;
 
     public $departmentMembers = [];
     public $availableSupervisors = [];
@@ -49,7 +50,8 @@ class CreateProject extends Component
             'team_leader_id' => 'required|exists:users,id',
             'supervised_by' => 'required|exists:users,id',
             'selectedTeamMembers' => 'required|array|min:1',
-            'selectedTeamMembers.*' => 'exists:users,id'
+            'selectedTeamMembers.*' => 'exists:users,id',
+            'has_confirmations' => 'boolean'
         ];
     }
 
@@ -167,7 +169,8 @@ class CreateProject extends Component
                 'budget' => $this->budget,
                 'supervised_by' => $this->supervised_by,
                 'created_by' => Auth::id(),
-                'is_featured' => $this->is_featured
+                'is_featured' => $this->is_featured,
+                'has_confirmations' => $this->has_confirmations
             ]);
 
             // Get employee IDs
@@ -265,7 +268,7 @@ class CreateProject extends Component
                 'message' => 'Project created successfully!'
             ]);
 
-            return $this->redirect(route('projects.index'), navigate: true);
+            return redirect()->route('projects.index');
 
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to create project: ' . $e->getMessage());
